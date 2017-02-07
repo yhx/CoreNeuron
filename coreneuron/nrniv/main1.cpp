@@ -80,6 +80,10 @@ void nrn_init_and_load_data(int argc,
     nrnmpi_init(nrnmpi_under_nrncontrol ? 1 : 0, &argc, &argv);
 #endif
 
+#if defined(DLB)
+    DLB_Init();
+#endif
+
     // memory footprint after mpi initialisation
     report_mem_usage("After MPI_Init");
 
@@ -307,6 +311,10 @@ int main1(int argc, char** argv, char** env) {
 
     // Cleaning the memory
     nrn_cleanup();
+
+#if defined(DLB)
+    DLB_Finalize();
+#endif
 
 // mpi finalize
 #if NRNMPI

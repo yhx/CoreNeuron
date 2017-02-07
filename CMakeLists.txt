@@ -60,6 +60,7 @@ option(ENABLE_SPLAYTREE_QUEUING "Enable use of Splay tree for spike queuing" OFF
 option(ENABLE_CUDA_MODULES "Enable modules like Random123 written in CUDA" ON)
 option(ENABLE_NET_RECEIVE_BUFFERING "Enable event buffering in net_receive function" ON)
 option(ENABLE_OMP_RUNTIME_SCHEDULE "Use runtime schedule for OpenMP" OFF)
+option(ENABLE_DLB "Enable use of Dynamic Load Balancing (DLB) Library" OFF)
 
 ## mech / mod options
 set(ADDITIONAL_MECHPATH "" CACHE PATH "Search path for optional additional mechanism MOD files")
@@ -108,6 +109,18 @@ endif()
 #OpenMP runtime schedule
 if (ENABLE_OMP_RUNTIME_SCHEDULE)
     add_definitions("-DENABLE_OMP_RUNTIME_SCHEDULE")
+endif()
+
+#find DLB package from BSC
+if (ENABLE_DLB)
+    find_package(DLB)
+
+    if(DLB_FOUND)
+        include_directories(${DLB_INCLUDE_DIR})
+        add_definitions("-DDLB")
+    else(DLB_FOUND)
+        message(FATAL_ERROR "Can't find DLB installation, add install path to CMAKE_PREFIX_PATH!")
+    endif(DLB_FOUND)
 endif()
 
 #Disable hoc_exp wrapper for exp

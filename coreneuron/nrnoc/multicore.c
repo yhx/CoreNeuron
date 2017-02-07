@@ -441,22 +441,39 @@ void nrn_thread_table_check() {
     }
 }
 
+
+// check for the event from DLB for new thread count
+// on success change the openmp thread count
+void check_dlb_thread_update() {
+#ifdef DLB
+    int new_threads = 1;
+    int poll = DLB_poll_new_threads(&new_threads, NULL);
+    if (poll == 0) {
+        fprintf(stderr, "DLB :: Setting %d threads\n", new_threads);
+        omp_set_num_threads(new_threads);
+    }
+#endif
+}
+
 void nrn_multithread_job(void* (*job)(NrnThread*)) {
     int i;
 #if defined(_OPENMP)
+
+    // check for updated threads from DLB
+    check_dlb_thread_update();
 
 /* Todo : Remove schedule clause usage by using OpenMP 3 API.
  *        Need better CMake handling for checking OpenMP 3 support.
  */
 // clang-format off
-#if defined(ENABLE_OMP_RUNTIME_SCHEDULE)
+  #if defined(ENABLE_OMP_RUNTIME_SCHEDULE)
     #pragma omp parallel for private(i) shared(nrn_threads, job, nrn_nthread, \
                                            nrnmpi_myid) schedule(runtime)
-#else
+  #else
     // default(none) removed to avoid issue with opari2
     #pragma omp parallel for private(i) shared(nrn_threads, job, nrn_nthread, \
-                                           nrnmpi_myid) schedule(static, 1)
-#endif
+                                           nrnmpi_myid) schedule(dynamic, 1)
+  #endif
     // clang-format on
     for (i = 0; i < nrn_nthread; ++i) {
         (*job)(nrn_threads + i);

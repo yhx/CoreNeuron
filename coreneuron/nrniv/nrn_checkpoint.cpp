@@ -25,7 +25,7 @@ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 THE POSSIBILITY OF SUCH DAMAGE.
 */
-#include "coreneuron/nrn_checkpoint.hpp"
+#include "coreneuron/nrniv/nrn_checkpoint.h"
 #include "coreneuron/nrnoc/multicore.h"
 static int   maxgid;     // no gid in any file can be greater than maxgid
 static char* output_dir; // output directory to write simple checkpoint 
@@ -41,6 +41,7 @@ void write_phase1(int imult, NrnThread& nt){
 // nc_srcgid[0..nt.n_netcon-1] to write
 
 // close file
+
 }
 
 void write_phase2(int imult, NrnThread& nt){

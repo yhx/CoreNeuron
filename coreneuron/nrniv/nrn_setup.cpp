@@ -30,6 +30,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <iostream>
 #include <vector>
 #include <map>
+#include <cstring>
 #include "coreneuron/nrnconf.h"
 #include "coreneuron/nrnoc/multicore.h"
 #include "coreneuron/nrniv/nrniv_decl.h"
@@ -270,6 +271,9 @@ void read_phase1(data_reader& F, int imult, NrnThread& nt) {
     // the extra netcon_srcgid will be filled in later
     netcon_srcgid[nt.id] = new int[nt.n_netcon + nrn_setup_extracon];
     F.read_array<int>(netcon_srcgid[nt.id], nt.n_netcon);
+    nt.src_gids = new int[nt.n_netcon];
+    memcpy (nt.src_gids, netcon_srcgid[nt.id], nt.n_netcon * sizeof(int));
+    F.close();
 
 #if 0
   // for checking whether negative gids fit into the gid space

@@ -27,24 +27,60 @@ THE POSSIBILITY OF SUCH DAMAGE.
 */
 #include "coreneuron/nrniv/nrn_checkpoint.h"
 #include "coreneuron/nrnoc/multicore.h"
+#include "coreneuron/nrniv/nrniv_decl.h"
+#include "coreneuron/nrniv/nrn_setup.h"
+#include <iostream>
+#include <sstream>
+#include <cassert>
+
 static int   maxgid;     // no gid in any file can be greater than maxgid
-static char* output_dir; // output directory to write simple checkpoint 
+static const char* output_dir; // output directory to write simple checkpoint 
+static void write_phase1(int imult, NrnThread& nt);
+static void write_phase2(int imult, NrnThread& nt);
+static void write_phase3(int imult, NrnThread& nt);
 
-void write_phase1(int imult, NrnThread& nt){
-// open file for writing
-// write nt.n_presyn
-// write nt.netcon - nrn_setup_extracon (nrn_setup:390)
-// fill array of output_gids with:
-// nt_presyns[i]->gid_ - (maxgid * imult);
-// TODO can we set net.presyns[i].gid for negtives ? it can help a lot in case we need negatives.
-// otherwise: if (nt.presyns[i].ouput_index == -1 => skip
-// nc_srcgid[0..nt.n_netcon-1] to write
-
-// close file
-
+void write_checkpoint (int imult, NrnThread& nt, const char* dir){
+  output_dir = dir;
+  write_phase1 (imult, nt);
+  write_phase2 (imult, nt);
+  write_phase3 (imult, nt);
 }
 
-void write_phase2(int imult, NrnThread& nt){
+
+
+static void write_phase1(int imult, NrnThread& nt){
+  // serialize
+  int* output_gids      = (int*) malloc (nt.n_presyn*sizeof(int));
+  int* netcon_srcgid    = (int*) malloc (nt.n_netcon*sizeof(int));
+  // fill array of output_gids with:
+  // nt_presyns[i]->gid_ - (maxgid * imult);
+  for (int i = 0; i < nt.n_presyn; i++) {
+    output_gids[i] = nt.presyns[i].gid_ - (maxgid * imult);
+  }
+  for (int i = 0; i < nt.n_netcon; i++) {
+    netcon_srcgid[i] = nt.src_gids[i] - (maxgid * imult);
+  }
+  
+  // open file for writing
+  std::ostringstream filename;
+  filename << output_dir << "/" << gidgroups_w[nt.id] << "_1.dat";
+  std::ofstream file_handle (filename.str().c_str(), std::ios::binary);
+  assert (! file_handle);
+  
+  // write dimensions:  nt.n_presyn and nt.netcon - nrn_setup_extracon (nrn_setup:390)
+  file_handle << nt.n_presyn;
+  file_handle << nt.n_netcon - nrn_setup_extracon;
+  
+  file_handle.write ((const char*) output_gids,   nt.n_presyn*(sizeof(int)));
+  file_handle.write ((const char*) netcon_srcgid, nt.n_netcon*(sizeof(int)));
+  
+  // close file
+  file_handle.close();
+  free (output_gids);
+  free (netcon_srcgid);
+}
+
+static void write_phase2(int imult, NrnThread& nt){
 // open file for writing
 // n_outputgid is not stored in read_pahse2
 // write nt.ncell
@@ -78,6 +114,7 @@ void write_phase2(int imult, NrnThread& nt){
 // close file
 }
 
-void write_phase3(int imult, NrnThread& nt){
+static void write_phase3(int imult, NrnThread& nt){
 
 }
+

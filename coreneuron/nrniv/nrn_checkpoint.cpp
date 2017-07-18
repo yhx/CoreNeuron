@@ -33,7 +33,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <sstream>
 #include <cassert>
 
-static int   maxgid;     // no gid in any file can be greater than maxgid
+static int   maxgid;           // no gid in any file can be greater than maxgid
 static const char* output_dir; // output directory to write simple checkpoint 
 static void write_phase1( NrnThread& nt);
 static void write_phase2( NrnThread& nt);
@@ -71,9 +71,10 @@ static void write_phase1( NrnThread& nt){
   
   // open file for writing
   std::ostringstream filename;
-  filename << output_dir << "/" << nt.file_id << "_1.dat";
+  filename << output_dir << nt.file_id << "_1.dat";
   std::ofstream file_handle (filename.str().c_str(), std::ios::binary);
-  assert (! file_handle);
+  std::cout << filename.str() << std::endl;
+  assert (file_handle.is_open());
   
   // write dimensions:  nt.n_presyn and nt.netcon - nrn_setup_extracon (nrn_setup:390)
   file_handle << nt.n_presyn;

@@ -190,7 +190,7 @@ std::vector<int*> netcon_srcgid;
 static void store_phase_args(int ngroup,
                              int* gidgroups,
                              int* imult,
-                             data_reader* file_reader,
+                             FileHandler* file_reader,
                              const char* path,
                              int byte_swap) {
     ngroup_w = ngroup;
@@ -255,7 +255,7 @@ void nrn_read_filesdat(int& ngrp, int*& grp, int multiple, int*& imult, const ch
     fclose(fp);
 }
 
-void read_phase1(data_reader& F, int imult, NrnThread& nt) {
+void read_phase1(FileHandler& F, int imult, NrnThread& nt) {
     assert(!F.fail());
     int zz = imult * maxgid;     // offset for each gid
     nt.file_id  = gidgroups_w[nt.id]; /// FIXME: find a better place to initialize that (usefull for writing checkpoint)
@@ -608,7 +608,7 @@ void nrn_setup(const char* filesdat, int byte_swap, bool run_setup_cleanup) {
     for (int i = 0; i < nrn_nthread; ++i)
         netcon_srcgid[i] = NULL;
 
-    data_reader* file_reader = new data_reader[ngroup];
+    FileHandler* file_reader = new FileHandler[ngroup];
 
     std::string datapath = nrnopt_get_str("--datpath");
 
@@ -689,7 +689,7 @@ void setup_ThreadData(NrnThread& nt) {
     }
 }
 
-void read_phasegap(data_reader& F, int imult, NrnThread& nt) {
+void read_phasegap(FileHandler& F, int imult, NrnThread& nt) {
     nrn_assert(imult == 0);
     nrn_partrans::SetupInfo& si = nrn_partrans::setup_info_[nt.id];
     si.ntar = 0;
@@ -772,7 +772,7 @@ int nrn_i_layout(int icnt, int cnt, int isz, int sz, int layout) {
 }
 
 template <class T>
-inline void mech_layout(data_reader& F, T* data, int cnt, int sz, int layout) {
+inline void mech_layout(FileHandler& F, T* data, int cnt, int sz, int layout) {
     if (layout == 1) { /* AoS */
         F.read_array<T>(data, cnt * sz);
     } else if (layout == 0) { /* SoA */
@@ -952,7 +952,7 @@ void nrn_cleanup(bool clean_ion_global_map) {
     nrn_threads_free();
 }
 
-void read_phase2(data_reader& F, int imult, NrnThread& nt) {
+void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
     assert(!F.fail());
     nrn_assert(imult >= 0);  // avoid imult unused warning
     NrnThreadMembList* tml;
@@ -1719,7 +1719,7 @@ for (int i=0; i < nt.end; ++i) {
 }
 
 /** read mapping information for neurons */
-void read_phase3(data_reader& F, int imult, NrnThread& nt) {
+void read_phase3(FileHandler& F, int imult, NrnThread& nt) {
     (void)imult;
 
     /** mapping information for all neurons in single NrnThread */

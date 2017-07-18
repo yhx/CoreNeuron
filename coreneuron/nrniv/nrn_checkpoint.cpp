@@ -35,30 +35,30 @@ THE POSSIBILITY OF SUCH DAMAGE.
 
 static int   maxgid;     // no gid in any file can be greater than maxgid
 static const char* output_dir; // output directory to write simple checkpoint 
-static void write_phase1(int imult, NrnThread& nt);
-static void write_phase2(int imult, NrnThread& nt);
-static void write_phase3(int imult, NrnThread& nt);
+static void write_phase1( NrnThread& nt);
+static void write_phase2( NrnThread& nt);
+static void write_phase3( NrnThread& nt);
 
-void write_checkpoint (int imult, NrnThread& nt, const char* dir){
+void write_checkpoint (NrnThread& nt, const char* dir){
   output_dir = dir;
-  write_phase1 (imult, nt);
-  write_phase2 (imult, nt);
-  write_phase3 (imult, nt);
+  write_phase1 (nt);
+  write_phase2 (nt);
+  write_phase3 (nt);
 }
 
 
 
-static void write_phase1(int imult, NrnThread& nt){
+static void write_phase1( NrnThread& nt){
   // serialize
   int* output_gids      = (int*) malloc (nt.n_presyn*sizeof(int));
   int* netcon_srcgid    = (int*) malloc (nt.n_netcon*sizeof(int));
   // fill array of output_gids with:
-  // nt_presyns[i]->gid_ - (maxgid * imult);
+  // nt_presyns[i]->gid_ - (maxgid * nrn_setup_multiple);
   for (int i = 0; i < nt.n_presyn; i++) {
-    output_gids[i] = nt.presyns[i].gid_ - (maxgid * imult);
+    output_gids[i] = nt.presyns[i].gid_ - (maxgid * nrn_setup_multiple);
   }
   for (int i = 0; i < nt.n_netcon; i++) {
-    netcon_srcgid[i] = nt.src_gids[i] - (maxgid * imult);
+    netcon_srcgid[i] = nt.src_gids[i] - (maxgid * nrn_setup_multiple);
   }
   
   // open file for writing
@@ -80,7 +80,7 @@ static void write_phase1(int imult, NrnThread& nt){
   free (netcon_srcgid);
 }
 
-static void write_phase2(int imult, NrnThread& nt){
+static void write_phase2( NrnThread& nt){
 // open file for writing
 // n_outputgid is not stored in read_pahse2
 // write nt.ncell
@@ -114,7 +114,7 @@ static void write_phase2(int imult, NrnThread& nt){
 // close file
 }
 
-static void write_phase3(int imult, NrnThread& nt){
+static void write_phase3( NrnThread& nt){
 
 }
 

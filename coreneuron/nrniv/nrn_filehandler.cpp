@@ -27,16 +27,16 @@ THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include <iostream>
-#include "coreneuron/nrniv/nrn_datareader.h"
+#include "coreneuron/nrniv/nrn_filehandler.h"
 
 extern "C" int check_bbcore_write_version(const char*);
 
-data_reader::data_reader(const char* filename, bool reorder) {
+FileHandler::FileHandler(const char* filename, bool reorder) {
     this->open(filename, reorder);
     checkpoint(0);
 }
 
-void data_reader::open(const char* filename, bool reorder) {
+void FileHandler::open(const char* filename, bool reorder) {
     reorder_on_read = reorder;
 
     close();
@@ -48,7 +48,7 @@ void data_reader::open(const char* filename, bool reorder) {
     check_bbcore_write_version(version);
 }
 
-int data_reader::read_int() {
+int FileHandler::read_int() {
     char line_buf[max_line_length];
 
     F.getline(line_buf, sizeof(line_buf));
@@ -61,7 +61,10 @@ int data_reader::read_int() {
     return i;
 }
 
-void data_reader::read_mapping_count(int* gid, int* nsec, int* nseg, int* nseclist) {
+void FileHandler::read_mapping_count(int* gid,
+                                     int* nsec,
+                                     int* nseg,
+                                     int* nseclist) {
     char line_buf[max_line_length];
 
     F.getline(line_buf, sizeof(line_buf));
@@ -72,11 +75,11 @@ void data_reader::read_mapping_count(int* gid, int* nsec, int* nseg, int* nsecli
     nrn_assert(n_scan == 4);
 }
 
-void data_reader::read_mapping_cell_count(int* count) {
+void FileHandler::read_mapping_cell_count(int* count) {
     *count = read_int();
 }
 
-void data_reader::read_checkpoint_assert() {
+void FileHandler::read_checkpoint_assert() {
     char line_buf[max_line_length];
 
     F.getline(line_buf, sizeof(line_buf));
@@ -95,6 +98,6 @@ void data_reader::read_checkpoint_assert() {
     ++chkpnt;
 }
 
-void data_reader::close() {
+void FileHandler::close() {
     F.close();
 }

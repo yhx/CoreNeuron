@@ -26,8 +26,8 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef nrn_datareader_h
-#define nrn_datareader_h
+#ifndef nrn_filehandler_h
+#define nrn_filehandler_h
 
 #include <fstream>
 #include <vector>
@@ -52,7 +52,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 // @todo: remove this static buffer
 const int max_line_length = 1024;
 
-class data_reader {
+class FileHandler {
     std::ifstream F;       //!< File stream associated with reader.
     bool reorder_on_read;  //!< True if we need to reorder for native endiannes.
     int chkpnt;            //!< Current checkpoint number state.
@@ -65,15 +65,15 @@ class data_reader {
      */
     void read_checkpoint_assert();
 
-    // private copy constructor, assignment: data_reader is not copyable.
-    data_reader(const data_reader&);
-    data_reader& operator=(const data_reader&);
+    // private copy constructor, assignment: FileHandler is not copyable.
+    FileHandler(const FileHandler&);
+    FileHandler& operator=(const FileHandler&);
 
   public:
-    data_reader() : reorder_on_read(false), chkpnt(0) {
+    FileHandler() : reorder_on_read(false), chkpnt(0) {
     }
 
-    explicit data_reader(const char* filename, bool reorder = false);
+    explicit FileHandler(const char* filename, bool reorder = false);
 
     /** Preserving chkpnt state, move to a new file. */
     void open(const char* filename, bool reorder);
@@ -201,4 +201,4 @@ class data_reader {
     void close();
 };
 
-#endif  // ifndef nrn_datareader_h
+#endif  // ifndef nrn_filehandler_h

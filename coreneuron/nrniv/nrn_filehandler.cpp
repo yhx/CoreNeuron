@@ -36,11 +36,11 @@ FileHandler::FileHandler(const char* filename, bool reorder) {
     checkpoint(0);
 }
 
-void FileHandler::open(const char* filename, bool reorder) {
+void FileHandler::open(const char* filename, bool reorder, std::ios::openmode mode) {
     reorder_on_read = reorder;
-
+    checkpoint(0);
     close();
-    F.open(filename);
+    F.open(filename, mode | std::ios::binary); // we always have binary files
 
     char version[256];
     F.getline(version, sizeof(version));

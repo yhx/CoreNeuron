@@ -236,7 +236,6 @@ int main1(int argc, char** argv, char** env) {
     // initializationa and loading functions moved to separate
     nrn_init_and_load_data(argc, argv);
     // nrnopt_get... still available until call nrnopt_delete()
-
     bool compute_gpu = nrnopt_get_flag("-gpu");
 // clang-format off
     #pragma acc data copyin(celsius, secondorder) if (compute_gpu)
@@ -285,9 +284,7 @@ int main1(int argc, char** argv, char** env) {
 
         /// Solver execution
         BBS_netpar_solve(nrnopt_get_dbl("--tstop"));
-        for (int i = 0; i < nrn_nthread; i++) {
-          write_checkpoint (nrn_threads[i], "./");
-        }
+        write_checkpoint (nrn_threads, nrn_nthread, "./");
         // Report global cell statistics
         report_cell_stats();
 

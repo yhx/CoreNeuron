@@ -34,7 +34,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
  * */
 
 class NrnThread;
-void write_checkpoint (NrnThread& nt, const char* dir);
+void write_checkpoint (NrnThread* nt, int nb_threads, const char* dir);
 
 
 #endif 

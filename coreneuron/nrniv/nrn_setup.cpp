@@ -258,6 +258,7 @@ void nrn_read_filesdat(int& ngrp, int*& grp, int multiple, int*& imult, const ch
 void read_phase1(data_reader& F, int imult, NrnThread& nt) {
     assert(!F.fail());
     int zz = imult * maxgid;     // offset for each gid
+    nt.file_id  = gidgroups_w[nt.id]; /// FIXME: find a better place to initialize that (usefull for writing checkpoint)
     nt.n_presyn = F.read_int();  /// Number of PreSyn-s in NrnThread nt
     nt.n_netcon = F.read_int();  /// Number of NetCon-s in NrnThread nt
     nt.presyns = new PreSyn[nt.n_presyn];

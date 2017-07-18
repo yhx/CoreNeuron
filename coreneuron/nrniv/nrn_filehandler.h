@@ -53,7 +53,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 const int max_line_length = 1024;
 
 class FileHandler {
-    std::ifstream F;       //!< File stream associated with reader.
+    std::fstream F;       //!< File stream associated with reader.
     bool reorder_on_read;  //!< True if we need to reorder for native endiannes.
     int chkpnt;            //!< Current checkpoint number state.
 
@@ -199,6 +199,34 @@ class FileHandler {
 
     /** Close currently open file. */
     void close();
+
+
+/*
+ * ====================
+ *  Writing Interface
+ * ====================
+ */
+    void write_checkpoint () {
+      F << "chkpnt " << chkpnt++ << std::endl;
+    }
+
+    template <typename T>
+    void write_array(T* p, size_t nb_elements) {
+      F.write ((const char*) p, nb_elements*(sizeof(T)));
+      write_checkpoint();
+    }
+
+    template <typename T>
+    void write_array(T* p, size_t nb_elements, size_t line_width, size_t nb_lines) {
+      for (int i = 0; i < nb_lines; i++) {
+        F.write ((const char*) &p[i*line_width], nb_elements*(sizeof(T)));
+      }
+      write_checkpoint();
+    }
+
+    void write_int (int& value) {
+      F << value; 
+    }
 };
 
 #endif  // ifndef nrn_filehandler_h

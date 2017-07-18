@@ -28,8 +28,8 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/nrniv/nrn_checkpoint.h"
 #include "coreneuron/nrnoc/multicore.h"
 #include "coreneuron/nrniv/nrniv_decl.h"
-#include "coreneuron/nrniv/nrn_setup.h"
 #include <iostream>
+#include <fstream>
 #include <sstream>
 #include <cassert>
 
@@ -39,11 +39,19 @@ static void write_phase1( NrnThread& nt);
 static void write_phase2( NrnThread& nt);
 static void write_phase3( NrnThread& nt);
 
-void write_checkpoint (NrnThread& nt, const char* dir){
+void write_checkpoint (NrnThread* nt, int nb_threads, const char* dir){
   output_dir = dir;
-  write_phase1 (nt);
-  write_phase2 (nt);
-  write_phase3 (nt);
+  int i;
+/*
+#if defined(_OPENMP)
+  #pragma omp parallel for private(i) shared(nt, nb_threads) schedule(runtime)
+#endif
+*/
+for (i = 0 ; i < nb_threads; i ++) {
+    write_phase1 (nt[i]);
+    write_phase2 (nt[i]);
+    write_phase3 (nt[i]);
+  }
 }
 
 
@@ -63,7 +71,7 @@ static void write_phase1( NrnThread& nt){
   
   // open file for writing
   std::ostringstream filename;
-  filename << output_dir << "/" << gidgroups_w[nt.id] << "_1.dat";
+  filename << output_dir << "/" << nt.file_id << "_1.dat";
   std::ofstream file_handle (filename.str().c_str(), std::ios::binary);
   assert (! file_handle);
   

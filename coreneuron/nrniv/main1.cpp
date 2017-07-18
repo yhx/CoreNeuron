@@ -39,6 +39,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/nrnmpi/nrnmpi.h"
 #include "coreneuron/nrniv/nrniv_decl.h"
 #include "coreneuron/nrniv/output_spikes.h"
+#include "coreneuron/nrniv/nrn_checkpoint.h"
 #include "coreneuron/utils/endianness.h"
 #include "coreneuron/utils/memory_utils.h"
 #include "coreneuron/nrniv/nrnoptarg.h"
@@ -60,7 +61,6 @@ int nrn_feenableexcept() {
   return result;
 }
 #endif
-
 int main1(int argc, char* argv[], char** env);
 void call_prcellstate_for_prcellgid(int prcellgid, int compute_gpu, int is_init);
 void nrn_init_and_load_data(int argc,
@@ -285,7 +285,9 @@ int main1(int argc, char** argv, char** env) {
 
         /// Solver execution
         BBS_netpar_solve(nrnopt_get_dbl("--tstop"));
-
+        for (int i = 0; i < nrn_nthread; i++) {
+          write_checkpoint (nrn_threads[i], "./");
+        }
         // Report global cell statistics
         report_cell_stats();
 

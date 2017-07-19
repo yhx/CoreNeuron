@@ -28,68 +28,71 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/nrniv/nrn_checkpoint.h"
 #include "coreneuron/nrnoc/multicore.h"
 #include "coreneuron/nrniv/nrniv_decl.h"
+#include "coreneuron/nrniv/nrn_filehandler.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <cassert>
 
-static int   maxgid;           // no gid in any file can be greater than maxgid
-static const char* output_dir; // output directory to write simple checkpoint 
-static void write_phase1( NrnThread& nt);
-static void write_phase2( NrnThread& nt);
-static void write_phase3( NrnThread& nt);
+static int          maxgid;           // no gid in any file can be greater than maxgid
+static const char*  output_dir;       // output directory to write simple checkpoint 
+static bool         swap_bytes;
+static void         write_phase1  ( NrnThread& nt, FileHandler& file_handle );
+static void         write_phase2  ( NrnThread& nt, FileHandler& file_handle );
+static void         write_phase3  ( NrnThread& nt, FileHandler& file_handle );
 
-void write_checkpoint (NrnThread* nt, int nb_threads, const char* dir){
+void write_checkpoint ( NrnThread* nt, int nb_threads, const char* dir, bool swap_bytes_order) {
   output_dir = dir;
   int i;
+  swap_bytes = swap_bytes_order;
 /*
 #if defined(_OPENMP)
   #pragma omp parallel for private(i) shared(nt, nb_threads) schedule(runtime)
 #endif
 */
+FileHandler f;
 for (i = 0 ; i < nb_threads; i ++) {
-    write_phase1 (nt[i]);
-    write_phase2 (nt[i]);
-    write_phase3 (nt[i]);
+    write_phase1 (nt[i], f);
+    write_phase2 (nt[i], f);
+    write_phase3 (nt[i], f);
   }
 }
 
 
 
-static void write_phase1( NrnThread& nt){
+static void write_phase1  ( NrnThread& nt, FileHandler& file_handle ) {
   // serialize
-  int* output_gids      = (int*) malloc (nt.n_presyn*sizeof(int));
-  int* netcon_srcgid    = (int*) malloc (nt.n_netcon*sizeof(int));
+  //  int* output_gids      = (int*) malloc (nt.n_presyn*sizeof(int));
+  //  int* netcon_srcgid    = (int*) malloc (nt.n_netcon*sizeof(int));
   // fill array of output_gids with:
   // nt_presyns[i]->gid_ - (maxgid * nrn_setup_multiple);
-  for (int i = 0; i < nt.n_presyn; i++) {
-    output_gids[i] = nt.presyns[i].gid_ - (maxgid * nrn_setup_multiple);
-  }
-  for (int i = 0; i < nt.n_netcon; i++) {
-    netcon_srcgid[i] = nt.src_gids[i] - (maxgid * nrn_setup_multiple);
-  }
+
+//  for (int i = 0; i < nt.n_presyn; i++) {
+//    output_gids[i] = nt.presyns[i].gid_ - (maxgid * nrn_setup_multiple);
+//  }
+//  for (int i = 0; i < nt.n_netcon; i++) {
+//    netcon_srcgid[i] = nt.src_gids[i] - (maxgid * nrn_setup_multiple);
+//  }
   
   // open file for writing
   std::ostringstream filename;
   filename << output_dir << nt.file_id << "_1.dat";
-  std::ofstream file_handle (filename.str().c_str(), std::ios::binary);
-  std::cout << filename.str() << std::endl;
-  assert (file_handle.is_open());
-  
+  file_handle.open(filename.str().c_str(), swap_bytes, std::ios::out);
+  file_handle.checkpoint(0);
   // write dimensions:  nt.n_presyn and nt.netcon - nrn_setup_extracon (nrn_setup:390)
-  file_handle << nt.n_presyn;
-  file_handle << nt.n_netcon - nrn_setup_extracon;
+  file_handle << nt.n_presyn << " npresyn\n";
+  file_handle << nt.n_netcon - nrn_setup_extracon << " nnetcon\n";
   
-  file_handle.write ((const char*) output_gids,   nt.n_presyn*(sizeof(int)));
-  file_handle.write ((const char*) netcon_srcgid, nt.n_netcon*(sizeof(int)));
+  file_handle.write_array<int> (nt.output_gids, nt.n_presyn);
+  file_handle.write_array<int> (nt.src_gids, nt.n_netcon - nrn_setup_extracon);
   
   // close file
   file_handle.close();
-  free (output_gids);
-  free (netcon_srcgid);
+//  free (output_gids);
+//  free (netcon_srcgid);
 }
 
-static void write_phase2( NrnThread& nt){
+static void write_phase2  ( NrnThread& nt, FileHandler& f )  {
 // open file for writing
 // n_outputgid is not stored in read_pahse2
 // write nt.ncell
@@ -123,7 +126,7 @@ static void write_phase2( NrnThread& nt){
 // close file
 }
 
-static void write_phase3( NrnThread& nt){
+static void write_phase3  ( NrnThread& nt, FileHandler& f ) {
 
 }
 

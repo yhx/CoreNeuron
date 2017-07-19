@@ -263,12 +263,14 @@ void read_phase1(FileHandler& F, int imult, NrnThread& nt) {
     nt.n_netcon = F.read_int();  /// Number of NetCon-s in NrnThread nt
     nt.presyns = new PreSyn[nt.n_presyn];
     nt.netcons = new NetCon[nt.n_netcon + nrn_setup_extracon];
+    nt.output_gids = new int[nt.n_presyn];
     nt.presyns_helper = (PreSynHelper*)ecalloc(nt.n_presyn, sizeof(PreSynHelper));
 
     /// Checkpoint in coreneuron is defined for both phase 1 and phase 2 since they are written
     /// together output_gid has all of output PreSyns, netcon_srcgid is created for NetCons which
     /// might be 10k times more than output_gid.
     int* output_gid = F.read_array<int>(nt.n_presyn);
+    memcpy (nt.output_gids, output_gid, sizeof(int) * nt.n_presyn); 
     // the extra netcon_srcgid will be filled in later
     netcon_srcgid[nt.id] = new int[nt.n_netcon + nrn_setup_extracon];
     F.read_array<int>(netcon_srcgid[nt.id], nt.n_netcon);

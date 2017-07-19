@@ -70,8 +70,9 @@ typedef struct NrnThreadBAList {
 typedef struct PreSynHelper { int flag_; } PreSynHelper;
 
 typedef struct NrnThread {
-    int*  src_gids;   // FIXME temporary struct to store checkpoint
-
+    int*  src_gids;     // FIXME temporary struct to store checkpoint
+    int*  output_gids;  // FIXME temporary struct to store checkpoint
+ 
     double _t;
     double _dt;
     double cj;

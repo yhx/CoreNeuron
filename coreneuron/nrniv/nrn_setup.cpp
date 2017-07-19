@@ -959,11 +959,13 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
     nrn_assert(imult >= 0);  // avoid imult unused warning
     NrnThreadMembList* tml;
     int n_outputgid = F.read_int();
+    nt.n_outputgids = n_outputgid;
     nrn_assert(n_outputgid > 0);  // avoid n_outputgid unused warning
     nt.ncell = F.read_int();
     nt.end = F.read_int();
     int ndiam = F.read_int();  // 0 if not needed, else nt.end
     int nmech = F.read_int();
+    nt.nmech = nmech;
 
     /// Checkpoint in coreneuron is defined for both phase 1 and phase 2 since they are written
     /// together
@@ -1037,6 +1039,7 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
     }
 
     nt._ndata = F.read_int();
+    nt.ndata_unpadded = nt._ndata;
     nt._nidata = F.read_int();
     nt._nvdata = F.read_int();
     nt.n_weight = F.read_int();
@@ -1110,14 +1113,24 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
     }
 
     // matrix info
-    nt._v_parent_index = (int*)coreneuron::ecalloc_align(nt.end, NRN_SOA_BYTE_ALIGN, sizeof(int));
-    ;
-    F.read_array<int>(nt._v_parent_index, nt.end);
+    nt._v_parent_index              = (int*)coreneuron::ecalloc_align(nt.end, NRN_SOA_BYTE_ALIGN, sizeof(int));
+    nt.v_parent_index_not_permuted  = (int*)coreneuron::ecalloc_align(nt.end, NRN_SOA_BYTE_ALIGN, sizeof(int));
 
+    nt.actual_a_not_permuted    = (double*)coreneuron::ecalloc_align(nt.end, NRN_SOA_BYTE_ALIGN, sizeof(double));
+    nt.actual_b_not_permuted    = (double*)coreneuron::ecalloc_align(nt.end, NRN_SOA_BYTE_ALIGN, sizeof(double));
+    nt.actual_v_not_permuted    = (double*)coreneuron::ecalloc_align(nt.end, NRN_SOA_BYTE_ALIGN, sizeof(double));
+    nt.actual_area_not_permuted = (double*)coreneuron::ecalloc_align(nt.end, NRN_SOA_BYTE_ALIGN, sizeof(double));
+
+    F.read_array<int>(nt._v_parent_index, nt.end);
+    memcpy (nt.v_parent_index_not_permuted, nt._v_parent_index, sizeof(int)*nt.end);
     F.read_array<double>(nt._actual_a, nt.end);
     F.read_array<double>(nt._actual_b, nt.end);
     F.read_array<double>(nt._actual_area, nt.end);
     F.read_array<double>(nt._actual_v, nt.end);
+    memcpy (nt.actual_a_not_permuted    , nt._actual_a,     sizeof(double)*nt.end);
+    memcpy (nt.actual_b_not_permuted    , nt._actual_b,     sizeof(double)*nt.end);
+    memcpy (nt.actual_v_not_permuted    , nt._actual_v,     sizeof(double)*nt.end);
+    memcpy (nt.actual_area_not_permuted , nt._actual_area,  sizeof(double)*nt.end);
 
     if (ndiam) {
         F.read_array<double>(nt._actual_diam, nt.end);
@@ -1151,6 +1164,8 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
         mech_layout<double>(F, ml->data, n, szp, layout);
 
         if (szdp) {
+            ml->pdata_not_permuted = (int*)coreneuron::ecalloc_align(nrn_soa_padded_size(n, layout) * szdp,
+                                                        NRN_SOA_BYTE_ALIGN, sizeof(int));
             ml->pdata = (int*)coreneuron::ecalloc_align(nrn_soa_padded_size(n, layout) * szdp,
                                                         NRN_SOA_BYTE_ALIGN, sizeof(int));
             mech_layout<int>(F, ml->pdata, n, szdp, layout);

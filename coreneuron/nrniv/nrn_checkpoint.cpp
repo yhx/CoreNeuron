@@ -92,28 +92,49 @@ static void write_phase1  ( NrnThread& nt, FileHandler& file_handle ) {
 //  free (netcon_srcgid);
 }
 
-static void write_phase2  ( NrnThread& nt, FileHandler& f )  {
-// open file for writing
-// n_outputgid is not stored in read_pahse2
-// write nt.ncell
-// write nt.end
-// write 0 if nt._actual_diam == NULL otherwise write nt.end again
-// write number of element in linked list tml (in read file it is nmech)
-// for each element in tml:
-//        write tml->index
-//        write tml->ml->nodecount
-// write nt._ndata
-// write nt._nidata
-// write nt._nvdata
-// write nt.n_weight
-// write nt._v_parent_index [0 -> nt.end -1]
-// write nt._actual_a    [0 -> nt.end -1]
-// write nt._actual_b    [0 -> nt.end -1]
-// write nt._actual_area [0 -> nt.end -1]
-// write nt._actual_v    [0 -> nt.end -1]
-// if (nt._actual_diam)
-//        write nt._actual_diam [0 -> nt.end]
-//
+static void write_phase2  ( NrnThread& nt, FileHandler& file_handle )  {
+  std::ostringstream filename;
+  filename << output_dir << nt.file_id << "_2.dat";
+  file_handle.open(filename.str().c_str(), swap_bytes, std::ios::out);
+  file_handle.checkpoint(2);
+  file_handle << nt.n_outputgids                          << " ngid\n";
+  file_handle << nt.ncell                                 << " n_real_gid\n";
+  file_handle << nt.end                                   << " nnode\n";
+  file_handle << ((nt._actual_diam == NULL) ? 0 : nt.end) << " ndiam\n";
+  file_handle << nt.nmech                                 << " nmech\n";
+  NrnThreadMembList* current_tml = nt.tml;
+  while (current_tml) {
+    file_handle << current_tml->index << "\n";
+    file_handle << current_tml->ml->nodecount << "\n";
+    current_tml = current_tml->next;
+    
+  }
+  file_handle << nt.ndata_unpadded                        << " ndata\n";
+  file_handle << nt._nidata                               << " nidata\n";
+  file_handle << nt._nvdata                               << " nvdata\n";
+  file_handle << nt.n_weight                              << " nweight\n";
+  file_handle.write_array<int> (nt.v_parent_index_not_permuted, nt.end);
+  file_handle.write_array<double> (nt.actual_a_not_permuted, nt.end);
+  file_handle.write_array<double> (nt.actual_b_not_permuted, nt.end);
+  file_handle.write_array<double> (nt.actual_area_not_permuted, nt.end);
+  file_handle.write_array<double> (nt.actual_v_not_permuted, nt.end);
+  if (nt._actual_diam)
+    file_handle.write_array<double> (nt._actual_diam, nt.end);
+  current_tml = nt.tml;
+  while (current_tml) {
+    int type                = current_tml->index;
+    int nb_nodes            = current_tml->ml->nodecount;
+    int size_of_line_data   = nrn_soa_padded_size(nb_nodes, nrn_mech_data_layout_[type]);
+    if (! nrn_is_artificial_[type])
+      file_handle.write_array<int>(current_tml->ml->nodeindices, nb_nodes); 
+    
+    // TODO OK until here, but pdata and data are updated and permuted...
+    file_handle.write_array<double> (current_tml->ml->data, nb_nodes, size_of_line_data, nrn_prop_param_size_[type]);
+    if (nrn_prop_dparam_size_[type])
+      file_handle.write_array<int> (current_tml->ml->pdata, nb_nodes, size_of_line_data, nrn_prop_dparam_size_[type]);
+    current_tml = current_tml->next;
+  }
+  file_handle.close();
 // for each element of tml:
 //        if ! nrn_is_artificial [tml->index]
 //              write tml->ml->nodeindices [0 -> tml->ml->nodecount -1]
@@ -126,7 +147,7 @@ static void write_phase2  ( NrnThread& nt, FileHandler& f )  {
 // close file
 }
 
-static void write_phase3  ( NrnThread& nt, FileHandler& f ) {
+static void write_phase3  ( NrnThread& nt, FileHandler& file_handle ) {
 
 }
 

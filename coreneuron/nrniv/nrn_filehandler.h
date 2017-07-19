@@ -53,10 +53,10 @@ THE POSSIBILITY OF SUCH DAMAGE.
 const int max_line_length = 1024;
 
 class FileHandler {
-    std::fstream F;       //!< File stream associated with reader.
-    bool reorder_on_read;  //!< True if we need to reorder for native endiannes.
-    int chkpnt;            //!< Current checkpoint number state.
-
+    std::fstream              F;                //!< File stream associated with reader.
+    bool                      reorder_bytes;    //!< True if we need to reorder for native endiannes.
+    std::ios_base::openmode   current_mode;     //!< File open mode (not stored in fstream)
+    int                       chkpnt;           //!< Current checkpoint number state.
     /** Read a checkpoint line, bump our chkpnt counter, and assert equality.
      *
      * Checkpoint information is represented by a sequence "checkpt %d\n"
@@ -70,7 +70,7 @@ class FileHandler {
     FileHandler& operator=(const FileHandler&);
 
   public:
-    FileHandler() : reorder_on_read(false), chkpnt(0) {
+    FileHandler() : reorder_bytes(false), chkpnt(0) {
     }
 
     explicit FileHandler(const char* filename, bool reorder = false);
@@ -174,7 +174,7 @@ class FileHandler {
                 break;
             case read:
                 F.read((char*)p, count * sizeof(T));
-                if (reorder_on_read)
+                if (reorder_bytes)
                     endian::swap_endian_range(p, p + count);
                 break;
         }
@@ -206,26 +206,57 @@ class FileHandler {
  *  Writing Interface
  * ====================
  */
-    void write_checkpoint () {
-      F << "chkpnt " << chkpnt++ << std::endl;
-    }
 
     template <typename T>
     void write_array(T* p, size_t nb_elements) {
-      F.write ((const char*) p, nb_elements*(sizeof(T)));
+      nrn_assert(F.is_open());
+      nrn_assert(current_mode & std::ios::out);
       write_checkpoint();
+      if (reorder_bytes) {
+        endian::swap_endian_range(p, p + nb_elements);
+        F.write ((const char*) p, nb_elements*(sizeof(T)));
+        endian::swap_endian_range(p, p + nb_elements);
+      }
+      else {
+        F.write ((const char*) p, nb_elements*(sizeof(T)));
+      }
+      nrn_assert(! F.fail());
     }
 
     template <typename T>
     void write_array(T* p, size_t nb_elements, size_t line_width, size_t nb_lines) {
-      for (int i = 0; i < nb_lines; i++) {
-        F.write ((const char*) &p[i*line_width], nb_elements*(sizeof(T)));
-      }
+      nrn_assert(F.is_open());
+      nrn_assert(current_mode & std::ios::out);
       write_checkpoint();
+      if (reorder_bytes) {
+        endian::swap_endian_range(p, p + line_width*nb_lines);
+        for (int i = 0; i < nb_lines; i++) {
+          F.write ((const char*) &p[i*line_width], nb_elements*(sizeof(T)));
+        }
+        endian::swap_endian_range(p, p + line_width*nb_lines);
+      } else {
+        for (int i = 0; i < nb_lines; i++) {
+          F.write ((const char*) &p[i*line_width], nb_elements*(sizeof(T)));
+        }
+      }
+      nrn_assert(! F.fail());
     }
 
-    void write_int (int& value) {
-      F << value; 
+    template <typename T> 
+    FileHandler& operator<<(const T& scalar) {
+      nrn_assert(F.is_open());
+      nrn_assert(current_mode & std::ios::out);
+
+      F << scalar;
+
+      nrn_assert(! F.fail());
+      return *this;
+    }
+
+  private:
+/* write_checkpoint is callable only for our internal uses, making it accesible to user, makes file format unpredictable */
+    void write_checkpoint () {
+      F << "chkpnt " << chkpnt++ << std::endl;
     }
 };
 

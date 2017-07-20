@@ -1467,14 +1467,14 @@ for (int i=0; i < nt.end; ++i) {
     // acell PreSyn with the Point_process.
     // nt.presyns order same as output_vindex order
     int* output_vindex = F.read_array<int>(nt.n_presyn);
-    nt.output_vindex = (int*) malloc (nt.n_presyn * sizeof(int));
+    nt.output_vindex = new int[nt.n_presyn];
     memcpy (nt.output_vindex, output_vindex, nt.n_presyn * sizeof(int));
     if (nt._permute) {
         // only indices >= 0 (i.e. _actual_v indices) will be changed.
         node_permute(output_vindex, nt.n_presyn, nt._permute);
     }
     double* output_threshold = F.read_array<double>(nt.ncell);
-    nt.output_threshold = (double*) malloc (nt.ncell * sizeof(double));
+    nt.output_threshold = new double[nt.ncell];
     memcpy (nt.output_threshold, output_threshold, nt.ncell * sizeof(double));
     for (int i = 0; i < nt.n_presyn; ++i) {  // real cells
         PreSyn* ps = nt.presyns + i;
@@ -1526,8 +1526,8 @@ for (int i=0; i < nt.end; ++i) {
     // with pnttype[i] > 0 have a target.
     int* pnttype = F.read_array<int>(nnetcon);
     int* pntindex = F.read_array<int>(nnetcon);
-    nt.pnttype  = (int*) malloc (nnetcon * sizeof(int));
-    nt.pntindex = (int*) malloc (nnetcon * sizeof(int));
+    nt.pnttype  = new int[nnetcon];
+    nt.pntindex = new int[nnetcon];
     memcpy (nt.pnttype, pnttype,   nnetcon * sizeof(int));
     memcpy (nt.pntindex, pntindex, nnetcon * sizeof(int));
     for (int i = 0; i < nnetcon; ++i) {
@@ -1597,7 +1597,7 @@ for (int i=0; i < nt.end; ++i) {
 
     // delays in netcons order
     double* delay = F.read_array<double>(nnetcon);
-    nt.delay = (double*) malloc (nnetcon * sizeof(double));
+    nt.delay = new double[nnetcon];
     memcpy (nt.delay, delay, nnetcon * sizeof(double));
     for (int i = 0; i < nnetcon; ++i) {
         NetCon& nc = nt.netcons[i];

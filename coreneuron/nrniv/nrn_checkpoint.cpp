@@ -136,8 +136,12 @@ static void write_phase2  ( NrnThread& nt, FileHandler& file_handle )  {
       file_handle.write_array<int>(current_tml->ml->nodeindices, nb_nodes); 
     }
     // TODO OK until here, but pdata and data are updated and permuted...
+    if (nt.file_id == 10)
+      std::cout << nt.file_id << "::write data" << file_handle.checkpoint() << std::endl;
     file_handle.write_array<double> (current_tml->ml->data, nb_nodes, size_of_line_data, nrn_prop_param_size_[type]);
     if (nrn_prop_dparam_size_[type]) {
+      if (nt.file_id == 10)
+        std::cout << nt.file_id << "::write pdata" << file_handle.checkpoint() << std::endl;
       file_handle.write_array<int> (current_tml->ml->pdata, nb_nodes, size_of_line_data, nrn_prop_dparam_size_[type]);
     }
       current_tml = current_tml->next;
@@ -145,11 +149,7 @@ static void write_phase2  ( NrnThread& nt, FileHandler& file_handle )  {
   file_handle.write_array<int>    (nt.output_vindex, nt.n_presyn);
   file_handle.write_array<double> (nt.output_threshold, nt.ncell);
   int nnetcon = nt.n_netcon - nrn_setup_extracon;
-  if (nt.file_id == 10)
-    std::cout << nt.file_id << "::write pnttype: " << file_handle.checkpoint() << std::endl;
   file_handle.write_array<int>    (nt.pnttype,  nnetcon);
-  if (nt.file_id == 10)
-    std::cout << nt.file_id << "::write pntindex: " << file_handle.checkpoint() << std::endl;
   file_handle.write_array<int>    (nt.pntindex, nnetcon);
   file_handle.write_array<double> (nt.weights,  nt.n_weight);
   file_handle.write_array<double> (nt.delay,    nnetcon);
@@ -158,12 +158,8 @@ static void write_phase2  ( NrnThread& nt, FileHandler& file_handle )  {
     file_handle << nt.type[i] << "\n";
     file_handle << nt.icnt[i] << "\n";
     file_handle << nt.dcnt[i] << "\n";
-  if (nt.file_id == 10)
-    std::cout << nt.file_id << "::write iArray" << file_handle.checkpoint() << std::endl;
   if (nt.icnt[i])
     file_handle.write_array<int>    ( nt.iArrays[i],    nt.icnt[i]);
-  if (nt.file_id == 10)
-    std::cout << nt.file_id << "::write dArray" << file_handle.checkpoint() << std::endl;
   if (nt.dcnt[i])
     file_handle.write_array<double> ( nt.dArrays[i],    nt.dcnt[i]);
   }

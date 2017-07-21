@@ -223,23 +223,32 @@ class FileHandler {
       nrn_assert(! F.fail());
     }
 
+    //FIXME: actual padding is not necessary equal to size of (T) for structured data, 
+    //       we should not assume than we performing the copy but let the user specify the number bytes per line (in case of AoS: size of Padded structure)
     template <typename T>
-    void write_array(T* p, size_t nb_elements, size_t line_width, size_t nb_lines) {
+    void write_array(T* p, size_t nb_elements, size_t line_width, size_t nb_lines, bool to_transpose = false) {
       nrn_assert(F.is_open());
       nrn_assert(current_mode & std::ios::out);
       write_checkpoint();
-      if (reorder_bytes) {
-        endian::swap_endian_range(p, p + line_width*nb_lines);
-        for (int i = 0; i < nb_lines; i++) {
-          F.write ((const char*) &p[i*line_width], nb_elements*(sizeof(T)));
-        }
-        endian::swap_endian_range(p, p + line_width*nb_lines);
-      } else {
-        for (int i = 0; i < nb_lines; i++) {
-          F.write ((const char*) &p[i*line_width], nb_elements*(sizeof(T)));
+      T* temp_cpy = new T[nb_elements*nb_lines];
+
+      if (to_transpose) {
+        for (size_t i = 0; i < nb_lines; i++) {
+          for (size_t j = 0; j < nb_elements; j++) {
+            temp_cpy[i + j * nb_lines] = p[i*line_width + j];
+          }
         }
       }
+      else {
+        memcpy (temp_cpy, p, nb_elements*sizeof(T)*nb_lines);
+      }
+      if (reorder_bytes) {
+        endian::swap_endian_range(temp_cpy, temp_cpy + nb_elements*nb_lines);
+      }
+      // AoS never use padding, SoA is translated above, so one write operation is enought in both cases
+      F.write ((const char*) temp_cpy, nb_elements*sizeof(T)*nb_lines);
       nrn_assert(! F.fail());
+      delete [] temp_cpy;
     }
 
     template <typename T> 

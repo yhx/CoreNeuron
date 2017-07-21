@@ -34,6 +34,13 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <sstream>
 #include <cassert>
 
+#ifndef LAYOUT
+#define LAYOUT 1
+#endif
+/* 
+ * LAYOUT = 0 => SoA, LAYOUT = 1 => AoS
+ *
+ * */
 static int          maxgid;           // no gid in any file can be greater than maxgid
 static const char*  output_dir;       // output directory to write simple checkpoint 
 static bool         swap_bytes;
@@ -135,14 +142,14 @@ static void write_phase2  ( NrnThread& nt, FileHandler& file_handle )  {
     if (! nrn_is_artificial_[type]) {
       file_handle.write_array<int>(current_tml->ml->nodeindices, nb_nodes); 
     }
-    // TODO OK until here, but pdata and data are updated and permuted...
-    if (nt.file_id == 10)
-      std::cout << nt.file_id << "::write data" << file_handle.checkpoint() << std::endl;
-    file_handle.write_array<double> (current_tml->ml->data, nb_nodes, size_of_line_data, nrn_prop_param_size_[type]);
+    
+    
+    // if LAYOUT is SoA: we need to transpose to the structure to write in file format order
+    file_handle.write_array<double> (current_tml->ml->data, nb_nodes, size_of_line_data, nrn_prop_param_size_[type], ! LAYOUT);
+    
     if (nrn_prop_dparam_size_[type]) {
-      if (nt.file_id == 10)
-        std::cout << nt.file_id << "::write pdata" << file_handle.checkpoint() << std::endl;
-      file_handle.write_array<int> (current_tml->ml->pdata, nb_nodes, size_of_line_data, nrn_prop_dparam_size_[type]);
+      // if LAYOUT is SoA: we need to transpose to the structure to write in file format order
+      file_handle.write_array<int> (current_tml->ml->pdata, nb_nodes, size_of_line_data, nrn_prop_dparam_size_[type], ! LAYOUT);
     }
       current_tml = current_tml->next;
   }

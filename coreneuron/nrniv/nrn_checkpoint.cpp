@@ -132,9 +132,11 @@ static void write_phase2  ( NrnThread& nt, FileHandler& file_handle )  {
   file_handle.write_array<double> (nt._actual_b, nt.end);
   file_handle.write_array<double> (nt._actual_area, nt.end);
   file_handle.write_array<double> (nt._actual_v, nt.end);
+
   if (nt._actual_diam)
     file_handle.write_array<double> (nt._actual_diam, nt.end);
   current_tml = nt.tml;
+
   while (current_tml) {
     int type                = current_tml->index;
     int nb_nodes            = current_tml->ml->nodecount;
@@ -149,10 +151,11 @@ static void write_phase2  ( NrnThread& nt, FileHandler& file_handle )  {
     
     if (nrn_prop_dparam_size_[type]) {
       // if LAYOUT is SoA: we need to transpose to the structure to write in file format order
-      file_handle.write_array<int> (current_tml->ml->pdata, nb_nodes, size_of_line_data, nrn_prop_dparam_size_[type], ! LAYOUT);
+      file_handle.write_array<int> (current_tml->ml->pdata_not_permuted, nb_nodes, size_of_line_data, nrn_prop_dparam_size_[type], ! LAYOUT, nt.file_id == 10);
     }
       current_tml = current_tml->next;
   }
+
   file_handle.write_array<int>    (nt.output_vindex, nt.n_presyn);
   file_handle.write_array<double> (nt.output_threshold, nt.ncell);
   int nnetcon = nt.n_netcon - nrn_setup_extracon;
@@ -161,6 +164,7 @@ static void write_phase2  ( NrnThread& nt, FileHandler& file_handle )  {
   file_handle.write_array<double> (nt.weights,  nt.n_weight);
   file_handle.write_array<double> (nt.delay,    nnetcon);
   file_handle << nt.npnt << " bbcorepointer\n";
+
   for (int i = 0; i < nt.npnt; i++) {
     file_handle << nt.type[i] << "\n";
     file_handle << nt.icnt[i] << "\n";

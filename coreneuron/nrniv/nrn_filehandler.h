@@ -29,6 +29,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef nrn_filehandler_h
 #define nrn_filehandler_h
 
+#include<iostream>
 #include <fstream>
 #include <vector>
 #include "coreneuron/utils/endianness.h"
@@ -223,10 +224,11 @@ class FileHandler {
       nrn_assert(! F.fail());
     }
 
-    //FIXME: actual padding is not necessary equal to size of (T) for structured data, 
-    //       we should not assume than we performing the copy but let the user specify the number bytes per line (in case of AoS: size of Padded structure)
+    /*
+     * nb_elements, and line_width are both expresed as number of Type element, not bytes
+     */
     template <typename T>
-    void write_array(T* p, size_t nb_elements, size_t line_width, size_t nb_lines, bool to_transpose = false) {
+    void write_array(T* p, size_t nb_elements, size_t line_width, size_t nb_lines, bool to_transpose = false, bool print = false) {
       nrn_assert(F.is_open());
       nrn_assert(current_mode & std::ios::out);
       write_checkpoint();
@@ -244,6 +246,18 @@ class FileHandler {
       }
       if (reorder_bytes) {
         endian::swap_endian_range(temp_cpy, temp_cpy + nb_elements*nb_lines);
+      }
+      if (print) {
+      std::cerr << "===== WRITE : " << "[" << nb_lines <<"][" << nb_elements << "]====="<<std::endl;
+
+        for (int i = 0; i < nb_lines; i++) {
+          for (int j = 0; j < nb_elements; j++) {
+//            std::cerr << (T) temp_cpy[j + i*nb_elements] << ";";
+            std::cerr << (T) temp_cpy[j + i*line_width] << ";";
+          }
+          std::cerr << std::endl;
+        }
+      std::cerr << "===== ^_^ =====" << std::endl;
       }
       // AoS never use padding, SoA is translated above, so one write operation is enought in both cases
       F.write ((const char*) temp_cpy, nb_elements*sizeof(T)*nb_lines);

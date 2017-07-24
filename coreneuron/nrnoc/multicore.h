@@ -75,11 +75,6 @@ typedef struct NrnThread {
     int       nmech;                        // FIXME actually a good idea to keep this one, it is size of linked list tml 
     int       n_outputgids;                 // FIXME temp..
     int       ndata_unpadded;               // FIXME temp..
-    int*      v_parent_index_not_permuted;  // FIXME tmp
-    double*   actual_a_not_permuted;        // FIXME temp..
-    double*   actual_b_not_permuted;        // FIXME temp..
-    double*   actual_v_not_permuted;        // FIXME temp..
-    double*   actual_area_not_permuted;     // FIXME temp..
     int*      output_vindex;                // FIXME temp..
     double*   output_threshold;             // FIXME temp..
     int*      pnttype;                      // FIXME temp..

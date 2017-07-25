@@ -1133,8 +1133,8 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
         F.read_array<double>(nt._actual_diam, nt.end);
     }
 
-    Memb_list** mlmap = new Memb_list*[n_memb_func];
-    int synoffset = 0;
+    nt.mlmap        = new Memb_list*[n_memb_func];
+    int synoffset   = 0;
     int* pnt_offset = new int[n_memb_func];
 
     // All the mechanism data and pdata.
@@ -1143,7 +1143,7 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
     for (tml = nt.tml; tml; tml = tml->next) {
         int type = tml->index;
         Memb_list* ml = tml->ml;
-        mlmap[type] = ml;
+        nt.mlmap[type] = ml;
         int is_art = nrn_is_artificial_[type];
         int n = ml->nodecount;
         int szp = nrn_prop_param_size_[type];
@@ -1249,7 +1249,7 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
                 } /* ion is AoS so nothing to do */
                 assert(elayout == 0);
                 /* ion is SoA so must recalculate pdata values */
-                Memb_list* eml = mlmap[etype];
+                Memb_list* eml = nt.mlmap[etype];
                 int edata0 = eml->data - nt._data;
                 int unpadded_edata0 = unpadded_ml_list[etype].data - (double*)0;
                 int ecnt = eml->nodecount;
@@ -1636,7 +1636,7 @@ for (int i=0; i < nt.end; ++i) {
         double* dArray = nt.dArrays[i];
         int ik = 0;
         int dk = 0;
-        Memb_list* ml = mlmap[type];
+        Memb_list* ml = nt.mlmap[type];
         int dsz = nrn_prop_param_size_[type];
         int pdsz = nrn_prop_dparam_size_[type];
         int cntml = ml->nodecount;
@@ -1663,7 +1663,7 @@ for (int i=0; i < nt.end; ++i) {
  //           delete[] dArray;
         }
     }
-    delete[] mlmap;
+//    delete[] mlmap;
 
     // VecPlayContinuous instances
     // No attempt at memory efficiency

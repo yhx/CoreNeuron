@@ -83,12 +83,19 @@ static int ion_write_depend_size_;
 static int** ion_write_depend_;
 static void ion_write_depend(int type, int etype);
 
-bbcore_read_t* nrn_bbcore_read_;
+bbcore_read_t*  nrn_bbcore_read_;
+bbcore_write_t* nrn_bbcore_write_;
 void hoc_reg_bbcore_read(int type, bbcore_read_t f) {
     if (type == -1)
         return;
 
     nrn_bbcore_read_[type] = f;
+}
+void hoc_reg_bbcore_write(int type, bbcore_write_t f) {
+    if (type == -1)
+        return;
+
+    nrn_bbcore_write_[type] = f;
 }
 
 void add_nrn_has_net_event(int type) {

@@ -1165,7 +1165,7 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
                                                         NRN_SOA_BYTE_ALIGN, sizeof(int));
             ml->pdata = (int*)coreneuron::ecalloc_align(nrn_soa_padded_size(n, layout) * szdp,
                                                         NRN_SOA_BYTE_ALIGN, sizeof(int));
-            mech_layout<int>(F, ml->pdata, n, szdp, layout, true);
+            mech_layout<int>(F, ml->pdata, n, szdp, layout, false);
             memcpy (ml->pdata_not_permuted, ml->pdata, nrn_soa_padded_size(n, layout) * szdp * sizeof(int));
         } else {
             ml->pdata = NULL;

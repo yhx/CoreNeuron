@@ -68,18 +68,6 @@ for (i = 0 ; i < nb_threads; i ++) {
 
 
 static void write_phase1  ( NrnThread& nt, FileHandler& file_handle ) {
-  // serialize
-  //  int* output_gids      = (int*) malloc (nt.n_presyn*sizeof(int));
-  //  int* netcon_srcgid    = (int*) malloc (nt.n_netcon*sizeof(int));
-  // fill array of output_gids with:
-  // nt_presyns[i]->gid_ - (maxgid * nrn_setup_multiple);
-
-//  for (int i = 0; i < nt.n_presyn; i++) {
-//    output_gids[i] = nt.presyns[i].gid_ - (maxgid * nrn_setup_multiple);
-//  }
-//  for (int i = 0; i < nt.n_netcon; i++) {
-//    netcon_srcgid[i] = nt.src_gids[i] - (maxgid * nrn_setup_multiple);
-//  }
   
   // open file for writing
   std::ostringstream filename;
@@ -100,6 +88,7 @@ static void write_phase1  ( NrnThread& nt, FileHandler& file_handle ) {
 }
 
 static void write_phase2  ( NrnThread& nt, FileHandler& file_handle )  {
+  std::cout << nt.file_id << " -> [o_o] " << std::endl;
   std::ostringstream filename;
   filename << output_dir << nt.file_id << "_2.dat";
   file_handle.open(filename.str().c_str(), swap_bytes, std::ios::out);
@@ -120,13 +109,6 @@ static void write_phase2  ( NrnThread& nt, FileHandler& file_handle )  {
   file_handle << nt._nidata                               << " nidata\n";
   file_handle << nt._nvdata                               << " nvdata\n";
   file_handle << nt.n_weight                              << " nweight\n";
-/*
-  file_handle.write_array<int> (nt.v_parent_index_not_permuted, nt.end);
-  file_handle.write_array<double> (nt.actual_a_not_permuted, nt.end);
-  file_handle.write_array<double> (nt.actual_b_not_permuted, nt.end);
-  file_handle.write_array<double> (nt.actual_area_not_permuted, nt.end);
-  file_handle.write_array<double> (nt.actual_v_not_permuted, nt.end);
-*/
   file_handle.write_array<int>    (nt._v_parent_index, nt.end);
   file_handle.write_array<double> (nt._actual_a, nt.end);
   file_handle.write_array<double> (nt._actual_b, nt.end);
@@ -151,7 +133,7 @@ static void write_phase2  ( NrnThread& nt, FileHandler& file_handle )  {
     
     if (nrn_prop_dparam_size_[type]) {
       // if LAYOUT is SoA: we need to transpose to the structure to write in file format order
-      file_handle.write_array<int> (current_tml->ml->pdata_not_permuted, nb_nodes, size_of_line_data, nrn_prop_dparam_size_[type], ! LAYOUT, nt.file_id == 10);
+      file_handle.write_array<int> (current_tml->ml->pdata_not_permuted, nb_nodes, size_of_line_data, nrn_prop_dparam_size_[type], ! LAYOUT);
     }
       current_tml = current_tml->next;
   }
@@ -165,7 +147,10 @@ static void write_phase2  ( NrnThread& nt, FileHandler& file_handle )  {
   file_handle.write_array<double> (nt.delay,    nnetcon);
   file_handle << nt.npnt << " bbcorepointer\n";
 
+
+  std::cout << nt.file_id << " ->  ^_^ " << std::endl;
   for (int i = 0; i < nt.npnt; i++) {
+    std::cout << nt.type[i]  << " " << nt.icnt[i] << " " << nt.dcnt[i] << " " << nt.iArrays[i] << " " << nt.dArrays[i] << std::endl; 
     file_handle << nt.type[i] << "\n";
     file_handle << nt.icnt[i] << "\n";
     file_handle << nt.dcnt[i] << "\n";
@@ -174,6 +159,7 @@ static void write_phase2  ( NrnThread& nt, FileHandler& file_handle )  {
   if (nt.dcnt[i])
     file_handle.write_array<double> ( nt.dArrays[i],    nt.dcnt[i]);
   }
+  std::cout << nt.file_id << " ->  ^_^ " << std::endl;
   file_handle << nt.n_vecplay << " VecPlay instances\n";
   for (int i = 0; i < nt.n_vecplay; i++) {
     file_handle << nt.vtype[i] << "\n";
@@ -184,16 +170,6 @@ static void write_phase2  ( NrnThread& nt, FileHandler& file_handle )  {
     file_handle.write_array<double> ( nt.vecplay_tvec[i], nt.vecplay_sz[i] );
   }
   file_handle.close();
-// for each element of tml:
-//        if ! nrn_is_artificial [tml->index]
-//              write tml->ml->nodeindices [0 -> tml->ml->nodecount -1]
-//        for i in [0..ml->nodecount]:
-//                                                                  (read care of data layout, here we use 2D loop to always write correct elements)
-//              write ml->data[i][0..nrn_prop_param_size[type]]                  (read on line 1129)
-//              write ml->pdata[i][0..nrn_dprop_param_size_[type]]               (read on line 1131)
-//
-
-// close file
 }
 
 static void write_phase3  ( NrnThread& nt, FileHandler& file_handle ) {

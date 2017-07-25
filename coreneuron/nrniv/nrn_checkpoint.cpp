@@ -149,15 +149,38 @@ static void write_phase2  ( NrnThread& nt, FileHandler& file_handle )  {
 
 
   std::cout << nt.file_id << " ->  ^_^ " << std::endl;
+  int*        iArray = NULL;
+  double*     dArray = NULL;
   for (int i = 0; i < nt.npnt; i++) {
     std::cout << nt.type[i]  << " " << nt.icnt[i] << " " << nt.dcnt[i] << " " << nt.iArrays[i] << " " << nt.dArrays[i] << std::endl; 
     file_handle << nt.type[i] << "\n";
     file_handle << nt.icnt[i] << "\n";
     file_handle << nt.dcnt[i] << "\n";
-  if (nt.icnt[i])
-    file_handle.write_array<int>    ( nt.iArrays[i],    nt.icnt[i]);
-  if (nt.dcnt[i])
-    file_handle.write_array<double> ( nt.dArrays[i],    nt.dcnt[i]);
+    if (nt.icnt[i])
+      iArray = new int [nt.icnt[i]];
+    if (nt.dcnt[i])
+      dArray = new double [nt.icnt[i]];
+    Memb_list* ml = nt.mlmap[nt.type[i]];
+    if (nrn_bbcore_write_[nt.type[i]]) {
+      for (int j = 0 ; j < ml->nodecount; j ++) {
+        int d_offset = 0;
+        int i_offset = 0;
+        /* extra parameters after i_offset dont seems to be used */
+        (*nrn_bbcore_write_[nt.type[i]])(dArray, iArray, &d_offset, &i_offset, 0, 0, NULL, NULL, NULL, &nt, 0.0);
+      }
+    } else {
+      std::cerr << " ERROR no bbcore_write registered for this type" << std::endl;
+    }
+      if (nt.icnt[i]){
+      file_handle.write_array<int>    ( iArray,    nt.icnt[i]);
+    }
+    if (nt.dcnt[i]) {
+      file_handle.write_array<double> ( dArray,    nt.dcnt[i]);
+    }
+    if (iArray)
+        delete[] iArray;
+    if (dArray)
+        delete[] dArray;
   }
   std::cout << nt.file_id << " ->  ^_^ " << std::endl;
   file_handle << nt.n_vecplay << " VecPlay instances\n";

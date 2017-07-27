@@ -168,7 +168,6 @@ static void write_phase2  ( NrnThread& nt, FileHandler& file_handle )  {
   double*     dArray = NULL;
   
   for (int i = 0; i < nt.npnt; i++) {
-    std::cout   << nt.type[i]  << " " << nt.icnt[i] << " " << nt.dcnt[i] << std::endl; 
     file_handle << nt.type[i] << "\n";
     file_handle << nt.icnt[i] << "\n";
     file_handle << nt.dcnt[i] << "\n";

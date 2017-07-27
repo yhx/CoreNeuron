@@ -48,6 +48,17 @@ static void         write_phase1  ( NrnThread& nt, FileHandler& file_handle );
 static void         write_phase2  ( NrnThread& nt, FileHandler& file_handle );
 static void         write_phase3  ( NrnThread& nt, FileHandler& file_handle );
 
+static int nrn_i_layout(int icnt, int cnt, int isz, int sz, int layout) {
+    if (layout == 1) {
+        return icnt * sz + isz;
+    } else if (layout == 0) {
+        int padded_cnt = nrn_soa_padded_size(cnt, layout);  // may want to factor out to save time
+        return icnt + isz * padded_cnt;
+    }
+    assert(0);
+    return 0;
+}
+
 void write_checkpoint ( NrnThread* nt, int nb_threads, const char* dir, bool swap_bytes_order) {
   output_dir = dir;
   int i;
@@ -88,6 +99,7 @@ static void write_phase1  ( NrnThread& nt, FileHandler& file_handle ) {
 }
 
 static void write_phase2  ( NrnThread& nt, FileHandler& file_handle )  {
+ 
   std::cout << nt.file_id << " -> [o_o] " << std::endl;
   std::ostringstream filename;
   filename << output_dir << nt.file_id << "_2.dat";
@@ -99,12 +111,13 @@ static void write_phase2  ( NrnThread& nt, FileHandler& file_handle )  {
   file_handle << ((nt._actual_diam == NULL) ? 0 : nt.end) << " ndiam\n";
   file_handle << nt.nmech                                 << " nmech\n";
   NrnThreadMembList* current_tml = nt.tml;
+ 
   while (current_tml) {
     file_handle << current_tml->index << "\n";
     file_handle << current_tml->ml->nodecount << "\n";
     current_tml = current_tml->next;
-    
   }
+
   file_handle << nt.ndata_unpadded                        << " ndata\n";
   file_handle << nt._nidata                               << " nidata\n";
   file_handle << nt._nvdata                               << " nvdata\n";
@@ -117,71 +130,96 @@ static void write_phase2  ( NrnThread& nt, FileHandler& file_handle )  {
 
   if (nt._actual_diam)
     file_handle.write_array<double> (nt._actual_diam, nt.end);
+
   current_tml = nt.tml;
 
   while (current_tml) {
     int type                = current_tml->index;
     int nb_nodes            = current_tml->ml->nodecount;
     int size_of_line_data   = nrn_soa_padded_size(nb_nodes, nrn_mech_data_layout_[type]);
+
     if (! nrn_is_artificial_[type]) {
       file_handle.write_array<int>(current_tml->ml->nodeindices, nb_nodes); 
     }
-    
-    
+
     // if LAYOUT is SoA: we need to transpose to the structure to write in file format order
     file_handle.write_array<double> (current_tml->ml->data, nb_nodes, size_of_line_data, nrn_prop_param_size_[type], ! LAYOUT);
-    
+
     if (nrn_prop_dparam_size_[type]) {
       // if LAYOUT is SoA: we need to transpose to the structure to write in file format order
       file_handle.write_array<int> (current_tml->ml->pdata_not_permuted, nb_nodes, size_of_line_data, nrn_prop_dparam_size_[type], ! LAYOUT);
     }
-      current_tml = current_tml->next;
+
+    current_tml = current_tml->next;
+
   }
 
-  file_handle.write_array<int>    (nt.output_vindex, nt.n_presyn);
-  file_handle.write_array<double> (nt.output_threshold, nt.ncell);
-  int nnetcon = nt.n_netcon - nrn_setup_extracon;
-  file_handle.write_array<int>    (nt.pnttype,  nnetcon);
-  file_handle.write_array<int>    (nt.pntindex, nnetcon);
-  file_handle.write_array<double> (nt.weights,  nt.n_weight);
-  file_handle.write_array<double> (nt.delay,    nnetcon);
+  int nnetcon                     = nt.n_netcon - nrn_setup_extracon;
+  file_handle.write_array<int>    ( nt.output_vindex, nt.n_presyn );
+  file_handle.write_array<double> ( nt.output_threshold, nt.ncell );
+  file_handle.write_array<int>    ( nt.pnttype,  nnetcon );
+  file_handle.write_array<int>    ( nt.pntindex, nnetcon );
+  file_handle.write_array<double> ( nt.weights,  nt.n_weight );
+  file_handle.write_array<double> ( nt.delay,    nnetcon );
   file_handle << nt.npnt << " bbcorepointer\n";
 
-
   std::cout << nt.file_id << " ->  ^_^ " << std::endl;
+
   int*        iArray = NULL;
   double*     dArray = NULL;
+  
   for (int i = 0; i < nt.npnt; i++) {
-    std::cout << nt.type[i]  << " " << nt.icnt[i] << " " << nt.dcnt[i] << " " << nt.iArrays[i] << " " << nt.dArrays[i] << std::endl; 
+    std::cout   << nt.type[i]  << " " << nt.icnt[i] << " " << nt.dcnt[i] << std::endl; 
     file_handle << nt.type[i] << "\n";
     file_handle << nt.icnt[i] << "\n";
     file_handle << nt.dcnt[i] << "\n";
-    if (nt.icnt[i])
-      iArray = new int [nt.icnt[i]];
-    if (nt.dcnt[i])
-      dArray = new double [nt.icnt[i]];
-    Memb_list* ml = nt.mlmap[nt.type[i]];
-    if (nrn_bbcore_write_[nt.type[i]]) {
+
+    iArray        = new int [ nt.icnt[i] ];
+    dArray        = new double [ nt.dcnt[i] ];
+    Memb_list* ml = nt.mlmap[ nt.type[i] ];
+    int dsz       = nrn_prop_param_size_[ nt.type[i] ];
+    int pdsz      = nrn_prop_dparam_size_[ nt.type [i] ];
+
+    if (nrn_bbcore_write_[nt.type[i]] && (nt.icnt[i] || nt.dcnt[i])) {
+      int             d_offset  = 0;
+      int             i_offset  = 0;
+      double*         d         = ml->data;
+      Datum*          pd        = ml->pdata;
+      int             layout    = nrn_mech_data_layout_[nt.type[i]];
+
       for (int j = 0 ; j < ml->nodecount; j ++) {
-        int d_offset = 0;
-        int i_offset = 0;
-        /* extra parameters after i_offset dont seems to be used */
-        (*nrn_bbcore_write_[nt.type[i]])(dArray, iArray, &d_offset, &i_offset, 0, 0, NULL, NULL, NULL, &nt, 0.0);
+          int jp = j;
+ 
+          if (ml->_permute) {
+            jp = ml->_permute[j];
+          }
+
+          d  = ml->data + nrn_i_layout(jp, ml->nodecount, 0, dsz, layout);
+          pd = ml->pdata + nrn_i_layout(jp, ml->nodecount, 0, pdsz, layout);
+          int aln_cntml = nrn_soa_padded_size(ml->nodecount, layout);
+
+        // extra parameters after i_offset dont seems to be used
+        (*nrn_bbcore_write_[nt.type[i]])(dArray, iArray, &d_offset, &i_offset, 0, aln_cntml, d, pd, ml->_thread, &nt, 0.0);
       }
     } else {
       std::cerr << " ERROR no bbcore_write registered for this type" << std::endl;
     }
-      if (nt.icnt[i]){
+
+    if (nt.icnt[i]){
       file_handle.write_array<int>    ( iArray,    nt.icnt[i]);
     }
+
     if (nt.dcnt[i]) {
       file_handle.write_array<double> ( dArray,    nt.dcnt[i]);
     }
+
     if (iArray)
         delete[] iArray;
+   
     if (dArray)
         delete[] dArray;
   }
+
   std::cout << nt.file_id << " ->  ^_^ " << std::endl;
   file_handle << nt.n_vecplay << " VecPlay instances\n";
   for (int i = 0; i < nt.n_vecplay; i++) {

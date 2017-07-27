@@ -101,7 +101,6 @@ static void write_phase1  ( NrnThread& nt, FileHandler& file_handle ) {
 
 static void write_phase2  ( NrnThread& nt, FileHandler& file_handle )  {
  
-  std::cout << nt.file_id << " -> [o_o] " << std::endl;
   std::ostringstream filename;
   filename << output_dir << "/" << nt.file_id << "_2.dat";
   file_handle.open(filename.str().c_str(), swap_bytes, std::ios::out);
@@ -164,7 +163,6 @@ static void write_phase2  ( NrnThread& nt, FileHandler& file_handle )  {
   file_handle.write_array<double> ( nt.delay,    nnetcon );
   file_handle << nt.npnt << " bbcorepointer\n";
 
-  std::cout << nt.file_id << " ->  ^_^ " << std::endl;
 
   int*        iArray = NULL;
   double*     dArray = NULL;
@@ -221,7 +219,6 @@ static void write_phase2  ( NrnThread& nt, FileHandler& file_handle )  {
         delete[] dArray;
   }
 
-  std::cout << nt.file_id << " ->  ^_^ " << std::endl;
   file_handle << nt.n_vecplay << " VecPlay instances\n";
   for (int i = 0; i < nt.n_vecplay; i++) {
     file_handle << nt.vtype[i] << "\n";

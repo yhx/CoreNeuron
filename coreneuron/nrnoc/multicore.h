@@ -83,8 +83,6 @@ typedef struct NrnThread {
     int         npnt;                         // FIXME temp..
     int*        icnt;                         // FIXME temp..
     int*        dcnt;                         // FIXME temp..
-    int**       iArrays;                      // FIXME temp..
-    double**    dArrays;                      // FIXME temp..
     int*        mtype;                        // FIXME temp..
     int*        vtype;                        // FIXME temp..
     int*        type;                         // FIXME temp..

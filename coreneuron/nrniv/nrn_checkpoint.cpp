@@ -60,6 +60,7 @@ static int nrn_i_layout(int icnt, int cnt, int isz, int sz, int layout) {
 }
 
 void write_checkpoint ( NrnThread* nt, int nb_threads, const char* dir, bool swap_bytes_order) {
+  if (! strlen(dir)) return; // empty directory means the option is not enabled
   output_dir = dir;
   int i;
   swap_bytes = swap_bytes_order;
@@ -82,7 +83,7 @@ static void write_phase1  ( NrnThread& nt, FileHandler& file_handle ) {
   
   // open file for writing
   std::ostringstream filename;
-  filename << output_dir << nt.file_id << "_1.dat";
+  filename << output_dir << "/" << nt.file_id << "_1.dat";
   file_handle.open(filename.str().c_str(), swap_bytes, std::ios::out);
   file_handle.checkpoint(0);
   // write dimensions:  nt.n_presyn and nt.netcon - nrn_setup_extracon (nrn_setup:390)
@@ -102,7 +103,7 @@ static void write_phase2  ( NrnThread& nt, FileHandler& file_handle )  {
  
   std::cout << nt.file_id << " -> [o_o] " << std::endl;
   std::ostringstream filename;
-  filename << output_dir << nt.file_id << "_2.dat";
+  filename << output_dir << "/" << nt.file_id << "_2.dat";
   file_handle.open(filename.str().c_str(), swap_bytes, std::ios::out);
   file_handle.checkpoint(2);
   file_handle << nt.n_outputgids                          << " ngid\n";

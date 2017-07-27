@@ -286,7 +286,6 @@ int main1(int argc, char** argv, char** env) {
 
         /// Solver execution
         BBS_netpar_solve(nrnopt_get_dbl("--tstop"));
-//        write_checkpoint (nrn_threads, nrn_nthread, "./checkpoint/", nrn_need_byteswap);
         // Report global cell statistics
         report_cell_stats();
 

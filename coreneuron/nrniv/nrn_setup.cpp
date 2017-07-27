@@ -776,22 +776,12 @@ int nrn_i_layout(int icnt, int cnt, int isz, int sz, int layout) {
 }
 
 template <class T>
-inline void mech_layout(FileHandler& F, T* data, int cnt, int sz, int layout, bool print = false) {
+inline void mech_layout(FileHandler& F, T* data, int cnt, int sz, int layout) {
     if (layout == 1) { /* AoS */
         F.read_array<T>(data, cnt * sz);
     } else if (layout == 0) { /* SoA */
         int align_cnt = nrn_soa_padded_size(cnt, layout);
         T* d = F.read_array<T>(cnt * sz);
-        if (print){
-          std::cerr << "===== mechanism READ : " << "[" << cnt <<"][" << sz << "]====="<<std::endl;
-          for (int i = 0 ; i< cnt; i++){
-            for (int j = 0 ; j< sz; j++){
-                std::cerr << (T) d[i*sz + j] << ";";
-            }
-            std::cerr << std::endl;
-          }
-          std::cerr << "===== ^_^ ====="<<std::endl;
-        }
         for (int i = 0; i < cnt; ++i) {
             for (int j = 0; j < sz; ++j) {
                 data[i + j * align_cnt] = d[i * sz + j];
@@ -1167,7 +1157,7 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
                                                         NRN_SOA_BYTE_ALIGN, sizeof(int));
             ml->pdata = (int*)coreneuron::ecalloc_align(nrn_soa_padded_size(n, layout) * szdp,
                                                         NRN_SOA_BYTE_ALIGN, sizeof(int));
-            mech_layout<int>(F, ml->pdata, n, szdp, layout, false);
+            mech_layout<int>(F, ml->pdata, n, szdp, layout);
             memcpy (ml->pdata_not_permuted, ml->pdata, nrn_soa_padded_size(n, layout) * szdp * sizeof(int));
         } else {
             ml->pdata = NULL;

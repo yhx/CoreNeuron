@@ -211,12 +211,8 @@ static void write_phase2  ( NrnThread& nt, FileHandler& file_handle )  {
     if (nt.dcnt[i]) {
       file_handle.write_array<double> ( dArray,    nt.dcnt[i]);
     }
-
-    if (iArray)
-        delete[] iArray;
-   
-    if (dArray)
-        delete[] dArray;
+    delete[] iArray;
+    delete[] dArray;
   }
 
   file_handle << nt.n_vecplay << " VecPlay instances\n";

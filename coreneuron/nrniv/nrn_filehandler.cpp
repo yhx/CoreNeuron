@@ -69,10 +69,7 @@ int FileHandler::read_int() {
     return i;
 }
 
-void FileHandler::read_mapping_count(int* gid,
-                                     int* nsec,
-                                     int* nseg,
-                                     int* nseclist) {
+void FileHandler::read_mapping_count(int* gid, int* nsec, int* nseg, int* nseclist) {
     char line_buf[max_line_length];
 
     F.getline(line_buf, sizeof(line_buf));

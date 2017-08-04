@@ -66,6 +66,9 @@ option(ENABLE_DLB "Enable use of Dynamic Load Balancing (DLB) Library" OFF)
 set(ADDITIONAL_MECHPATH "" CACHE PATH "Search path for optional additional mechanism MOD files")
 set(ADDITIONAL_MECHS "" CACHE FILEPATH "File containing list of additional mechanism MOD files")
 
+# C files provided for HBP benchmarking purpose
+set(ADDITIONAL_C_MECHPATH "" CACHE PATH "Search path for additional C files")
+
 # test compilations
 option(UNIT_TESTS "Enable unit tests compilation and execution" ON)
 option(FUNCTIONAL_TESTS "Enable functional tests compilation and execution" ON)

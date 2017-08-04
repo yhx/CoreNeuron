@@ -48,6 +48,13 @@ This directory should have only mod files that are compatible with CoreNEURON. Y
 -DADDITIONAL_MECHPATH="/path/of/folder/with/mod_files;/path/of/another_folder/with/mod_files" 
 ```
 
+##### About pre-generated C files from BBP
+
+If you have received pre-generated C files for BBP dataset for benchmarking purpose then you can provide the directory of C files as:
+
+```bash
+-DADDITIONAL_C_MECHPATH=/path/of/folder/extra_mech_c_files
+```
 
 # Building with GPU support
 

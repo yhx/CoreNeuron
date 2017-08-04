@@ -259,10 +259,11 @@ void nrn_read_filesdat(int& ngrp, int*& grp, int multiple, int*& imult, const ch
 
 void read_phase1(FileHandler& F, int imult, NrnThread& nt) {
     assert(!F.fail());
-    int zz = imult * maxgid;     // offset for each gid
-    nt.file_id  = gidgroups_w[nt.id]; /// FIXME: find a better place to initialize that (usefull for writing checkpoint)
-    nt.n_presyn = F.read_int();  /// Number of PreSyn-s in NrnThread nt
-    nt.n_netcon = F.read_int();  /// Number of NetCon-s in NrnThread nt
+    int zz = imult * maxgid;          // offset for each gid
+    nt.file_id = gidgroups_w[nt.id];  /// FIXME: find a better place to initialize that (usefull for
+                                      /// writing checkpoint)
+    nt.n_presyn = F.read_int();       /// Number of PreSyn-s in NrnThread nt
+    nt.n_netcon = F.read_int();       /// Number of NetCon-s in NrnThread nt
     nt.presyns = new PreSyn[nt.n_presyn];
     nt.netcons = new NetCon[nt.n_netcon + nrn_setup_extracon];
     nt.output_gids = new int[nt.n_presyn];
@@ -272,12 +273,12 @@ void read_phase1(FileHandler& F, int imult, NrnThread& nt) {
     /// together output_gid has all of output PreSyns, netcon_srcgid is created for NetCons which
     /// might be 10k times more than output_gid.
     int* output_gid = F.read_array<int>(nt.n_presyn);
-    memcpy (nt.output_gids, output_gid, sizeof(int) * nt.n_presyn); 
+    memcpy(nt.output_gids, output_gid, sizeof(int) * nt.n_presyn);
     // the extra netcon_srcgid will be filled in later
     netcon_srcgid[nt.id] = new int[nt.n_netcon + nrn_setup_extracon];
     F.read_array<int>(netcon_srcgid[nt.id], nt.n_netcon);
     nt.src_gids = new int[nt.n_netcon];
-    memcpy (nt.src_gids, netcon_srcgid[nt.id], nt.n_netcon * sizeof(int));
+    memcpy(nt.src_gids, netcon_srcgid[nt.id], nt.n_netcon * sizeof(int));
     F.close();
 
 #if 0
@@ -617,7 +618,8 @@ void nrn_setup(const char* filesdat, int byte_swap, bool run_setup_cleanup) {
     std::string datapath = nrnopt_get_str("--datpath");
     std::string checkp_path = nrnopt_get_str("--checkp");
     /* nrn_multithread_job supports serial, pthread, and openmp. */
-    store_phase_args(ngroup, gidgroups, imult, file_reader, datapath.c_str(), checkp_path.c_str(), byte_swap);
+    store_phase_args(ngroup, gidgroups, imult, file_reader, datapath.c_str(), checkp_path.c_str(),
+                     byte_swap);
 
     // gap junctions
     if (nrn_have_gaps) {
@@ -1125,8 +1127,8 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
         F.read_array<double>(nt._actual_diam, nt.end);
     }
 
-    nt.mlmap        = new Memb_list*[n_memb_func];
-    int synoffset   = 0;
+    nt.mlmap = new Memb_list*[n_memb_func];
+    int synoffset = 0;
     int* pnt_offset = new int[n_memb_func];
 
     // All the mechanism data and pdata.
@@ -1153,12 +1155,13 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
         mech_layout<double>(F, ml->data, n, szp, layout);
 
         if (szdp) {
-            ml->pdata_not_permuted = (int*)coreneuron::ecalloc_align(nrn_soa_padded_size(n, layout) * szdp,
-                                                        NRN_SOA_BYTE_ALIGN, sizeof(int));
+            ml->pdata_not_permuted = (int*)coreneuron::ecalloc_align(
+                nrn_soa_padded_size(n, layout) * szdp, NRN_SOA_BYTE_ALIGN, sizeof(int));
             ml->pdata = (int*)coreneuron::ecalloc_align(nrn_soa_padded_size(n, layout) * szdp,
                                                         NRN_SOA_BYTE_ALIGN, sizeof(int));
             mech_layout<int>(F, ml->pdata, n, szdp, layout);
-            memcpy (ml->pdata_not_permuted, ml->pdata, nrn_soa_padded_size(n, layout) * szdp * sizeof(int));
+            memcpy(ml->pdata_not_permuted, ml->pdata,
+                   nrn_soa_padded_size(n, layout) * szdp * sizeof(int));
         } else {
             ml->pdata = NULL;
         }
@@ -1456,14 +1459,14 @@ for (int i=0; i < nt.end; ++i) {
     // nt.presyns order same as output_vindex order
     int* output_vindex = F.read_array<int>(nt.n_presyn);
     nt.output_vindex = new int[nt.n_presyn];
-    memcpy (nt.output_vindex, output_vindex, nt.n_presyn * sizeof(int));
+    memcpy(nt.output_vindex, output_vindex, nt.n_presyn * sizeof(int));
     if (nt._permute) {
         // only indices >= 0 (i.e. _actual_v indices) will be changed.
         node_permute(output_vindex, nt.n_presyn, nt._permute);
     }
     double* output_threshold = F.read_array<double>(nt.ncell);
     nt.output_threshold = new double[nt.ncell];
-    memcpy (nt.output_threshold, output_threshold, nt.ncell * sizeof(double));
+    memcpy(nt.output_threshold, output_threshold, nt.ncell * sizeof(double));
     for (int i = 0; i < nt.n_presyn; ++i) {  // real cells
         PreSyn* ps = nt.presyns + i;
 
@@ -1514,10 +1517,10 @@ for (int i=0; i < nt.end; ++i) {
     // with pnttype[i] > 0 have a target.
     int* pnttype = F.read_array<int>(nnetcon);
     int* pntindex = F.read_array<int>(nnetcon);
-    nt.pnttype  = new int[nnetcon];
+    nt.pnttype = new int[nnetcon];
     nt.pntindex = new int[nnetcon];
-    memcpy (nt.pnttype, pnttype,   nnetcon * sizeof(int));
-    memcpy (nt.pntindex, pntindex, nnetcon * sizeof(int));
+    memcpy(nt.pnttype, pnttype, nnetcon * sizeof(int));
+    memcpy(nt.pntindex, pntindex, nnetcon * sizeof(int));
     for (int i = 0; i < nnetcon; ++i) {
         int type = pnttype[i];
         if (type > 0) {
@@ -1586,7 +1589,7 @@ for (int i=0; i < nt.end; ++i) {
     // delays in netcons order
     double* delay = F.read_array<double>(nnetcon);
     nt.delay = new double[nnetcon];
-    memcpy (nt.delay, delay, nnetcon * sizeof(double));
+    memcpy(nt.delay, delay, nnetcon * sizeof(double));
     for (int i = 0; i < nnetcon; ++i) {
         NetCon& nc = nt.netcons[i];
         nc.delay_ = delay[i];
@@ -1604,20 +1607,20 @@ for (int i=0; i < nt.end; ++i) {
     }
 
     // BBCOREPOINTER information
-    nt.npnt    = F.read_int();
-    nt.icnt    = new int     [nt.npnt];
-    nt.dcnt    = new int     [nt.npnt];
-    nt.type    = new int     [nt.npnt];
+    nt.npnt = F.read_int();
+    nt.icnt = new int[nt.npnt];
+    nt.dcnt = new int[nt.npnt];
+    nt.type = new int[nt.npnt];
     for (int i = 0; i < nt.npnt; ++i) {
         int* iArray = NULL;
         double* dArray = NULL;
         int type = F.read_int();
         nt.type[i] = type;
         assert(nrn_bbcore_read_[type]);
-        int icnt    = F.read_int();
-        int dcnt    = F.read_int();
-        nt.icnt[i]  = icnt;
-        nt.dcnt[i]  = dcnt;
+        int icnt = F.read_int();
+        int dcnt = F.read_int();
+        nt.icnt[i] = icnt;
+        nt.dcnt[i] = dcnt;
         if (icnt) {
            iArray = F.read_array<int>(icnt);
         }
@@ -1663,12 +1666,12 @@ for (int i=0; i < nt.end; ++i) {
     } else {
         nt._vecplay = NULL;
     }
-    nt.vecplay_ix = new int [n];
-    nt.vecplay_sz = new int [n];
-    nt.vecplay_yvec  = new double* [n];
-    nt.vecplay_tvec  = new double* [n];
-    nt.vtype      = new int [n];
-    nt.mtype      = new int [n];
+    nt.vecplay_ix = new int[n];
+    nt.vecplay_sz = new int[n];
+    nt.vecplay_yvec = new double*[n];
+    nt.vecplay_tvec = new double*[n];
+    nt.vtype = new int[n];
+    nt.mtype = new int[n];
     for (int i = 0; i < n; ++i) {
         nt.vtype[i] = F.read_int();
         nt.mtype[i] = F.read_int();
@@ -1676,16 +1679,16 @@ for (int i=0; i < nt.end; ++i) {
         Memb_list* ml = nt._ml_list[nt.mtype[i]];
         nt.vecplay_ix[i] = F.read_int();
         nt.vecplay_sz[i] = F.read_int();
-        int ix              = nt.vecplay_ix[i];
-        int sz              = nt.vecplay_sz[i];
+        int ix = nt.vecplay_ix[i];
+        int sz = nt.vecplay_sz[i];
         IvocVect* yvec = vector_new1(sz);
         F.read_array<double>(vector_vec(yvec), sz);
         IvocVect* tvec = vector_new1(sz);
         F.read_array<double>(vector_vec(tvec), sz);
-        nt.vecplay_yvec[i] = new double [sz];
-        nt.vecplay_tvec[i] = new double [sz];
-        memcpy (nt.vecplay_yvec[i], yvec->data_, sz*sizeof(double));
-        memcpy (nt.vecplay_tvec[i], tvec->data_, sz*sizeof(double));
+        nt.vecplay_yvec[i] = new double[sz];
+        nt.vecplay_tvec[i] = new double[sz];
+        memcpy(nt.vecplay_yvec[i], yvec->data_, sz * sizeof(double));
+        memcpy(nt.vecplay_tvec[i], tvec->data_, sz * sizeof(double));
         ix = nrn_param_layout(ix, nt.mtype[i], ml);
         if (ml->_permute) {
             ix = nrn_index_permute(ix, nt.mtype[i], ml);

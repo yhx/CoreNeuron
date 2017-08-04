@@ -29,30 +29,30 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <iostream>
 #include "coreneuron/nrniv/nrn_filehandler.h"
 #include "coreneuron/nrnconf.h"
-extern "C" void check_bbcore_write_version(const char *);
+extern "C" void check_bbcore_write_version(const char*);
 
 FileHandler::FileHandler(const char* filename, bool reorder) {
     this->open(filename, reorder);
-   checkpoint(0);
+    checkpoint(0);
 }
 
 void FileHandler::open(const char* filename, bool reorder, std::ios::openmode mode) {
     // we dont want both in and out flags to avoid mixing with checkpoint
-    nrn_assert( (mode & (std::ios::in | std::ios::out)));
+    nrn_assert((mode & (std::ios::in | std::ios::out)));
     reorder_bytes = reorder;
-//    checkpoint(0);
+    //    checkpoint(0);
     close();
-    F.open(filename, mode | std::ios::binary); // we always have binary files
+    F.open(filename, mode | std::ios::binary);  // we always have binary files
     nrn_assert(F.is_open());
     current_mode = mode;
     char version[256];
     if (current_mode & std::ios::in) {
-      F.getline(version, sizeof(version));
-      nrn_assert(!F.fail());
-      check_bbcore_write_version(version);
+        F.getline(version, sizeof(version));
+        nrn_assert(!F.fail());
+        check_bbcore_write_version(version);
     }
     if (current_mode & std::ios::out) {
-      F << bbcore_write_version << std::endl;
+        F << bbcore_write_version << std::endl;
     }
 }
 

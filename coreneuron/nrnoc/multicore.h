@@ -70,27 +70,27 @@ typedef struct NrnThreadBAList {
 typedef struct PreSynHelper { int flag_; } PreSynHelper;
 
 typedef struct NrnThread {
-    int*        src_gids;                     // FIXME temporary struct to store checkpoint
-    int*        output_gids;                  // FIXME temporary struct to store checkpoint
-    int         nmech;                        // FIXME actually a good idea to keep this one, it is size of linked list tml 
-    int         n_outputgids;                 // FIXME temp..
-    int         ndata_unpadded;               // FIXME temp..
-    int*        output_vindex;                // FIXME temp..
-    double*     output_threshold;             // FIXME temp..
-    int*        pnttype;                      // FIXME temp..
-    int*        pntindex;                     // FIXME temp..
-    double*     delay;                        // FIXME temp..
-    int         npnt;                         // FIXME temp..
-    int*        icnt;                         // FIXME temp..
-    int*        dcnt;                         // FIXME temp..
-    int*        mtype;                        // FIXME temp..
-    int*        vtype;                        // FIXME temp..
-    int*        type;                         // FIXME temp..
-    int*        vecplay_ix;                   // FIXME temp..
-    int*        vecplay_sz;                   // FIXME temp..
-    double**    vecplay_yvec;                 // FIXME temp..
-    double**    vecplay_tvec;                 // FIXME temp..
-    Memb_list** mlmap;                        // FIXME temp..
+    int* src_gids;     // FIXME temporary struct to store checkpoint
+    int* output_gids;  // FIXME temporary struct to store checkpoint
+    int nmech;         // FIXME actually a good idea to keep this one, it is size of linked list tml
+    int n_outputgids;  // FIXME temp..
+    int ndata_unpadded;        // FIXME temp..
+    int* output_vindex;        // FIXME temp..
+    double* output_threshold;  // FIXME temp..
+    int* pnttype;              // FIXME temp..
+    int* pntindex;             // FIXME temp..
+    double* delay;             // FIXME temp..
+    int npnt;                  // FIXME temp..
+    int* icnt;                 // FIXME temp..
+    int* dcnt;                 // FIXME temp..
+    int* mtype;                // FIXME temp..
+    int* vtype;                // FIXME temp..
+    int* type;                 // FIXME temp..
+    int* vecplay_ix;           // FIXME temp..
+    int* vecplay_sz;           // FIXME temp..
+    double** vecplay_yvec;     // FIXME temp..
+    double** vecplay_tvec;     // FIXME temp..
+    Memb_list** mlmap;         // FIXME temp..
 
     double _t;
     double _dt;

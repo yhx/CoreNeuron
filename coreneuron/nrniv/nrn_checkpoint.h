@@ -28,13 +28,14 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef _H_NRNCHECKPOINT_
 #define _H_NRNCHECKPOINT_
 
-
-/* 
- * functional protoype of writting checkpoint file in same format of input data 
+/*
+ * functional protoype of writting checkpoint file in same format of input data
  * */
 
 class NrnThread;
-void write_checkpoint ( NrnThread* nt, int nb_threads, const char* dir, bool swap_bytes_order =false);
-
+void write_checkpoint(NrnThread* nt,
+                      int nb_threads,
+                      const char* dir,
+                      bool swap_bytes_order = false);
 
 #endif

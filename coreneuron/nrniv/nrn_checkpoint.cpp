@@ -93,7 +93,6 @@ static void write_phase1(NrnThread& nt, FileHandler& file_handle) {
 
     // close file
     file_handle.close();
-    //  free (output_gids);
     //  free (netcon_srcgid);
 }
 

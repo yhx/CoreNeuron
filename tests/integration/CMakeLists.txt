@@ -40,6 +40,7 @@ set(TEST_CASE_ARGS
     "ring_duplicate!${RING_COMMON_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_duplicate -z 3"
     "ring_permute1!${RING_COMMON_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_permute1 ${PERMUTE1_ARGS}"
     "ring_permute2!${RING_COMMON_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_permute2 ${PERMUTE2_ARGS}"
+    "ring_savestate!${RING_COMMON_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_savestate -ck ${CMAKE_CURRENT_BINARY_DIR}/ring_savestate"
 
     "ring_gap!${RING_GAP_COMMON_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_gap"
     "ring_gap_binqueue!${RING_GAP_COMMON_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_gap_binqueue --binqueue"
@@ -53,10 +54,16 @@ foreach(data_dir "ring" "ring_gap")
       file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/${data_dir}/out.dat.ref" DESTINATION "${CMAKE_CURRENT_SOURCE_DIR}/${data_dir}_${test_suffix}/")
     endforeach()
 endforeach()
-file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/ring/out.dat.ref" DESTINATION "${CMAKE_CURRENT_SOURCE_DIR}/ring_spike_buffer/")
+file (GLOB INPUT_FILES "${CMAKE_CURRENT_SOURCE_DIR}/ring/*.dat")
+file (COPY ${INPUT_FILES} DESTINATION "${CMAKE_CURRENT_SOURCE_DIR}/ring_savestate")
 
 #Configure test scripts
 foreach (args_line ${TEST_CASE_ARGS})
+  string(REGEX MATCH ".* -ck .*" CHECK_SAVESTATE ${args_line}) # if -ck is specified on command line we want to check savestate functionality
+  if (CHECK_SAVESTATE)
+    set (CHECK_SAVESTATE 1)
+  endif()
+  message ( STATUS "CHECK_SAVESTATE = ${CHECK_SAVESTATE}")
   string(REPLACE "!" ";" string_line ${args_line})
   if(MPI_FOUND)
     string(REPLACE ";" " " SRUN_PREFIX  "${TEST_MPI_EXEC_BIN};-n;2")

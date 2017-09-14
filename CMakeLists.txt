@@ -55,6 +55,7 @@ option(EXPORT_MECHS_FUNCTIONS "Enable exporting of mod init, jacob, state, cur a
 option(ENABLE_MPI "Enable MPI-based execution" ON)
 option(ENABLE_SOA "Enable SoA Memory Layout" ON)
 option(DISABLE_HOC_EXP "Disable wrapping exp with hoc_exp()" ON)
+option(ENABLE_MULTISEND "Enable multi-send spike exchange" ON)
 option(ENABLE_OPENACC_INFO "Enable OpenACC compiler information messages" OFF)
 option(ENABLE_SPLAYTREE_QUEUING "Enable use of Splay tree for spike queuing" OFF)
 option(ENABLE_CUDA_MODULES "Enable modules like Random123 written in CUDA" ON)
@@ -109,6 +110,13 @@ endif()
 #OpenMP runtime schedule
 if (ENABLE_OMP_RUNTIME_SCHEDULE)
     add_definitions("-DENABLE_OMP_RUNTIME_SCHEDULE")
+endif()
+
+#Enable multi-send spike exchange
+if (ENABLE_MULTISEND)
+    add_definitions("-DNRN_MULTISEND=1")
+else()
+    add_definitions("-DNRN_MULTISEND=0")
 endif()
 
 #Disable hoc_exp wrapper for exp

@@ -72,15 +72,18 @@ void write_checkpoint(NrnThread* nt, int nb_threads, const char* dir, bool swap_
     */
     FileHandler f;
     for (i = 0; i < nb_threads; i++) {
+      if (nt[i].ncell) {
         write_phase1(nt[i], f);
         write_phase2(nt[i], f);
         write_phase3(nt[i], f);
+      }
     }
 }
 
 static void write_phase1(NrnThread& nt, FileHandler& file_handle) {
     // open file for writing
     std::ostringstream filename;
+    std::cout << "nt.file_id" << nt.file_id << " " << nt.n_presyn << " npresyn\n";
     filename << output_dir << "/" << nt.file_id << "_1.dat";
     file_handle.open(filename.str().c_str(), swap_bytes, std::ios::out);
     file_handle.checkpoint(0);

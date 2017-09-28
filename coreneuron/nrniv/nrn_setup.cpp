@@ -254,6 +254,78 @@ void nrn_read_filesdat(int& ngrp, int*& grp, int multiple, int*& imult, const ch
     fclose(fp);
 }
 
+void write_iarray_to_file(FILE *hFile, int *data, int n) {
+    int i;
+
+    for(i=0; i<n; i++) {
+        fprintf(hFile, "%d\n", data[i]);
+    }
+    fprintf(hFile, "---\n");
+}
+
+void write_darray_to_file(FILE *hFile, double *data, int n) {
+    int i;
+
+    for(i=0; i<n; i++) {
+        fprintf(hFile, "%lf\n", data[i]);
+    }
+    fprintf(hFile, "---\n");
+}
+
+void dump_nt_to_file(std::string filename, NrnThread &nt, int gid) {
+    FILE *hFile;
+    long int offset;
+    int nmech = 0;
+
+    NrnThreadMembList* tml;
+
+    hFile = fopen(filename.c_str(), "w");
+
+    fprintf(hFile, "%d\n", (int)nt._ndata);
+    write_darray_to_file(hFile, nt._data, nt._ndata);
+
+    int nepadded = nrn_soa_padded_size(nt.end, MATRIX_LAYOUT);
+
+    fprintf(hFile, "%d\n", nt.end);
+    fprintf(hFile, "%d\n", nepadded);
+
+    for (tml = nt.tml; tml; tml = tml->next, nmech++);
+    fprintf(hFile, "%d\n", nmech);
+
+    offset = nt.end*6;
+
+    for (tml = nt.tml; tml; tml = tml->next) {
+        int type = tml->index;
+        int is_art = nrn_is_artificial_[type];
+        Memb_list* ml = tml->ml;
+        int n = ml->nodecount;
+        int npadded = ml->_nodecount_padded;
+        int szp = nrn_prop_param_size_[type];
+        int szdp = nrn_prop_dparam_size_[type];
+        int layout = nrn_mech_data_layout_[type];
+
+        fprintf(hFile, "%d %d %d %d %d %d %ld\n", type, is_art, n, npadded, szp, szdp, offset);
+        offset += n*szp;
+
+        if (!is_art) {
+            write_iarray_to_file(hFile, ml->nodeindices, nrn_soa_padded_size(n, layout));
+        }
+
+        if (szdp) {
+            write_iarray_to_file(hFile, ml->pdata, nrn_soa_padded_size(n, layout)*szdp);
+        }
+    }
+
+    write_iarray_to_file(hFile, nt._v_parent_index, nepadded);
+    fprintf(hFile, "%d\n", nt.ncell);
+
+    int shadowcnt = nrn_soa_padded_size(nt.shadow_rhs_cnt, MATRIX_LAYOUT);
+    write_darray_to_file(hFile, nt._shadow_rhs, shadowcnt);
+    write_darray_to_file(hFile, nt._shadow_d, shadowcnt);
+
+    fclose(hFile);
+}
+
 void read_phase1(data_reader& F, int imult, NrnThread& nt) {
     assert(!F.fail());
     int zz = imult * maxgid;     // offset for each gid

@@ -50,6 +50,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/nrniv/partrans.h"
 #include "coreneuron/nrniv/multisend.h"
 #include <string.h>
+#include <sstream>
 
 #if 0
 #include <fenv.h>
@@ -63,6 +64,8 @@ int nrn_feenableexcept() {
 
 int main1(int argc, char* argv[], char** env);
 void call_prcellstate_for_prcellgid(int prcellgid, int compute_gpu, int is_init);
+void nrn_read_filesdat(int& ngrp, int*& grp, int multiple, int*& imult, const char* filesdat);
+void dump_nt_to_file(std::string filename, NrnThread &nt, int gid);
 void nrn_init_and_load_data(int argc,
                             char* argv[],
                             bool nrnmpi_under_nrncontrol = true,
@@ -230,6 +233,29 @@ void call_prcellstate_for_prcellgid(int prcellgid, int compute_gpu, int is_init)
     }
 }
 
+
+void dump_nrn_threads_to_file() {
+    int ngroup = 0;
+    int nmultiple = 1;
+    int *gidgroups = NULL;
+    int* imult = NULL;
+    int i = 0;
+
+    std::string filesdat(nrnopt_get_str("--datpath") + "/" + nrnopt_get_str("--filesdat"));
+    nrn_read_filesdat(ngroup, gidgroups, nmultiple, imult, filesdat.c_str());
+
+    for(i=0; i<nrn_nthread; i++) {
+        NrnThread &nt = nrn_threads[i];
+
+        if(nt.ncell) {
+            std::stringstream ss;
+            ss << "nrnthread." << gidgroups[i] << ".txt";
+            dump_nt_to_file(ss.str(), nrn_threads[i], gidgroups[i]);
+        }
+    }
+}
+
+
 int main1(int argc, char** argv, char** env) {
     (void)env; /* unused */
 
@@ -282,6 +308,11 @@ int main1(int argc, char** argv, char** env) {
 #ifdef ENABLE_SELECTIVE_PROFILING
         start_profile();
 #endif
+
+        //dump data to ascii files
+        if (nrnopt_get_flag("--dumpthread")) {
+            dump_nrn_threads_to_file();
+        }
 
         /// Solver execution
         BBS_netpar_solve(nrnopt_get_dbl("--tstop"));

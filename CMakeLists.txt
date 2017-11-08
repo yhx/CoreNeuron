@@ -59,10 +59,11 @@ option(ENABLE_SPLAYTREE_QUEUING "Enable use of Splay tree for spike queuing" OFF
 option(ENABLE_CUDA_MODULES "Enable modules like Random123 written in CUDA" ON)
 option(ENABLE_NET_RECEIVE_BUFFERING "Enable event buffering in net_receive function" ON)
 option(ENABLE_OMP_RUNTIME_SCHEDULE "Use runtime schedule for OpenMP" OFF)
+option(CORENEURON_DISABLE_BUNDLE "Disable the use of embedded mod2c" OFF)
 
 
-set(FRONTEND_C_COMPILER gcc CACHE FILEPATH "C compiler for building mod2c [frontend executable]")
-set(FRONTEND_CXX_COMPILER g++ CACHE FILEPATH "C++ compiler for building mod2c [frontend executable]")
+set(FRONTEND_C_COMPILER "" CACHE FILEPATH "C compiler for building mod2c [frontend executable]")
+set(FRONTEND_CXX_COMPILER "" CACHE FILEPATH "C++ compiler for building mod2c [frontend executable]")
 
 ## mech / mod options
 set(ADDITIONAL_MECHPATH "" CACHE PATH "Search path for optional additional mechanism MOD files")
@@ -82,6 +83,7 @@ list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMake
       ${PROJECT_SOURCE_DIR}/CMake/config)
 
 set(Boost_NO_BOOST_CMAKE TRUE)
+list(APPEND CORENEURON_PRE_DEPENDENCIES "")
 
 include(CheckIncludeFiles)
 include(ReleaseDebugAutoFlags)
@@ -89,7 +91,6 @@ include(CrayPortability)
 include(BlueGenePortability)
 include(DefineInstallationPaths)
 include(SetRpath)
-include(DeclareMod2CSubModule)
 include(FindPkgConfig)
 include(CTest)
 
@@ -243,6 +244,9 @@ endif()
 if(EXPORT_MECHS_FUNCTIONS)
     add_definitions("-DEXPORT_MECHS_FUNCTIONS")
 endif()
+
+# add dependencies
+add_subdirectory(external)
 
 # Core library
 add_subdirectory(coreneuron)

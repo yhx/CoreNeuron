@@ -37,9 +37,8 @@ file(GLOB_RECURSE coreneuron_cuda_files "*.cu")
 # Compile and include MOD files
 
 # set mod2c binary and files from built in
-set (MOD2C ${PROJECT_BINARY_DIR}/external/mod2c/bin/mod2c_core)
-get_filename_component(mod2c_install_prefix ${MOD2C} DIRECTORY)
-set (MOD2C_UNITS "${PROJECT_BINARY_DIR}/external/mod2c/share/nrnunits.lib")
+set (MOD2C ${MOD2C_BINARY})
+set (MOD2C_UNITS "${MOD2C_MODLUNIT}")
 set(MOD2C env "MODLUNIT=${MOD2C_UNITS}" ${MOD2C})
 # Macro sets up build rule for .c files from .mod files.
 # Parameters:
@@ -52,6 +51,7 @@ set(MOD2C env "MODLUNIT=${MOD2C_UNITS}" ${MOD2C})
 # The macro appends the names of the output files to MOD2C_${name}_OUTPUTS
 # and the names of the mod files (without directories) to MOD2C_${name}_MODS
 
+
 macro(mod2c_target name input)
     get_filename_component(mod2c_source_ ${input} ABSOLUTE)
     get_filename_component(mod2c_modname_ ${input} NAME)
@@ -62,7 +62,7 @@ macro(mod2c_target name input)
     list(APPEND MOD2C_${name}_MODS "${mod2c_modname_}")
 
     add_custom_command(OUTPUT "${mod2c_output_}"
-      DEPENDS ${input} mod2c
+      DEPENDS ${input} ${CORENEURON_PRE_DEPENDENCIES}
       COMMAND ${CMAKE_COMMAND} -E copy "${mod2c_source_}" "${CMAKE_CURRENT_BINARY_DIR}"
       COMMAND ${MOD2C} "${mod2c_modname_}"
       WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")

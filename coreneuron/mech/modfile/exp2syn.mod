@@ -69,6 +69,7 @@ INITIAL {
 }
 
 BREAKPOINT {
+    CONDUCTANCE g
     SOLVE state METHOD cnexp
     g = B - A
     i = g*(v - e)

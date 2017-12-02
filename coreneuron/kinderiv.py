@@ -9,11 +9,14 @@
 kftmp = '_tmp_kinderiv.h'
 kf = '_kinderiv.h'
 
+import itertools
 import os
 
 fnames = [f.replace('.mod', '.c') for f in os.listdir('.') if f.endswith('.mod')]
+euler = []
 deriv = []
 kin = []
+
 for fname in fnames:
   f = open(fname, "r")
   for line in f:
@@ -23,6 +26,8 @@ for fname in fnames:
         deriv.append([word[2], word[3], fname, word[1]])
       if word[0] == '/*' and word[1] == '_kinetic_':
         kin.append([word[2], word[3], fname, word[1]])
+      if word[0] == '/*' and word[1] == '_euler_':
+        euler.append([word[2], word[3], fname, word[1]])
   f.close()
 
 fout = open(kftmp, "w")
@@ -32,7 +37,7 @@ fout.write('''
 ''')
 
 fout.write("\n/* data used to construct this file */\n")
-for l in [deriv, kin]:
+for l in [deriv, kin,  euler]:
   for item in l:
     fout.write('/*')
     for word in item:
@@ -53,14 +58,15 @@ for item in kin:
 fout.write("\n/* callback indices */\n")
 derivoffset = 1
 kinoffset = 1
-for i, item in enumerate(deriv):
+
+for i, item in enumerate(itertools.chain(deriv, euler)):
   fout.write('#define _derivimplic_%s%s %d\n' % (item[0], item[1], i + derivoffset))
 for i, item in enumerate(kin):
   fout.write('#define _kinetic_%s%s %d\n' % (item[0], item[1], i + kinoffset))
 
 fout.write("\n/* switch cases */\n")
 fout.write("\n#define _NRN_DERIVIMPLIC_CASES \\\n")
-for item in deriv:
+for item in itertools.chain(deriv, euler):
   fout.write("  case _derivimplic_%s%s: %s%s(_threadargs_); break; \\\n" % (item[0], item[1], item[0], item[1]))
 fout.write("\n")
 

@@ -26,3 +26,26 @@ int nrn_kinetic_steer(int fun, SparseObj* so, double* rhs, _threadargsproto_) {
     switch (fun) { _NRN_KINETIC_CASES }
     return 0;
 }
+
+// Derived from nrn/src/scopmath/euler.c
+
+#define der_(arg) _p[der[arg]*_STRIDE]
+#define var_(arg) _p[var[arg]*_STRIDE]
+
+int euler_thread(int neqn,
+                 int* var,
+                 int* der,
+                 DIFUN fun,
+                 _threadargsproto_) {
+    /* calculate the derivatives */
+     difun(fun);
+
+    double dt = _nt->_dt;
+    int i;
+
+    /* update dependent variables */
+    for (i = 0; i < neqn; i++)
+        var_(i) += dt * (der_(i));
+
+    return 0;
+}

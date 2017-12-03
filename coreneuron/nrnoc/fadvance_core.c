@@ -251,35 +251,3 @@ void* nrn_fixed_step_lastpart(NrnThread* nth) {
     nrn_deliver_events(nth); /* up to but not past texit */
     return (void*)0;
 }
-
-/*
-   Derived from scopmath/euler.c. Here because scopmath does not know
-   about NrnThread
-*/
-#undef SUCCESS
-#define SUCCESS 0
-#define der_(arg) p[der[arg]]
-#define var_(arg) p[var[arg]]
-/* ARGSUSED */
-int euler_thread(int neqn,
-                 int* var,
-                 int* der,
-                 double* p,
-                 int (*func)(double*, Datum*, Datum*, NrnThread*),
-                 Datum* ppvar,
-                 Datum* thread,
-                 NrnThread* nt) {
-    int i;
-    double dt = nt->_dt;
-
-    /* Calculate the derivatives */
-
-    (*func)(p, ppvar, thread, nt);
-
-    /* Update dependent variables --- note defines in euler above*/
-
-    for (i = 0; i < neqn; i++)
-        var_(i) += dt * (der_(i));
-
-    return (SUCCESS);
-}

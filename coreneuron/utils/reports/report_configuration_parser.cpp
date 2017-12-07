@@ -28,7 +28,6 @@
 
 #include "coreneuron/nrniv/nrn_assert.h"
 #include "coreneuron/utils/reports/nrnreport.h"
-#include "coreneuron/utils/tokenizer.hpp"
 #include "coreneuron/nrnoc/mech_mapping.hpp"
 #include <stdio.h>
 #include <stdlib.h>
@@ -50,10 +49,13 @@
 /*
  * Split filter string ("mech.var_name") into mech_id and var_name
  */
-  void parse_filter_string (const char* filter, ReportConfiguration& config) {
-    std::vector<std::string> tok (tokenize(filter, '.'));
-    strncpy(config.mech_name, tok[0].c_str(), tok[0].size());
-    strncpy(config.var_name,  tok[1].c_str(), tok[1].size());
+  void parse_filter_string (char* filter, ReportConfiguration& config) {
+    char* token = strtok(filter, ".");
+    if (! token) std::cerr << "WARNING ! correct format of variable to report must be: <MECHANISM NAME>.<VARIABLE_NAME>" << std::endl;
+    strcpy(config.mech_name, token);
+    token = strtok(NULL, "\n");
+    if (! token) std::cerr << "WARNING ! correct format of variable to report must be: <MECHANISM NAME>.<VARIABLE_NAME>" << std::endl;
+    strcpy(config.var_name, token);
   }
   /*
    * ---                           ---

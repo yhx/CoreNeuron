@@ -70,20 +70,19 @@ typedef std::map <int, std::vector<VarWithMapping> > VarsToReport; // mapping th
 
 class ReportEvent : public DiscreteEvent {
   private:
-    double dt;
-    unsigned long step;
-    char report_name [MAX_REPORT_NAME_LEN];
+    double           dt;
+    unsigned long    step;
+    char             report_name [MAX_REPORT_NAME_LEN];
     std::vector<int> gids_to_report;
 
   public:
-    ReportEvent(double t, VarsToReport& filtered_gids, const char* name): 
+    ReportEvent(double t, VarsToReport& filtered_gids, const char* name):
                                       dt(t), step(0) {
-      strcpy(report_name, name);
+      strcpy (report_name, name);
       VarsToReport::iterator it;
       nrn_assert(filtered_gids.size());
       gids_to_report.reserve(filtered_gids.size());
       for (it = filtered_gids.begin(); it != filtered_gids.end(); ++it) {
-        nrn_assert(it->first != 0);
         gids_to_report.push_back(it->first);
       }
       std::sort(gids_to_report.begin(), gids_to_report.end());

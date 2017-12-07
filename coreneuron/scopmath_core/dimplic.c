@@ -17,6 +17,11 @@ int nrn_derivimplicit_steer(int fun, _threadargsproto_) {
     return 0;
 }
 
+int nrn_euler_steer(int fun, _threadargsproto_) {
+    switch (fun) { _NRN_EULER_CASES }
+    return 0;
+}
+
 int nrn_newton_steer(int fun, _threadargsproto_) {
     switch (fun) { _NRN_DERIVIMPLICIT_NEWTON_CASES }
     return 0;
@@ -32,13 +37,9 @@ int nrn_kinetic_steer(int fun, SparseObj* so, double* rhs, _threadargsproto_) {
 #define der_(arg) _p[der[arg]*_STRIDE]
 #define var_(arg) _p[var[arg]*_STRIDE]
 
-int euler_thread(int neqn,
-                 int* var,
-                 int* der,
-                 DIFUN fun,
-                 _threadargsproto_) {
+int euler_thread(int neqn, int* var, int* der, DIFUN fun, _threadargsproto_) {
     /* calculate the derivatives */
-     difun(fun);
+     eulerfun(fun);
 
     double dt = _nt->_dt;
     int i;

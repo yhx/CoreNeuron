@@ -12,13 +12,13 @@ int derivimplicit_thread(int n, int* slist, int* dlist, DIFUN fun, _threadargspr
     return 0;
 }
 
-int nrn_derivimplic_steer(int fun, _threadargsproto_) {
-    switch (fun) { _NRN_DERIVIMPLIC_CASES }
+int nrn_derivimplicit_steer(int fun, _threadargsproto_) {
+    switch (fun) { _NRN_DERIVIMPLICIT_CASES }
     return 0;
 }
 
 int nrn_newton_steer(int fun, _threadargsproto_) {
-    switch (fun) { _NRN_DERIVIMPLIC_CB_CASES }
+    switch (fun) { _NRN_DERIVIMPLICIT_NEWTON_CASES }
     return 0;
 }
 

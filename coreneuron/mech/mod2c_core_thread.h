@@ -41,8 +41,8 @@ typedef int DIFUN;
 typedef int NEWTFUN;
 typedef int SPFUN;
 #pragma acc routine seq
-extern int nrn_derivimplic_steer(int, _threadargsproto_);
-#define difun(arg) nrn_derivimplic_steer(arg, _threadargs_);
+extern int nrn_derivimplicit_steer(int, _threadargsproto_);
+#define difun(arg) nrn_derivimplicit_steer(arg, _threadargs_);
 #pragma acc routine seq
 extern int nrn_newton_steer(int, _threadargsproto_);
 #define newtfun(arg) nrn_newton_steer(arg, _threadargs_);

@@ -32,6 +32,8 @@ THE POSSIBILITY OF SUCH DAMAGE.
  * @brief File containing main driver routine for CoreNeuron
  */
 
+#include <vector>
+#include <string.h>
 #include "coreneuron/utils/randoms/nrnran123.h"
 #include "coreneuron/nrnconf.h"
 #include "coreneuron/nrnoc/multicore.h"
@@ -66,6 +68,7 @@ int main1(int argc, char* argv[], char** env);
 void call_prcellstate_for_prcellgid(int prcellgid, int compute_gpu, int is_init);
 void nrn_init_and_load_data(int argc,
                             char* argv[],
+                            bool is_mapping_needed = false,
                             bool nrnmpi_under_nrncontrol = true,
                             bool run_setup_cleanup = true) {
 #if defined(NRN_FEEXCEPT)
@@ -90,8 +93,6 @@ void nrn_init_and_load_data(int argc,
     // create mutex for nrn123, protect instance_count_
     nrnran123_mutconstruct();
 
-    // read command line parameters and parameter config files
-    nrnopt_parse(argc, (const char**)argv);
 
     // set global variables
     // precedence is: set by user, globals.dat, 34.0
@@ -174,7 +175,7 @@ void nrn_init_and_load_data(int argc,
     use_phase2_ = (nrnopt_get_int("--ms-phases") == 2) ? 1 : 0;
 
     // reading *.dat files and setting up the data structures, setting mindelay
-    nrn_setup(filesdat.c_str(), nrn_need_byteswap, run_setup_cleanup);
+    nrn_setup(filesdat.c_str(), is_mapping_needed, nrn_need_byteswap, run_setup_cleanup);
 
     // Allgather spike compression and  bin queuing.
     nrn_use_bin_queue_ = nrnopt_get_flag("--binqueue");
@@ -241,9 +242,21 @@ void call_prcellstate_for_prcellgid(int prcellgid, int compute_gpu, int is_init)
 
 int main1(int argc, char** argv, char** env) {
     (void)env; /* unused */
-
+    // read command line parameters and parameter config files
+    nrnopt_parse(argc, (const char**)argv);
+    std::vector<ReportConfiguration> configs;
+    bool reports_needs_finalize = false;
+    if (nrnopt_get_str("--report-conf").size()) {
+      if (nrnopt_get_int("--multiple") > 1) {
+        if (nrnmpi_myid == 0)
+            printf("\n WARNING! : Can't enable reports with model duplications feature! \n");
+      } else {
+         configs = create_report_configurations (nrnopt_get_str("--report-conf").c_str(), nrnopt_get_str("--outpath").c_str());
+         reports_needs_finalize = configs.size();
+      }
+    }
     // initializationa and loading functions moved to separate
-    nrn_init_and_load_data(argc, argv);
+    nrn_init_and_load_data(argc, argv, configs.size() > 0);
     std::string checkpoint_path = nrnopt_get_str("--checkpoint");
     if (strlen(checkpoint_path.c_str())) {
         nrn_checkpoint_arg_exists = true;
@@ -270,29 +283,14 @@ int main1(int argc, char** argv, char** env) {
         }
 
         report_mem_usage("After nrn_finitialize");
-
-#ifdef ENABLE_REPORTING
-        ReportGenerator* r = NULL;
-#endif
-
-        // if reports are enabled using ReportingLib
-        if (nrnopt_get_flag("--report")) {
-#ifdef ENABLE_REPORTING
-            if (nrnopt_get_int("--multiple") > 1) {
-                if (nrnmpi_myid == 0)
-                    printf(
-                        "\n WARNING! : Can't enable reports with model duplications feature! \n");
-            } else {
-                r = new ReportGenerator(nrnopt_get_int("--report"), t, nrnopt_get_dbl("--tstop"),
-                                        nrnopt_get_dbl("--dt"), nrnopt_get_dbl("--mindelay"),
-                                        nrnopt_get_dbl("--dt_report"), nrnopt_get_str("--outpath"));
-                r->register_report();
-            }
-#else
-            if (nrnmpi_myid == 0)
-                printf("\n WARNING! : Can't enable reports, recompile with ReportingLib! \n");
-#endif
+        double dt = nrnopt_get_dbl("--dt");
+        double delay =  nrnopt_get_dbl("--mindelay");
+        // register all reports into reportinglib
+        for (int i =0;i < configs.size(); i++) {
+          register_report (dt, delay, configs[i]);
         }
+        setup_report_engine(dt,delay);
+        configs.clear();
 
         // call prcellstate for prcellgid
         call_prcellstate_for_prcellgid(nrnopt_get_int("--prcellgid"), compute_gpu, 0);
@@ -318,10 +316,8 @@ int main1(int argc, char** argv, char** env) {
         // prcellstate after end of solver
         call_prcellstate_for_prcellgid(nrnopt_get_int("--prcellgid"), compute_gpu, 0);
 
-#ifdef ENABLE_REPORTING
-        if (nrnopt_get_int("--report") && r)
-            delete r;
-#endif
+        if (reports_needs_finalize )
+            finalize_report();
     }
 
     write_checkpoint(nrn_threads, nrn_nthread, checkpoint_path.c_str(), nrn_need_byteswap);

@@ -47,7 +47,6 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/nrniv/nrn_checkpoint.h"
 #include "coreneuron/nrniv/node_permute.h"
 #include "coreneuron/nrniv/cellorder.h"
-#include "coreneuron/utils/reports/nrnreport.h"
 #include "coreneuron/utils/reports/nrnsection_mapping.h"
 
 // file format defined in cooperation with nrncore/src/nrniv/nrnbbcore_write.cpp
@@ -559,7 +558,7 @@ void nrn_setup_cleanup() {
     neg_gid2out.clear();
 }
 
-void nrn_setup(const char* filesdat, int byte_swap, bool run_setup_cleanup) {
+void nrn_setup(const char* filesdat, bool is_mapping_needed, int byte_swap, bool run_setup_cleanup) {
     /// Number of local cell groups
     int ngroup = 0;
 
@@ -653,7 +652,7 @@ void nrn_setup(const char* filesdat, int byte_swap, bool run_setup_cleanup) {
     /* nrn_multithread_job supports serial, pthread, and openmp. */
     coreneuron::phase_wrapper<(coreneuron::phase)2>();
 
-    if (nrnopt_get_flag("--report"))
+    if (is_mapping_needed )
         coreneuron::phase_wrapper<(coreneuron::phase)3>();
 
     double mindelay = set_mindelay(nrnopt_get_dbl("--mindelay"));

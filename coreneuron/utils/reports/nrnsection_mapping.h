@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 #include <map>
-
+#include <iostream>
 /** type to store every section and associated segments */
 typedef std::vector<int> segvec_type;
 typedef std::map<int, segvec_type> secseg_map_type;
@@ -13,7 +13,9 @@ typedef secseg_map_type::iterator secseg_it_type;
 /** @brief Section to segment mapping
  *
  *  For a section list (of a particulat type), store mapping
- *  of section to segments.
+ *  of section to segments
+ *  a section is a arbitrary user classification to recognize some segments (ex: api, soma, dend, axon)
+ *
  */
 struct SecMapping {
     /** name of section list */

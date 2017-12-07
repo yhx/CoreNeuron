@@ -66,8 +66,6 @@ static param_int param_int_args[] = {
     {"--nwarp -W", 0, 0, 1000000, "Number of warps to balance. (0)"},
     {"--ms-subintervals", 2, 1, 2, "Number of multisend subintervals, 1 or 2. (2)"},
     {"--ms-phases", 2, 1, 2, "Number of multisend phases, 1 or 2. (2)"},
-    {"--report -r", 0, 0, 2,
-     "Enable voltage report (0 for disable, 1 for soma, 2 for full compartment)."},
     {"--multiple -z", 1, 1, 10000000,
      "Model duplication factor. Model size is normal size * (int)."},
     {"--extracon -x", 0, 0, 10000000,
@@ -84,7 +82,6 @@ static param_dbl param_dbl_args[] = {
     {"--celsius -l", -1000., -1000., 1000.,
      "Temperature in degC. The default value is set in defaults.dat or else is 34.0."},
     {"--forwardskip -k", 0., 0., 1e9, "Forwardskip to TIME"},
-    {"--dt_report -w", 0.1, 0.0, 1e9, "Dt for soma reports (using ReportingLib). (0.1)"},
     {"--mindelay", 10., 0., 1e9,
      "Maximum integration interval (likely reduced by minimum NetCon delay). (10)"},
     {NULL, 0., 0., 0., NULL}};
@@ -109,6 +106,7 @@ static param_str param_str_args[] = {
     {"--outpath -o", ".", "Path to place output data files. (.)"},
     {"--write-config", "", "Write configuration file filename."},
     {"--read-config", "", "Read configuration file filename."},
+    {"--report-conf", "", "reports configuration file"},
     {NULL, NULL, NULL}};
 
 static void graceful_exit(int);

@@ -37,6 +37,12 @@ typedef int (*SPFUN)(struct SparseObj*, double*, _threadargsproto_);
 
 #else
 
+/**
+ * \todo: typedefs like DIFUN can be removed
+ * \todo: macros for difun, newtfun, eulerfun are not necessary
+ *        and need to be refactored.
+ */
+
 typedef int DIFUN;
 typedef int NEWTFUN;
 typedef int SPFUN;

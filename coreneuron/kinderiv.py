@@ -1,6 +1,9 @@
 #!/usr/bin/python
 
 # read the translated mod files and construct _kinderiv.h
+# this is implemented to avoid function callbacks using
+# function pointers while using methods like euler, newton
+# or kinetic schemes. This is required for GPU implementation.
 
 # if _kinderiv.h already exists and is the same as what this script generates
 # then do not update it (to avoid re-compiling all the mech c files if

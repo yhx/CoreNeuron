@@ -29,6 +29,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/nrnoc/multicore.h"
 #include "coreneuron/nrniv/nrniv_decl.h"
 #include "coreneuron/nrniv/nrn_filehandler.h"
+#include "coreneuron/nrniv/netcvode.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -41,12 +42,12 @@ THE POSSIBILITY OF SUCH DAMAGE.
  * LAYOUT = 0 => SoA, LAYOUT = 1 => AoS
  *
  * */
-static int maxgid;              // no gid in any file can be greater than maxgid
 static const char* output_dir;  // output directory to write simple checkpoint
 static bool swap_bytes;
 static void write_phase1(NrnThread& nt, FileHandler& file_handle);
 static void write_phase2(NrnThread& nt, FileHandler& file_handle);
 static void write_phase3(NrnThread& nt, FileHandler& file_handle);
+static void write_tqueue(NrnThread& nt, FileHandler& file_handle);
 
 static int nrn_i_layout(int icnt, int cnt, int isz, int sz, int layout) {
     if (layout == 1) {
@@ -223,8 +224,136 @@ static void write_phase2(NrnThread& nt, FileHandler& file_handle) {
         file_handle.write_array<double>(nt.vecplay_yvec[i], nt.vecplay_sz[i]);
         file_handle.write_array<double>(nt.vecplay_tvec[i], nt.vecplay_sz[i]);
     }
+    write_tqueue(nt, file_handle);
     file_handle.close();
 }
 
-static void write_phase3(NrnThread& nt, FileHandler& file_handle) {
+static void write_phase3(NrnThread&, FileHandler&) {
+}
+
+static void write_tqueue(TQItem* q, NrnThread& nt, FileHandler& fh) {
+    DiscreteEvent* d = (DiscreteEvent*)q->data_;
+    std::cout << "  p  " << q->t_ << " " << d->type() << "\n";
+
+    d->pr("", q->t_, net_cvode_instance);
+
+    fh << d->type() << "\n";
+    fh.write_array(&q->t_, 1);
+
+    switch (d->type()) {
+      case NetConType: {
+        NetCon* nc = (NetCon*)d;
+        assert (nc >= nt.netcons && (nc < (nt.netcons + nt.n_netcon)));
+        fh << (nc - nt.netcons) << "\n";
+        break;
+      }
+      case SelfEventType: {
+        SelfEvent* se = (SelfEvent*)d;
+        fh << int(se->target_->_type) << "\n";
+        fh << se->target_->_i_instance << "\n";
+        fh.write_array(&se->flag_, 1);
+        fh << (se->movable_ - nt._vdata) << "\n"; // DANGEROUS?
+        fh << se->weight_index_ << "\n";
+        break;
+      }
+      case PreSynType: {
+        PreSyn* ps = (PreSyn*)d;
+        assert(ps >= nt.presyns && (ps < (nt.presyns + nt.n_presyn)));
+        fh << (ps - nt.presyns) << "\n";
+        break;
+      }
+      case NetParEventType: {
+        // nothing extra to write
+        break;
+      }
+      default: {
+        // In particular, InputPreSyn does not appear in tqueue as it
+        // immediately fans out to NetCon.
+        assert(0);
+        break;
+      }
+    }    
+}
+
+static void checkpoint_restore_tqitem(int type, NrnThread& nt, FileHandler& fh) {
+    double te;
+    fh.read_array(&te, 1);
+    std::cout << "restore tqitem type=" << type << " te=" << te << "\n";
+
+    switch (type) {
+      case NetConType: {
+        int ncindex = fh.read_int();
+        std::cout << "  NetCon " << ncindex << "\n";
+        NetCon* nc = nt.netcons + ncindex;
+        nc->send(te, net_cvode_instance, &nt);
+        break;
+      }
+      case SelfEventType: {
+        int target_type = fh.read_int(); // not really needed (except for assert below)
+        int target_instance = fh.read_int();
+        double flag;
+        fh.read_array(&flag, 1);
+        int movable = fh.read_int();
+        int weight_index = fh.read_int();
+        Point_process* pnt = nt.pntprocs + target_instance;
+        assert(target_instance == pnt->_i_instance);
+        assert(target_type == pnt->_type);
+        std::cout << "  SelfEvent " << target_type << " " << target_instance << " " << flag << " " << movable << "\n";
+        net_send(nt._vdata + movable, weight_index, pnt, te, flag);
+        break;
+      }
+      case PreSynType: {
+        int psindex = fh.read_int();
+        std::cout << "  PreSyn " << psindex << "\n";
+        PreSyn* ps = nt.presyns + psindex;
+        int gid = ps->output_index_;
+        ps->output_index_ = -1;
+        ps->send(te, net_cvode_instance, &nt);
+        ps->output_index_ = gid;
+        break;
+      }
+      case NetParEventType: {
+        // nothing extra to read
+        std::cout << "  NetParEvent\n";
+        break;
+      }
+      default: {
+        assert(0);
+        break;
+      }
+    }    
+}
+
+static void write_tqueue(NrnThread& nt, FileHandler& file_handle) {
+    NetCvodeThreadData& ntd = net_cvode_instance->p[nt.id];
+    std::cout << "write_tqueue " << nt.id << " " << ntd.tqe_ << "\n";
+    TQueue<QTYPE>* tqe = ntd.tqe_;
+    TQItem* q;
+
+    file_handle << -1 << " TQItems from atomic_dq\n";
+    while((q = tqe->atomic_dq(1e20)) != NULL) {
+      write_tqueue(q, nt, file_handle);
+    }
+    file_handle << 0 << "\n";
+
+    file_handle << -1 << " TQItemsfrom binq_\n";
+    for (q = tqe->binq_->first(); q; q = tqe->binq_->next(q)) {
+      write_tqueue(q, nt, file_handle);
+    }
+    file_handle << 0 << "\n";
+}
+
+void checkpoint_restore_tqueue(NrnThread& nt, FileHandler& fh) {
+    std::cout << "checkpoint_restore_tqueue\n";
+    int type;
+
+    assert(fh.read_int() == -1); // -1 TQItems from atomic_dq
+    while ((type = fh.read_int()) != 0) {
+      checkpoint_restore_tqitem(type, nt, fh);
+    }
+
+    assert(fh.read_int() == -1); // -1 TQItems from binq_
+    while ((type - fh.read_int()) != 0) {
+      checkpoint_restore_tqitem(type, nt, fh);
+    }
 }

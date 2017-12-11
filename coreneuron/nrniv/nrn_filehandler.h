@@ -84,6 +84,9 @@ class FileHandler {
         return F.fail();
     }
 
+    /** nothing more to read */
+    bool eof();
+
     /** Query chkpnt state. */
     int checkpoint() const {
         return chkpnt;

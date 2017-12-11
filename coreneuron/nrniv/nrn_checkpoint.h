@@ -33,9 +33,12 @@ THE POSSIBILITY OF SUCH DAMAGE.
  * */
 
 class NrnThread;
+class FileHandler;
 void write_checkpoint(NrnThread* nt,
                       int nb_threads,
                       const char* dir,
                       bool swap_bytes_order = false);
+
+void checkpoint_restore_tqueue(NrnThread&, FileHandler&);
 
 #endif

@@ -32,6 +32,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <map>
 #include <cstring>
 #include "coreneuron/nrnconf.h"
+#include "coreneuron/nrniv/nrn_checkpoint.h"
 #include "coreneuron/nrnoc/multicore.h"
 #include "coreneuron/nrniv/nrniv_decl.h"
 #include "coreneuron/nrnoc/nrnoc_decl.h"
@@ -1692,6 +1693,12 @@ for (int i=0; i < nt.end; ++i) {
             ix = nrn_index_permute(ix, nt.mtype[i], ml);
         }
         nt._vecplay[i] = new VecPlayContinuous(ml->data + ix, yvec, tvec, NULL, nt.id);
+    }
+
+    // If not at end of file, then this must be a checkpoint and restore
+    // the tqueue.
+    if (!F.eof()) {
+        checkpoint_restore_tqueue(nt, F);
     }
 
     // NetReceiveBuffering

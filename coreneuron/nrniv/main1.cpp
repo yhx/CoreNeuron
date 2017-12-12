@@ -95,7 +95,6 @@ void nrn_init_and_load_data(int argc,
     // set global variables
     // precedence is: set by user, globals.dat, 34.0
     celsius = nrnopt_get_dbl("--celsius");
-    t = celsius;  // later will read globals.dat and compare with this.
 
 #if _OPENACC
     if (!nrnopt_get_flag("--gpu") && nrnopt_get_int("--cell-permute") == 2) {
@@ -126,6 +125,10 @@ void nrn_init_and_load_data(int argc,
 
     // set global variables for start time, timestep and temperature
     t = nrnopt_get_dbl("--tstart");
+    // tstart is ignored if finitialize is called. finitialize is not called
+    // if nrn_setup.cpp reads checkpoint files.  Note that for
+    // checkpoint files, tstart on the command line must be the same
+    // value of t at which the checkpoint was made.
 
     if (nrnopt_get_dbl("--dt") != -1000.) {  // command line arg highest precedence
         dt = nrnopt_get_dbl("--dt");
@@ -243,7 +246,9 @@ int main1(int argc, char** argv, char** env) {
     // clang-format on
     {
         double v = nrnopt_get_dbl("--voltage");
-        nrn_finitialize(v != 1000., v);
+        if (!checkpoint_initialize()) {
+            nrn_finitialize(v != 1000., v);
+        }
 
         report_mem_usage("After nrn_finitialize");
 

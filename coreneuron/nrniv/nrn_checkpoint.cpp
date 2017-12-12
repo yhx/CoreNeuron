@@ -28,6 +28,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/nrniv/nrn_checkpoint.h"
 #include "coreneuron/nrnoc/multicore.h"
 #include "coreneuron/nrniv/nrniv_decl.h"
+#include "coreneuron/nrnoc/nrnoc_decl.h"
 #include "coreneuron/nrniv/nrn_filehandler.h"
 #include "coreneuron/nrniv/netcvode.h"
 #include <iostream>
@@ -48,17 +49,6 @@ static void write_phase1(NrnThread& nt, FileHandler& file_handle);
 static void write_phase2(NrnThread& nt, FileHandler& file_handle);
 static void write_phase3(NrnThread& nt, FileHandler& file_handle);
 static void write_tqueue(NrnThread& nt, FileHandler& file_handle);
-
-static int nrn_i_layout(int icnt, int cnt, int isz, int sz, int layout) {
-    if (layout == 1) {
-        return icnt * sz + isz;
-    } else if (layout == 0) {
-        int padded_cnt = nrn_soa_padded_size(cnt, layout);  // may want to factor out to save time
-        return icnt + isz * padded_cnt;
-    }
-    assert(0);
-    return 0;
-}
 
 void write_checkpoint(NrnThread* nt, int nb_threads, const char* dir, bool swap_bytes_order) {
     if (!strlen(dir))
@@ -343,9 +333,11 @@ static void write_tqueue(NrnThread& nt, FileHandler& file_handle) {
     file_handle << 0 << "\n";
 }
 
+static bool checkpoint_restored_ = false;
+
 void checkpoint_restore_tqueue(NrnThread& nt, FileHandler& fh) {
-    std::cout << "checkpoint_restore_tqueue\n";
     int type;
+    checkpoint_restored_ = true;
 
     assert(fh.read_int() == -1); // -1 TQItems from atomic_dq
     while ((type = fh.read_int()) != 0) {
@@ -356,4 +348,18 @@ void checkpoint_restore_tqueue(NrnThread& nt, FileHandler& fh) {
     while ((type - fh.read_int()) != 0) {
       checkpoint_restore_tqitem(type, nt, fh);
     }
+}
+
+// A call to finitialize must be avoided after restoring the checkpoint
+// as that would change all states to a voltage clamp initialization.
+// Nevertheless t and some spike exchange and other computer state needs to
+// be initialized.
+// Much of what is here is a copy of finitialize.c
+bool checkpoint_initialize() {
+
+    dt2thread(-1.);
+    nrn_thread_table_check();
+    nrn_spike_exchange_init();
+    
+    return checkpoint_restored_;
 }

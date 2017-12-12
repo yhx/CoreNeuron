@@ -41,4 +41,9 @@ void write_checkpoint(NrnThread* nt,
 
 void checkpoint_restore_tqueue(NrnThread&, FileHandler&);
 
+/* return true if special checkpoint initialization carried out and
+   one should not do finitialize
+*/
+bool checkpoint_initialize();
+
 #endif

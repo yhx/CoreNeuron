@@ -35,6 +35,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <fstream>
 #include <sstream>
 #include <cassert>
+#include <stdio.h> // only needed for debugging printf
 
 #ifndef LAYOUT
 #define LAYOUT 1
@@ -225,9 +226,8 @@ static void write_phase3(NrnThread&, FileHandler&) {
 
 static void write_tqueue(TQItem* q, NrnThread& nt, FileHandler& fh) {
     DiscreteEvent* d = (DiscreteEvent*)q->data_;
-    std::cout << "  p  " << q->t_ << " " << d->type() << "\n";
-
-    d->pr("", q->t_, net_cvode_instance);
+    //printf("  p %.20g %d\n", q->t_, d->type());
+    //d->pr("", q->t_, net_cvode_instance);
 
     fh << d->type() << "\n";
     fh.write_array(&q->t_, 1);
@@ -242,10 +242,12 @@ static void write_tqueue(TQItem* q, NrnThread& nt, FileHandler& fh) {
       case SelfEventType: {
         SelfEvent* se = (SelfEvent*)d;
         fh << int(se->target_->_type) << "\n";
-        fh << se->target_->_i_instance << "\n";
+        fh << se->target_ - nt.pntprocs << "\n"; // index of nrnthread.pntprocs
+        fh << se->target_->_i_instance << "\n"; // not needed except for assert check
         fh.write_array(&se->flag_, 1);
         fh << (se->movable_ - nt._vdata) << "\n"; // DANGEROUS?
         fh << se->weight_index_ << "\n";
+        // printf("    %d %ld %d %g %ld %d\n", se->target_->_type, se->target_ - nt.pntprocs, se->target_->_i_instance, se->flag_, se->movable_ - nt._vdata, se->weight_index_);
         break;
       }
       case PreSynType: {
@@ -270,33 +272,34 @@ static void write_tqueue(TQItem* q, NrnThread& nt, FileHandler& fh) {
 static void checkpoint_restore_tqitem(int type, NrnThread& nt, FileHandler& fh) {
     double te;
     fh.read_array(&te, 1);
-    std::cout << "restore tqitem type=" << type << " te=" << te << "\n";
+    //printf("restore tqitem type=%d te=%.20g\n", type, te);
 
     switch (type) {
       case NetConType: {
         int ncindex = fh.read_int();
-        std::cout << "  NetCon " << ncindex << "\n";
+        //printf("  NetCon %d\n", ncindex);
         NetCon* nc = nt.netcons + ncindex;
         nc->send(te, net_cvode_instance, &nt);
         break;
       }
       case SelfEventType: {
         int target_type = fh.read_int(); // not really needed (except for assert below)
+        int pinstance = fh.read_int();
         int target_instance = fh.read_int();
         double flag;
         fh.read_array(&flag, 1);
         int movable = fh.read_int();
         int weight_index = fh.read_int();
-        Point_process* pnt = nt.pntprocs + target_instance;
+        Point_process* pnt = nt.pntprocs + pinstance;
+        //printf("  SelfEvent %d %d %d %g %d %d\n", target_type, pinstance, target_instance, flag, movable, weight_index);
         assert(target_instance == pnt->_i_instance);
         assert(target_type == pnt->_type);
-        std::cout << "  SelfEvent " << target_type << " " << target_instance << " " << flag << " " << movable << "\n";
         net_send(nt._vdata + movable, weight_index, pnt, te, flag);
         break;
       }
       case PreSynType: {
         int psindex = fh.read_int();
-        std::cout << "  PreSyn " << psindex << "\n";
+        //printf("  PreSyn %d\n", psindex);
         PreSyn* ps = nt.presyns + psindex;
         int gid = ps->output_index_;
         ps->output_index_ = -1;
@@ -306,7 +309,7 @@ static void checkpoint_restore_tqitem(int type, NrnThread& nt, FileHandler& fh) 
       }
       case NetParEventType: {
         // nothing extra to read
-        std::cout << "  NetParEvent\n";
+        // printf("  NetParEvent\n");
         break;
       }
       default: {
@@ -318,7 +321,7 @@ static void checkpoint_restore_tqitem(int type, NrnThread& nt, FileHandler& fh) 
 
 static void write_tqueue(NrnThread& nt, FileHandler& file_handle) {
     NetCvodeThreadData& ntd = net_cvode_instance->p[nt.id];
-    std::cout << "write_tqueue " << nt.id << " " << ntd.tqe_ << "\n";
+    // printf("write_tqueue %d %p\n", nt.id, ndt.tqe_);
     TQueue<QTYPE>* tqe = ntd.tqe_;
     TQItem* q;
 

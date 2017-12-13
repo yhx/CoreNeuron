@@ -593,6 +593,13 @@ void nrn_setup(const char* filesdat, int byte_swap, bool run_setup_cleanup) {
     nrn_threads_create(ngroup <= 1 ? 2 : ngroup,
                        nrnopt_get_flag("--threading") ? 1 : 0);  // serial/parallel threads
 
+    if (nrn_nthread > 1) {
+        // NetCvode construction assumed one thread. Need nrn_nthread instances
+        // of NetCvodeThreadData. Here since possible checkpoint restore of
+        // tqueue at end of phase2.
+        nrn_p_construct();
+    }
+
     if (use_solve_interleave) {
         create_interleave_info();
     }
@@ -674,12 +681,6 @@ void nrn_setup(const char* filesdat, int byte_swap, bool run_setup_cleanup) {
     nrn_mk_table_check();  // was done in nrn_thread_memblist_setup in multicore.c
 
     delete[] file_reader;
-
-    if (nrn_nthread > 1) {
-        // NetCvode construction assumed one thread. Need nrn_nthread instances
-        // of NetCvodeThreadData
-        nrn_p_construct();
-    }
 
     model_size();
     delete[] gidgroups;

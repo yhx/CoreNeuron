@@ -238,7 +238,8 @@ int main1(int argc, char** argv, char** env) {
 
     // initializationa and loading functions moved to separate
     nrn_init_and_load_data(argc, argv);
-    std::string checkp_path = nrnopt_get_str("--checkp");
+    std::string checkpoint_path = nrnopt_get_str("--checkpoint");
+
     // nrnopt_get... still available until call nrnopt_delete()
     bool compute_gpu = nrnopt_get_flag("-gpu");
 // clang-format off
@@ -306,7 +307,7 @@ int main1(int argc, char** argv, char** env) {
 #endif
     }
 
-    write_checkpoint(nrn_threads, nrn_nthread, checkp_path.c_str(), nrn_need_byteswap);
+    write_checkpoint(nrn_threads, nrn_nthread, checkpoint_path.c_str(), nrn_need_byteswap);
 
     // write spike information to outpath
     output_spikes(nrnopt_get_str("--outpath").c_str());

@@ -45,6 +45,8 @@ THE POSSIBILITY OF SUCH DAMAGE.
  * */
 static const char* output_dir;  // output directory to write simple checkpoint
 static bool swap_bytes;
+
+// todo : only keep phase2 as rest (phase1, gan and 3) are constant
 static void write_phase1(NrnThread& nt, FileHandler& file_handle);
 static void write_phase2(NrnThread& nt, FileHandler& file_handle);
 static void write_phase3(NrnThread& nt, FileHandler& file_handle);
@@ -64,9 +66,9 @@ void write_checkpoint(NrnThread* nt, int nb_threads, const char* dir, bool swap_
     FileHandler f;
     for (i = 0; i < nb_threads; i++) {
       if (nt[i].ncell) {
-        write_phase1(nt[i], f);
+        //write_phase1(nt[i], f);
         write_phase2(nt[i], f);
-        write_phase3(nt[i], f);
+        //write_phase3(nt[i], f);
       }
     }
 }

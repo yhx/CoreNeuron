@@ -38,6 +38,7 @@ static int ngroup_w;
 static int* gidgroups_w;
 static int* imult_w;
 static const char* path_w;
+static const char* restore_path_w;
 static const char* checkpoint_path_w;
 static FileHandler* file_reader_w;
 static bool byte_swap_w;
@@ -121,9 +122,18 @@ namespace coreneuron {
                                     std::string("%s/%d_" + getPhaseName<P>() + ".dat").c_str(),
                                     path_w, gidgroups_w[i]);
             }
+
+            const char *data_dir = path_w;
+            // directory to read could be different for phase 2 if we are restoring
+            // all other phases still read from dataset directory because the data
+            // is constant
+            if(P == 2) {
+                data_dir = restore_path_w;
+            }
+
             sd_ptr fname = sdprintf(fnamebuf, sizeof(fnamebuf),
                                     std::string("%s/%d_" + getPhaseName<P>() + ".dat").c_str(),
-                                    path_w, gidgroups_w[i]);
+                                    data_dir, gidgroups_w[i]);
 
             // if we have a valid checkpoint name
             if (ck_fname) {

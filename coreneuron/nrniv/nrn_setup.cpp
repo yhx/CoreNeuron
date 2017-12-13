@@ -194,6 +194,7 @@ static void store_phase_args(int ngroup,
                              FileHandler* file_reader,
                              const char* path,
                              const char* checkpoint_path,
+                             const char* restore_path,
                              int byte_swap) {
     ngroup_w = ngroup;
     gidgroups_w = gidgroups;
@@ -201,6 +202,7 @@ static void store_phase_args(int ngroup,
     file_reader_w = file_reader;
     path_w = path;
     checkpoint_path_w = checkpoint_path;
+    restore_path_w = restore_path;
     byte_swap_w = (bool)byte_swap;
 }
 
@@ -616,10 +618,17 @@ void nrn_setup(const char* filesdat, int byte_swap, bool run_setup_cleanup) {
     FileHandler* file_reader = new FileHandler[ngroup];
 
     std::string datapath = nrnopt_get_str("--datpath");
-    std::string checkp_path = nrnopt_get_str("--checkp");
+    std::string checkpoint_path = nrnopt_get_str("--checkpoint");
+    std::string restore_path = nrnopt_get_str("--restore");
+
+    // if are not restoring then phase2 files will be read from dataset directory
+    if(!restore_path.length()) {
+        restore_path = datapath;
+    }
+
     /* nrn_multithread_job supports serial, pthread, and openmp. */
-    store_phase_args(ngroup, gidgroups, imult, file_reader, datapath.c_str(), checkp_path.c_str(),
-                     byte_swap);
+    store_phase_args(ngroup, gidgroups, imult, file_reader, datapath.c_str(), checkpoint_path.c_str(),
+                     restore_path.c_str(), byte_swap);
 
     // gap junctions
     if (nrn_have_gaps) {

@@ -320,6 +320,13 @@ static void checkpoint_restore_tqitem(int type, NrnThread& nt, FileHandler& fh) 
 }
 
 static void write_tqueue(NrnThread& nt, FileHandler& file_handle) {
+    // Avoid extra spikes due to some presyn voltages above threshold
+    file_handle << -1 << " Presyn ConditionEvent flags\n";
+    for (int i=0; i < nt.n_presyn; ++i) {
+      // PreSyn.flag_ not used. HPC memory utilizes PreSynHelper.flag_ array
+      file_handle << nt.presyns_helper[i].flag_ << "\n";
+    }
+
     NetCvodeThreadData& ntd = net_cvode_instance->p[nt.id];
     // printf("write_tqueue %d %p\n", nt.id, ndt.tqe_);
     TQueue<QTYPE>* tqe = ntd.tqe_;
@@ -343,6 +350,11 @@ static bool checkpoint_restored_ = false;
 void checkpoint_restore_tqueue(NrnThread& nt, FileHandler& fh) {
     int type;
     checkpoint_restored_ = true;
+
+    assert(fh.read_int() == -1); // -1 PreSyn ConditionEvent flags
+    for (int i=0; i < nt.n_presyn; ++i) {
+      nt.presyns_helper[i].flag_ = fh.read_int();
+    }
 
     assert(fh.read_int() == -1); // -1 TQItems from atomic_dq
     while ((type = fh.read_int()) != 0) {

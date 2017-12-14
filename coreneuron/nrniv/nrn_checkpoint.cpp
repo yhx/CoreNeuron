@@ -31,6 +31,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/nrnoc/nrnoc_decl.h"
 #include "coreneuron/nrniv/nrn_filehandler.h"
 #include "coreneuron/nrniv/netcvode.h"
+#include "coreneuron/nrniv/vrecitem.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -48,7 +49,6 @@ static const char* output_dir;  // output directory to write simple checkpoint
 static bool swap_bytes;
 
 // todo : only keep phase2 as rest (phase1, gan and 3) are constant
-static void write_phase1(NrnThread& nt, FileHandler& file_handle);
 static void write_phase2(NrnThread& nt, FileHandler& file_handle);
 static void write_phase3(NrnThread& nt, FileHandler& file_handle);
 static void write_tqueue(NrnThread& nt, FileHandler& file_handle);
@@ -67,30 +67,10 @@ void write_checkpoint(NrnThread* nt, int nb_threads, const char* dir, bool swap_
     FileHandler f;
     for (i = 0; i < nb_threads; i++) {
       if (nt[i].ncell) {
-        //write_phase1(nt[i], f);
         write_phase2(nt[i], f);
-        //write_phase3(nt[i], f);
+        write_phase3(nt[i], f);
       }
     }
-}
-
-static void write_phase1(NrnThread& nt, FileHandler& file_handle) {
-    // open file for writing
-    std::ostringstream filename;
-    std::cout << "nt.file_id" << nt.file_id << " " << nt.n_presyn << " npresyn\n";
-    filename << output_dir << "/" << nt.file_id << "_1.dat";
-    file_handle.open(filename.str().c_str(), swap_bytes, std::ios::out);
-    file_handle.checkpoint(0);
-    // write dimensions:  nt.n_presyn and nt.netcon - nrn_setup_extracon (nrn_setup:390)
-    file_handle << nt.n_presyn << " npresyn\n";
-    file_handle << nt.n_netcon - nrn_setup_extracon << " nnetcon\n";
-
-    file_handle.write_array<int>(nt.output_gids, nt.n_presyn);
-    file_handle.write_array<int>(nt.src_gids, nt.n_netcon - nrn_setup_extracon);
-
-    // close file
-    file_handle.close();
-    //  free (netcon_srcgid);
 }
 
 static void write_phase2(NrnThread& nt, FileHandler& file_handle) {
@@ -227,7 +207,7 @@ static void write_phase3(NrnThread&, FileHandler&) {
 static void write_tqueue(TQItem* q, NrnThread& nt, FileHandler& fh) {
     DiscreteEvent* d = (DiscreteEvent*)q->data_;
     //printf("  p %.20g %d\n", q->t_, d->type());
-    //d->pr("", q->t_, net_cvode_instance);
+    d->pr("", q->t_, net_cvode_instance);
 
     fh << d->type() << "\n";
     fh.write_array(&q->t_, 1);
@@ -247,7 +227,7 @@ static void write_tqueue(TQItem* q, NrnThread& nt, FileHandler& fh) {
         fh.write_array(&se->flag_, 1);
         fh << (se->movable_ - nt._vdata) << "\n"; // DANGEROUS?
         fh << se->weight_index_ << "\n";
-        // printf("    %d %ld %d %g %ld %d\n", se->target_->_type, se->target_ - nt.pntprocs, se->target_->_i_instance, se->flag_, se->movable_ - nt._vdata, se->weight_index_);
+        //printf("    %d %ld %d %g %ld %d\n", se->target_->_type, se->target_ - nt.pntprocs, se->target_->_i_instance, se->flag_, se->movable_ - nt._vdata, se->weight_index_);
         break;
       }
       case PreSynType: {
@@ -258,6 +238,26 @@ static void write_tqueue(TQItem* q, NrnThread& nt, FileHandler& fh) {
       }
       case NetParEventType: {
         // nothing extra to write
+        break;
+      }
+      case PlayRecordEventType: {
+        PlayRecord* pr = ((PlayRecordEvent*)d)->plr_;
+        fh << pr->type() << "\n";
+	if (pr->type() == VecPlayContinuousType) {
+          VecPlayContinuous* vpc = (VecPlayContinuous*)pr;
+          int ix = -1;
+          for (int i = 0; i < nt.n_vecplay; ++i) {
+            // if too many for fast search, put ix in the instance
+            if (nt._vecplay[i] == (void*)vpc) {
+              ix = i;
+              break;
+            }
+          }
+          assert(ix >= 0);
+          fh << ix << "\n";
+        }else{
+          assert(0);
+        }
         break;
       }
       default: {
@@ -312,6 +312,16 @@ static void checkpoint_restore_tqitem(int type, NrnThread& nt, FileHandler& fh) 
         // printf("  NetParEvent\n");
         break;
       }
+      case PlayRecordEventType: {
+        int prtype = fh.read_int();
+        if (prtype == VecPlayContinuousType) {
+          VecPlayContinuous* vpc = (VecPlayContinuous*)(nt._vecplay[fh.read_int()]);
+          vpc->e_->send(te, net_cvode_instance, &nt);
+        }else{
+          assert(0);
+        }
+        break;
+      }
       default: {
         assert(0);
         break;
@@ -319,12 +329,21 @@ static void checkpoint_restore_tqitem(int type, NrnThread& nt, FileHandler& fh) 
     }    
 }
 
-static void write_tqueue(NrnThread& nt, FileHandler& file_handle) {
+static void write_tqueue(NrnThread& nt, FileHandler& fh) {
+    // VecPlayContinuous
+    fh << nt.n_vecplay << " VecPlayContinuous state\n";
+    for (int i=0; i < nt.n_vecplay; ++i) {
+      VecPlayContinuous* vpc = (VecPlayContinuous*)nt._vecplay[i];
+      fh << vpc->last_index_ << "\n";
+      fh << vpc->discon_index_ << "\n";
+      fh << vpc->ubound_index_ << "\n";
+    }
+
     // Avoid extra spikes due to some presyn voltages above threshold
-    file_handle << -1 << " Presyn ConditionEvent flags\n";
+    fh << -1 << " Presyn ConditionEvent flags\n";
     for (int i=0; i < nt.n_presyn; ++i) {
       // PreSyn.flag_ not used. HPC memory utilizes PreSynHelper.flag_ array
-      file_handle << nt.presyns_helper[i].flag_ << "\n";
+      fh << nt.presyns_helper[i].flag_ << "\n";
     }
 
     NetCvodeThreadData& ntd = net_cvode_instance->p[nt.id];
@@ -332,17 +351,17 @@ static void write_tqueue(NrnThread& nt, FileHandler& file_handle) {
     TQueue<QTYPE>* tqe = ntd.tqe_;
     TQItem* q;
 
-    file_handle << -1 << " TQItems from atomic_dq\n";
+    fh << -1 << " TQItems from atomic_dq\n";
     while((q = tqe->atomic_dq(1e20)) != NULL) {
-      write_tqueue(q, nt, file_handle);
+      write_tqueue(q, nt, fh);
     }
-    file_handle << 0 << "\n";
+    fh << 0 << "\n";
 
-    file_handle << -1 << " TQItemsfrom binq_\n";
+    fh << -1 << " TQItemsfrom binq_\n";
     for (q = tqe->binq_->first(); q; q = tqe->binq_->next(q)) {
-      write_tqueue(q, nt, file_handle);
+      write_tqueue(q, nt, fh);
     }
-    file_handle << 0 << "\n";
+    fh << 0 << "\n";
 }
 
 static bool checkpoint_restored_ = false;
@@ -350,6 +369,15 @@ static bool checkpoint_restored_ = false;
 void checkpoint_restore_tqueue(NrnThread& nt, FileHandler& fh) {
     int type;
     checkpoint_restored_ = true;
+
+    // VecPlayContinuous
+    assert(fh.read_int() == nt.n_vecplay); // VecPlayContinuous state
+    for (int i=0; i < nt.n_vecplay; ++i) {
+      VecPlayContinuous* vpc = (VecPlayContinuous*)nt._vecplay[i];
+      vpc->last_index_ = fh.read_int();
+      vpc->discon_index_ = fh.read_int();
+      vpc->ubound_index_ = fh.read_int();
+    }
 
     assert(fh.read_int() == -1); // -1 PreSyn ConditionEvent flags
     for (int i=0; i < nt.n_presyn; ++i) {

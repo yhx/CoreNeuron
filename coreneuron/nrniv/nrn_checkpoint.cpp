@@ -194,7 +194,7 @@ static void write_phase2(NrnThread& nt, FileHandler& file_handle) {
                                                  d, pd, ml->_thread, &nt, 0.0);
             }
         } else {
-            std::cerr << " ERROR no bbcore_write registered for this type" << std::endl;
+            std::cerr << " WARNING: bbcore_write not registered for type : " << nrn_get_mechname(nt.type[i]) <<  std::endl;
         }
 
         if (nt.icnt[i]) {

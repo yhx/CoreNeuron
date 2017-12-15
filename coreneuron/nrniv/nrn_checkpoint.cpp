@@ -121,7 +121,7 @@ static void write_phase2(NrnThread& nt, FileHandler& file_handle) {
 
         if (nrn_prop_dparam_size_[type]) {
             // if LAYOUT is SoA: we need to transpose to the structure to write in file format order
-            file_handle.write_array<int>(current_tml->ml->pdata_not_permuted, nb_nodes,
+            file_handle.write_array<int>(current_tml->ml->pdata, nb_nodes,
                                          size_of_line_data, nrn_prop_dparam_size_[type], !LAYOUT);
         }
 
@@ -207,7 +207,7 @@ static void write_phase3(NrnThread&, FileHandler&) {
 static void write_tqueue(TQItem* q, NrnThread& nt, FileHandler& fh) {
     DiscreteEvent* d = (DiscreteEvent*)q->data_;
     //printf("  p %.20g %d\n", q->t_, d->type());
-    d->pr("", q->t_, net_cvode_instance);
+    //d->pr("", q->t_, net_cvode_instance);
 
     fh << d->type() << "\n";
     fh.write_array(&q->t_, 1);

@@ -246,6 +246,7 @@ int main1(int argc, char** argv, char** env) {
     #pragma acc data copyin(celsius, secondorder) if (compute_gpu)
     // clang-format on
     {
+
         double v = nrnopt_get_dbl("--voltage");
         if (!checkpoint_initialize()) {
             nrn_finitialize(v != 1000., v);

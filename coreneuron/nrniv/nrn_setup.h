@@ -39,7 +39,6 @@ static int* gidgroups_w;
 static int* imult_w;
 static const char* path_w;
 static const char* restore_path_w;
-static const char* checkpoint_path_w;
 static FileHandler* file_reader_w;
 static bool byte_swap_w;
 
@@ -116,13 +115,6 @@ namespace coreneuron {
         char fnamebuf[1000];
         char check_fnamebuf[1000] = "";
         if (i < ngroup_w) {
-            sd_ptr ck_fname;
-            if ((P == 1 || P == 2) && strlen(checkpoint_path_w)) {
-                ck_fname = sdprintf(check_fnamebuf, sizeof(check_fnamebuf),
-                                    std::string("%s/%d_" + getPhaseName<P>() + ".dat").c_str(),
-                                    path_w, gidgroups_w[i]);
-            }
-
             const char *data_dir = path_w;
             // directory to read could be different for phase 2 if we are restoring
             // all other phases still read from dataset directory because the data
@@ -135,15 +127,8 @@ namespace coreneuron {
                                     std::string("%s/%d_" + getPhaseName<P>() + ".dat").c_str(),
                                     data_dir, gidgroups_w[i]);
 
-            // if we have a valid checkpoint name
-            if (ck_fname) {
-                file_reader_w[i].open(ck_fname, byte_swap_w);
-            }
-
             // if no file failed to open or not opened at all
-            if (file_reader_w[i].fail() || (!ck_fname)) {
-                file_reader_w[i].open(fname, byte_swap_w);
-            }
+            file_reader_w[i].open(fname, byte_swap_w);
 
             read_phase_aux<P>(file_reader_w[i], imult_w[i], *nt);
             file_reader_w[i].close();

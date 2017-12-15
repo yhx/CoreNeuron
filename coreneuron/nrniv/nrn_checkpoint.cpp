@@ -173,7 +173,11 @@ static void write_phase2(NrnThread& nt, FileHandler& file_handle) {
                 (*nrn_bbcore_write_[nt.type[i]])(dArray, iArray, &d_offset, &i_offset, 0, aln_cntml,
                                                  d, pd, ml->_thread, &nt, 0.0);
             }
-        } else {
+        }
+
+        /// if there is data from bbcore pointer but bbcore_write is null means
+        /// mod2c generated c file hasn't registered a callback
+        if((nt.icnt[i] || nt.dcnt[i]) && nrn_bbcore_write_[nt.type[i]] == NULL) {
             std::cerr << " WARNING: bbcore_write not registered for type : " << nrn_get_mechname(nt.type[i]) <<  std::endl;
         }
 

@@ -206,6 +206,7 @@ static void store_phase_args(int ngroup,
 
 /* read files.dat file and distribute cellgroups to all mpi ranks */
 void nrn_read_filesdat(int& ngrp, int*& grp, int multiple, int*& imult, const char* filesdat) {
+    patstimtype = nrn_get_mechtype("PatternStim");
     FILE* fp = fopen(filesdat, "r");
 
     if (!fp) {

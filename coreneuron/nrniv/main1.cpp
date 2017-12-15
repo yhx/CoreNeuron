@@ -124,7 +124,8 @@ void nrn_init_and_load_data(int argc,
     report_mem_usage("After mk_mech");
 
     // set global variables for start time, timestep and temperature
-    t = nrnopt_get_dbl("--tstart");
+    std::string restore_path = nrnopt_get_str("--restore");
+    t = restore_time(restore_path.c_str());
     // tstart is ignored if finitialize is called. finitialize is not called
     // if nrn_setup.cpp reads checkpoint files.  Note that for
     // checkpoint files, tstart on the command line must be the same

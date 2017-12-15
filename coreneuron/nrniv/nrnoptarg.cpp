@@ -75,7 +75,6 @@ static param_int param_int_args[] = {
     {NULL, 0, 0, 0, NULL}};
 
 static param_dbl param_dbl_args[] = {
-    {"--tstart -s", 0., -1e9, 1e9, "Start time (ms). (0)"},
     {"--tstop -e", 100.0, 0.0, 1e9, "Stop time (ms). (100)"},
     {"--dt -dt", -1000., -1000., 1e9,
      "Fixed time step. The default value is set by defaults.dat or is 0.025."},

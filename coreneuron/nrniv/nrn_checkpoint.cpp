@@ -52,6 +52,7 @@ static bool swap_bytes;
 static void write_phase2(NrnThread& nt, FileHandler& file_handle);
 static void write_phase3(NrnThread& nt, FileHandler& file_handle);
 static void write_tqueue(NrnThread& nt, FileHandler& file_handle);
+static void write_time(const char *dir);
 
 void write_checkpoint(NrnThread* nt, int nb_threads, const char* dir, bool swap_bytes_order) {
     if (!strlen(dir))
@@ -70,6 +71,9 @@ void write_checkpoint(NrnThread* nt, int nb_threads, const char* dir, bool swap_
         write_phase2(nt[i], f);
         write_phase3(nt[i], f);
       }
+    }
+    if(nrnmpi_myid == 0) {
+        write_time(output_dir);
     }
 }
 
@@ -206,6 +210,30 @@ static void write_phase2(NrnThread& nt, FileHandler& file_handle) {
 }
 
 static void write_phase3(NrnThread&, FileHandler&) {
+}
+
+static void write_time(const char *output_dir) {
+    std::ostringstream filename;
+    FileHandler f;
+    filename << output_dir << "/" << "time.dat";
+    f.open(filename.str().c_str(), swap_bytes, std::ios::out);
+    f.write_array(&t, 1);
+    f.close();
+}
+
+/// todo : need to broadcast this rather than all reading a double
+double restore_time(const char *restore_dir) {
+    double rtime = 0;
+    if (strlen(restore_dir)) {
+        std::ostringstream filename;
+        FileHandler f;
+
+        filename << restore_dir << "/" << "time.dat";
+        f.open(filename.str().c_str(), swap_bytes, std::ios::in);
+        f.read_array(&rtime, 1);
+        f.close();
+    }
+    return rtime;
 }
 
 static void write_tqueue(TQItem* q, NrnThread& nt, FileHandler& fh) {
@@ -405,10 +433,8 @@ void checkpoint_restore_tqueue(NrnThread& nt, FileHandler& fh) {
 // be initialized.
 // Much of what is here is a copy of finitialize.c
 bool checkpoint_initialize() {
-
     dt2thread(-1.);
     nrn_thread_table_check();
     nrn_spike_exchange_init();
-    
     return checkpoint_restored_;
 }

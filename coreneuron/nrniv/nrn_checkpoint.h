@@ -46,4 +46,9 @@ void checkpoint_restore_tqueue(NrnThread&, FileHandler&);
 */
 bool checkpoint_initialize();
 
+/** retunr time to start simulation : if restore_dir provided
+ *  then tries to read time.dat file otherwise returns 0
+ */
+double restore_time(const char* restore_path);
+
 #endif

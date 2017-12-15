@@ -51,4 +51,6 @@ bool checkpoint_initialize();
  */
 double restore_time(const char* restore_path);
 
+extern int patstimtype;
+
 #endif

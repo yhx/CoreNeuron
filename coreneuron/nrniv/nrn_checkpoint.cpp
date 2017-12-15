@@ -32,11 +32,14 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/nrniv/nrn_filehandler.h"
 #include "coreneuron/nrniv/netcvode.h"
 #include "coreneuron/nrniv/vrecitem.h"
+#include "coreneuron/mech/mod2c_core_thread.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <cassert>
 #include <stdio.h> // only needed for debugging printf
+
+int patstimtype;
 
 #ifndef LAYOUT
 #define LAYOUT 1
@@ -87,12 +90,11 @@ static void write_phase2(NrnThread& nt, FileHandler& file_handle) {
     file_handle << nt.end << " nnode\n";
     file_handle << ((nt._actual_diam == NULL) ? 0 : nt.end) << " ndiam\n";
     file_handle << nt.nmech << " nmech\n";
-    NrnThreadMembList* current_tml = nt.tml;
 
-    while (current_tml) {
+    for (NrnThreadMembList* current_tml = nt.tml; current_tml; current_tml = current_tml->next) {
+        if (current_tml->index == patstimtype) { continue; }
         file_handle << current_tml->index << "\n";
         file_handle << current_tml->ml->nodecount << "\n";
-        current_tml = current_tml->next;
     }
 
     file_handle << nt.ndata_unpadded << " ndata\n";
@@ -108,10 +110,9 @@ static void write_phase2(NrnThread& nt, FileHandler& file_handle) {
     if (nt._actual_diam)
         file_handle.write_array<double>(nt._actual_diam, nt.end);
 
-    current_tml = nt.tml;
-
-    while (current_tml) {
+    for (NrnThreadMembList* current_tml = nt.tml; current_tml; current_tml = current_tml->next) {
         int type = current_tml->index;
+        if (type == patstimtype) { continue; }
         int nb_nodes = current_tml->ml->nodecount;
         int size_of_line_data = nrn_soa_padded_size(nb_nodes, nrn_mech_data_layout_[type]);
 
@@ -128,8 +129,6 @@ static void write_phase2(NrnThread& nt, FileHandler& file_handle) {
             file_handle.write_array<int>(current_tml->ml->pdata, nb_nodes,
                                          size_of_line_data, nrn_prop_dparam_size_[type], !LAYOUT);
         }
-
-        current_tml = current_tml->next;
     }
 
     int nnetcon = nt.n_netcon - nrn_setup_extracon;
@@ -301,6 +300,9 @@ static void write_tqueue(TQItem* q, NrnThread& nt, FileHandler& fh) {
     }    
 }
 
+static int patstim_index;
+static double patstim_te;
+
 static void checkpoint_restore_tqitem(int type, NrnThread& nt, FileHandler& fh) {
     double te;
     fh.read_array(&te, 1);
@@ -322,6 +324,12 @@ static void checkpoint_restore_tqitem(int type, NrnThread& nt, FileHandler& fh) 
         fh.read_array(&flag, 1);
         int movable = fh.read_int();
         int weight_index = fh.read_int();
+        if (target_type == patstimtype) {
+          if (nt.id == 0) {
+            patstim_te = te;
+          }
+          break;
+        }
         Point_process* pnt = nt.pntprocs + pinstance;
         //printf("  SelfEvent %d %d %d %g %d %d\n", target_type, pinstance, target_instance, flag, movable, weight_index);
         assert(target_instance == pnt->_i_instance);
@@ -361,6 +369,11 @@ static void checkpoint_restore_tqitem(int type, NrnThread& nt, FileHandler& fh) 
     }    
 }
 
+extern "C" {
+extern int checkpoint_save_patternstim(_threadargsproto_);
+extern void checkpoint_restore_patternstim(int, double, _threadargsproto_);
+}
+
 static void write_tqueue(NrnThread& nt, FileHandler& fh) {
     // VecPlayContinuous
     fh << nt.n_vecplay << " VecPlayContinuous state\n";
@@ -370,6 +383,19 @@ static void write_tqueue(NrnThread& nt, FileHandler& fh) {
       fh << vpc->discon_index_ << "\n";
       fh << vpc->ubound_index_ << "\n";
     }
+
+    // PatternStim
+    int patstim_index = -1;
+    for (NrnThreadMembList* tml = nrn_threads[0].tml; tml; tml = tml->next) {
+      if (tml->index == patstimtype) {
+        Memb_list* ml = tml->ml;
+        patstim_index = checkpoint_save_patternstim(
+          /* below correct only for AoS */
+          0, ml->nodecount, ml->data, ml->pdata, ml->_thread, nrn_threads, 0.0);
+        break;
+      }
+    }
+    fh << patstim_index << " PatternStim\n";
 
     // Avoid extra spikes due to some presyn voltages above threshold
     fh << -1 << " Presyn ConditionEvent flags\n";
@@ -411,6 +437,12 @@ void checkpoint_restore_tqueue(NrnThread& nt, FileHandler& fh) {
       vpc->ubound_index_ = fh.read_int();
     }
 
+    // PatternStim
+    patstim_index = fh.read_int(); // PatternStim
+    if (nt.id == 0) {
+      patstim_te = -1.0; // changed if relevant SelfEvent;
+    }
+
     assert(fh.read_int() == -1); // -1 PreSyn ConditionEvent flags
     for (int i=0; i < nt.n_presyn; ++i) {
       nt.presyns_helper[i].flag_ = fh.read_int();
@@ -431,10 +463,21 @@ void checkpoint_restore_tqueue(NrnThread& nt, FileHandler& fh) {
 // as that would change all states to a voltage clamp initialization.
 // Nevertheless t and some spike exchange and other computer state needs to
 // be initialized.
-// Much of what is here is a copy of finitialize.c
+// Consult finitialize.c to help decide what should be here
 bool checkpoint_initialize() {
     dt2thread(-1.);
     nrn_thread_table_check();
     nrn_spike_exchange_init();
+
+    // if PatternStim exists, needs initialization
+    for (NrnThreadMembList* tml = nrn_threads[0].tml; tml; tml = tml->next) {
+      if (tml->index == patstimtype && patstim_index >= 0 && patstim_te > 0.0) {
+        Memb_list* ml = tml->ml;
+        checkpoint_restore_patternstim(patstim_index, patstim_te,
+          /* below correct only for AoS */
+          0, ml->nodecount, ml->data, ml->pdata, ml->_thread, nrn_threads, 0.0);
+        break;
+      }
+    }
     return checkpoint_restored_;
 }

@@ -33,6 +33,8 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/nrniv/netcvode.h"
 #include "coreneuron/nrniv/vrecitem.h"
 #include "coreneuron/mech/mod2c_core_thread.h"
+#include "coreneuron/utils/file_utils.h"
+
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -61,6 +63,15 @@ void write_checkpoint(NrnThread* nt, int nb_threads, const char* dir, bool swap_
     if (!strlen(dir))
         return;  // empty directory means the option is not enabled
     output_dir = dir;
+
+    // todo : mpi barrier required
+    if (nrnmpi_myid == 0) {
+        mkdir_p(output_dir);
+    }
+#if NRNMPI
+    nrnmpi_barrier();
+#endif
+
     int i;
     swap_bytes = swap_bytes_order;
     /*

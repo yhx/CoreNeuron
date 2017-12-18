@@ -50,6 +50,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/nrniv/profiler_interface.h"
 #include "coreneuron/nrniv/partrans.h"
 #include "coreneuron/nrniv/multisend.h"
+#include "coreneuron/utils/file_utils.h"
 #include <string.h>
 
 #if 0
@@ -243,6 +244,15 @@ int main1(int argc, char** argv, char** env) {
     // initializationa and loading functions moved to separate
     nrn_init_and_load_data(argc, argv);
     std::string checkpoint_path = nrnopt_get_str("--checkpoint");
+    std::string output_dir = nrnopt_get_str("--outpath");
+
+    // todo : need barrier for non=mpi build
+    if (nrnmpi_myid == 0) {
+        mkdir_p(output_dir.c_str());
+    }
+    #if NRNMP
+        nrnmpi_barrier();
+    #endif
 
     // nrnopt_get... still available until call nrnopt_delete()
     bool compute_gpu = nrnopt_get_flag("-gpu");
@@ -315,7 +325,7 @@ int main1(int argc, char** argv, char** env) {
     write_checkpoint(nrn_threads, nrn_nthread, checkpoint_path.c_str(), nrn_need_byteswap);
 
     // write spike information to outpath
-    output_spikes(nrnopt_get_str("--outpath").c_str());
+    output_spikes(output_dir.c_str());
 
     // Cleaning the memory
     nrn_cleanup();

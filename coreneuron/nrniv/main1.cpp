@@ -191,6 +191,9 @@ void nrn_init_and_load_data(int argc,
 
     // show all configuration parameters for current run
     nrnopt_show();
+    if(nrnmpi_myid == 0) {
+        std::cout << " Start time (t) = " << t << std::endl << std::endl;
+    }
 
     // allocate buffer for mpi communication
     mk_spikevec_buffer(nrnopt_get_int("--spikebuf"));

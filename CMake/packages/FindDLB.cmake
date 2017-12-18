@@ -52,7 +52,7 @@
 
 
 # UNIX paths are standard, no need to write.
-find_path(DLB_INCLUDE_DIR DLB_interface.h)
+find_path(DLB_INCLUDE_DIR dlb.h)
 
 find_library(DLB_LIBRARY dlb)
 get_filename_component(DLB_LIB_DIR ${DLB_LIBRARY} DIRECTORY)

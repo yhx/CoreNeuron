@@ -81,7 +81,7 @@ void nrn_init_and_load_data(int argc,
 #endif
 
 #if defined(DLB)
-    DLB_Init();
+    DLB_Init(0, NULL, "--drom");
 #endif
 
     // memory footprint after mpi initialisation

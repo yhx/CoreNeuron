@@ -54,7 +54,7 @@ typedef char Symbol;
 #define VECTORIZE 1
 
 #if defined(DLB)
-#include "DLB_interface.h"
+#include "dlb.h"
 #endif
 
 #if defined(__cplusplus)

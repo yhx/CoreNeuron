@@ -217,7 +217,8 @@ void ReportGenerator::register_report() {
 
             // sum of sections and segments plus one initial extra node
             // should be equal to number of nodes in coreneuron.
-            nrn_assert((section_count + segment_count + extra_node) == nt.end);
+            //  todo : not true in v6 circuit (need to revisit)
+            //nrn_assert((section_count + segment_count + extra_node) == nt.end);
         }
     }
 

@@ -32,7 +32,6 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <map>
 #include <cstring>
 #include "coreneuron/nrnconf.h"
-#include "coreneuron/nrniv/nrn_checkpoint.h"
 #include "coreneuron/nrnoc/multicore.h"
 #include "coreneuron/nrniv/nrniv_decl.h"
 #include "coreneuron/nrnoc/nrnoc_decl.h"
@@ -45,6 +44,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/nrniv/nrn_setup.h"
 #include "coreneuron/nrniv/partrans.h"
 #include "coreneuron/nrniv/nrnoptarg.h"
+#include "coreneuron/nrniv/nrn_checkpoint.h"
 #include "coreneuron/nrniv/node_permute.h"
 #include "coreneuron/nrniv/cellorder.h"
 #include "coreneuron/utils/reports/nrnreport.h"
@@ -785,7 +785,21 @@ int nrn_i_layout(int icnt, int cnt, int isz, int sz, int layout) {
     return 0;
 }
 
-template <class T>
+// from i to (icnt, isz)
+void nrn_inverse_i_layout(int i, int& icnt, int cnt, int& isz, int sz, int layout) {
+    if (layout == 1) {
+        icnt = i/sz;
+        isz = i%sz;
+    }else if (layout == 0) {
+        int padded_cnt = nrn_soa_padded_size(cnt, layout);
+        isz = i/padded_cnt;
+        icnt = i%padded_cnt;
+    }else{
+        assert(0);
+    }
+}
+
+template <typename T>
 inline void mech_layout(FileHandler& F, T* data, int cnt, int sz, int layout) {
     if (layout == 1) { /* AoS */
         F.read_array<T>(data, cnt * sz);

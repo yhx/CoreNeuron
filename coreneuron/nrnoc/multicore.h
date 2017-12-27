@@ -70,28 +70,6 @@ typedef struct NrnThreadBAList {
 typedef struct PreSynHelper { int flag_; } PreSynHelper;
 
 typedef struct NrnThread {
-    int* src_gids;     // FIXME temporary struct to store netcon_srcgid from file phase1 (nrn_setup.cpp:278)
-    int* output_gids;  // We keep it as current version of coreNeuron dont keep Artificial Gids as output when they appears in Phase1 file
-    int nmech;         // Size of linked list tml
-    int n_outputgids;  // FIXME temp..
-    int ndata_unpadded;        // FIXME temp..
-    int* output_vindex;        // FIXME temp..
-    double* output_threshold;  // FIXME temp..
-    int* pnttype;              // FIXME temp..
-    int* pntindex;             // FIXME temp..
-    double* delay;             // FIXME temp..
-    int npnt;                  // FIXME temp..
-    int* icnt;                 // FIXME temp..
-    int* dcnt;                 // FIXME temp..
-    int* mtype;                // FIXME temp..
-    int* vtype;                // FIXME temp..
-    int* type;                 // FIXME temp..
-    int* vecplay_ix;           // FIXME temp..
-    int* vecplay_sz;           // FIXME temp..
-    double** vecplay_yvec;     // FIXME temp..
-    double** vecplay_tvec;     // FIXME temp..
-    Memb_list** mlmap;         // FIXME temp..
-
     double _t;
     double _dt;
     double cj;
@@ -126,10 +104,10 @@ typedef struct NrnThread {
     double* _actual_v;
     double* _actual_area;
     double* _actual_diam; /* NULL if no mechanism has dparam with diam semantics */
-    double* _shadow_rhs; /* Not pointer into _data. Avoid race for multiple POINT_PROCESS in same
-                            compartment */
-    double* _shadow_d;   /* Not pointer into _data. Avoid race for multiple POINT_PROCESS in same
-                            compartment */
+    double* _shadow_rhs;  /* Not pointer into _data. Avoid race for multiple POINT_PROCESS in same
+                             compartment */
+    double* _shadow_d;    /* Not pointer into _data. Avoid race for multiple POINT_PROCESS in same
+                             compartment */
     int* _v_parent_index;
     int* _permute;
     char* _sp13mat;                     /* handle to general sparse matrix */
@@ -148,7 +126,7 @@ typedef struct NrnThread {
 
     int* _watch_types; /* NULL or 0 terminated array of integers */
     void* mapping;     /* section to segment mapping information */
-    int file_id;       /* File Id of this NrnThread */
+
 } NrnThread;
 
 extern void nrn_threads_create(int n, int parallel);

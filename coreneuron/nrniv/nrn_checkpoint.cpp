@@ -42,6 +42,8 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <cassert>
 #include <stdio.h> // only needed for debugging printf
 
+NrnThreadChkpnt* nrnthread_chkpnt;
+
 int patstimtype;
 
 #ifndef LAYOUT
@@ -93,15 +95,24 @@ void write_checkpoint(NrnThread* nt, int nb_threads, const char* dir, bool swap_
 }
 
 static void write_phase2(NrnThread& nt, FileHandler& fh) {
+#if CHKPNTDEBUG
+    NrnThreadChkpnt& ntc = nrnthread_chkpnt[nt.id];
+#endif
     std::ostringstream filename;
-    filename << output_dir << "/" << nt.file_id << "_2.dat";
+#if CHKPNTDEBUG
+    filename << output_dir << "/" << ntc.file_id << "_2.dat";
+#endif
     fh.open(filename.str().c_str(), swap_bytes, std::ios::out);
     fh.checkpoint(2);
-    fh << nt.n_outputgids << " ngid\n";
+#if CHKPNTDEBUG
+    fh << ntc.n_outputgids << " ngid\n";
+#endif
     fh << nt.ncell << " n_real_gid\n";
     fh << nt.end << " nnode\n";
     fh << ((nt._actual_diam == NULL) ? 0 : nt.end) << " ndiam\n";
-    fh << nt.nmech << " nmech\n";
+#if CHKPNTDEBUG
+    fh << ntc.nmech << " nmech\n";
+#endif
 
     for (NrnThreadMembList* current_tml = nt.tml; current_tml; current_tml = current_tml->next) {
         if (current_tml->index == patstimtype) { continue; }
@@ -109,7 +120,9 @@ static void write_phase2(NrnThread& nt, FileHandler& fh) {
         fh << current_tml->ml->nodecount << "\n";
     }
 
-    fh << nt.ndata_unpadded << " ndata\n";
+#if CHKPNTDEBUG
+    fh << ntc.ndata_unpadded << " ndata\n";
+#endif
     fh << nt._nidata << " nidata\n";
     fh << nt._nvdata << " nvdata\n";
     fh << nt.n_weight << " nweight\n";
@@ -127,9 +140,19 @@ static void write_phase2(NrnThread& nt, FileHandler& fh) {
           d[i] = -1;
         }
       }
+#if CHKPNTDEBUG
+      for (int i=0; i < nt.end; ++i) {
+        assert(d[i] == ntc.parent[i]);
+      }
+#endif
       fh.write_array<int>(d, nt.end);
       delete [] d;
     }else{
+#if CHKPNTDEBUG
+      for (int i=0; i < nt.end; ++i) {
+        assert(nt._v_parent_index[i] == ntc.parent[i]);
+      }
+#endif
       fh.write_array<int>(nt._v_parent_index, nt.end);
       pinv_nt = new int[nt.end];
       for (int i=0; i < nt.end; ++i) { pinv_nt[i] = i; }
@@ -137,6 +160,11 @@ static void write_phase2(NrnThread& nt, FileHandler& fh) {
 
     chkpnt_data_write(fh, nt._actual_a, nt.end, 1, 0, nt._permute);
     chkpnt_data_write(fh, nt._actual_b, nt.end, 1, 0, nt._permute);
+#if CHKPNTDEBUG
+      for (int i=0; i < nt.end; ++i) {
+        assert(nt._actual_area[i] == ntc.area[i]);
+      }
+#endif
     chkpnt_data_write(fh, nt._actual_area, nt.end, 1, 0, nt._permute);
     chkpnt_data_write(fh, nt._actual_v, nt.end, 1, 0, nt._permute);
 
@@ -201,7 +229,7 @@ static void write_phase2(NrnThread& nt, FileHandler& fh) {
                         // current index into eml->data is a  function
                         // of elayout, eml._permute, ei_instance, ei, and
                         // eml padding.
-                        int p = d[ix] - (eml->pdata - nt._idata);
+                        int p = d[ix] - (eml->data - nt._data);
                         int ei_instance, ei;
                         nrn_inverse_i_layout(p, ei_instance, ecnt, ei, esz, elayout);
                         if (elayout == 0) {
@@ -212,8 +240,14 @@ static void write_phase2(NrnThread& nt, FileHandler& fh) {
                                 ei_instance = ml_pinv[etype][ei_instance];
                             }
                         }
-                        d[ix] = ei_instance*esz + ei + (eml->pdata - nt._idata);
+                        int offset = ntc.mlmap[etype]->data_offset;
+                        d[ix] = ei_instance*esz + ei + offset;
                     }
+#if CHKPNTDEBUG
+                    if (s != -8) { // WATCH values change
+                      assert(d[ix] == ntc.mlmap[type]->pdata_not_permuted[i_instance*sz + i]);
+                    }
+#endif
                 }
             }
             fh.write_array<int>(d, cnt*sz);
@@ -228,34 +262,41 @@ static void write_phase2(NrnThread& nt, FileHandler& fh) {
     delete [] pinv_nt;
 
     int nnetcon = nt.n_netcon - nrn_setup_extracon;
-    fh.write_array<int>(nt.output_vindex, nt.n_presyn);
-    fh.write_array<double>(nt.output_threshold, nt.ncell);
-    fh.write_array<int>(nt.pnttype, nnetcon);
-    fh.write_array<int>(nt.pntindex, nnetcon);
+#if CHKPNTDEBUG
+    fh.write_array<int>(ntc.output_vindex, nt.n_presyn);
+    fh.write_array<double>(ntc.output_threshold, nt.ncell);
+    fh.write_array<int>(ntc.pnttype, nnetcon);
+    fh.write_array<int>(ntc.pntindex, nnetcon);
+#endif
     fh.write_array<double>(nt.weights, nt.n_weight);
-    fh.write_array<double>(nt.delay, nnetcon);
-    fh << nt.npnt << " bbcorepointer\n";
+#if CHKPNTDEBUG
+    fh.write_array<double>(ntc.delay, nnetcon);
+#endif
+#if CHKPNTDEBUG
+    int npnt = ntc.npnt;
+#endif
+    fh << npnt << " bbcorepointer\n";
 
     int* iArray = NULL;
     double* dArray = NULL;
 
-    for (int i = 0; i < nt.npnt; i++) {
-        fh << nt.type[i] << "\n";
-        fh << nt.icnt[i] << "\n";
-        fh << nt.dcnt[i] << "\n";
+    for (int i = 0; i < npnt; i++) {
+        fh << ntc.type[i] << "\n";
+        fh << ntc.icnt[i] << "\n";
+        fh << ntc.dcnt[i] << "\n";
 
-        iArray = new int[nt.icnt[i]];
-        dArray = new double[nt.dcnt[i]];
-        Memb_list* ml = nt.mlmap[nt.type[i]];
-        int dsz = nrn_prop_param_size_[nt.type[i]];
-        int pdsz = nrn_prop_dparam_size_[nt.type[i]];
+        iArray = new int[ntc.icnt[i]];
+        dArray = new double[ntc.dcnt[i]];
+        Memb_list* ml = nt._ml_list[ntc.type[i]];
+        int dsz = nrn_prop_param_size_[ntc.type[i]];
+        int pdsz = nrn_prop_dparam_size_[ntc.type[i]];
 
-        if (nrn_bbcore_write_[nt.type[i]] && (nt.icnt[i] || nt.dcnt[i])) {
+        if (nrn_bbcore_write_[ntc.type[i]] && (ntc.icnt[i] || ntc.dcnt[i])) {
             int d_offset = 0;
             int i_offset = 0;
             double* d = ml->data;
             Datum* pd = ml->pdata;
-            int layout = nrn_mech_data_layout_[nt.type[i]];
+            int layout = nrn_mech_data_layout_[ntc.type[i]];
 
             for (int j = 0; j < ml->nodecount; j++) {
                 int jp = j;
@@ -269,23 +310,23 @@ static void write_phase2(NrnThread& nt, FileHandler& fh) {
                 int aln_cntml = nrn_soa_padded_size(ml->nodecount, layout);
 
                 // extra parameters after i_offset dont seems to be used
-                (*nrn_bbcore_write_[nt.type[i]])(dArray, iArray, &d_offset, &i_offset, 0, aln_cntml,
+                (*nrn_bbcore_write_[ntc.type[i]])(dArray, iArray, &d_offset, &i_offset, 0, aln_cntml,
                                                  d, pd, ml->_thread, &nt, 0.0);
             }
         }
 
         /// if there is data from bbcore pointer but bbcore_write is null means
         /// mod2c generated c file hasn't registered a callback
-        if((nt.icnt[i] || nt.dcnt[i]) && nrn_bbcore_write_[nt.type[i]] == NULL) {
-            std::cerr << " WARNING: bbcore_write not registered for type : " << nrn_get_mechname(nt.type[i]) <<  std::endl;
+        if((ntc.icnt[i] || ntc.dcnt[i]) && nrn_bbcore_write_[ntc.type[i]] == NULL) {
+            std::cerr << " WARNING: bbcore_write not registered for type : " << nrn_get_mechname(ntc.type[i]) <<  std::endl;
         }
 
-        if (nt.icnt[i]) {
-            fh.write_array<int>(iArray, nt.icnt[i]);
+        if (ntc.icnt[i]) {
+            fh.write_array<int>(iArray, ntc.icnt[i]);
         }
 
-        if (nt.dcnt[i]) {
-            fh.write_array<double>(dArray, nt.dcnt[i]);
+        if (ntc.dcnt[i]) {
+            fh.write_array<double>(dArray, ntc.dcnt[i]);
         }
         delete[] iArray;
         delete[] dArray;
@@ -293,12 +334,12 @@ static void write_phase2(NrnThread& nt, FileHandler& fh) {
 
     fh << nt.n_vecplay << " VecPlay instances\n";
     for (int i = 0; i < nt.n_vecplay; i++) {
-        fh << nt.vtype[i] << "\n";
-        fh << nt.mtype[i] << "\n";
-        fh << nt.vecplay_ix[i] << "\n";
-        fh << nt.vecplay_sz[i] << "\n";
-        fh.write_array<double>(nt.vecplay_yvec[i], nt.vecplay_sz[i]);
-        fh.write_array<double>(nt.vecplay_tvec[i], nt.vecplay_sz[i]);
+        fh << ntc.vtype[i] << "\n";
+        fh << ntc.mtype[i] << "\n";
+        fh << ntc.vecplay_ix[i] << "\n";
+        fh << ntc.vecplay_sz[i] << "\n";
+        fh.write_array<double>(ntc.vecplay_yvec[i], ntc.vecplay_sz[i]);
+        fh.write_array<double>(ntc.vecplay_tvec[i], ntc.vecplay_sz[i]);
     }
     write_tqueue(nt, fh);
     fh.close();

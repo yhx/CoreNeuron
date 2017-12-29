@@ -921,7 +921,7 @@ void nrn_cleanup(bool clean_ion_global_map) {
 
         if (nt->presyns_helper) {
             free(nt->presyns_helper);
-            nt->_permute = NULL;
+            nt->presyns_helper = NULL;
         }
 
         if (nt->pntprocs) {
@@ -1354,6 +1354,7 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
         permute_data(nt._actual_a, nt.end, p);
         permute_data(nt._actual_b, nt.end, p);
         permute_data(nt._actual_area, nt.end, p);
+        permute_data(nt._actual_v, nt.end, p); // need if restore or finitialize does not initialize voltage
         if (nt._actual_diam) {
             permute_data(nt._actual_diam, nt.end, p);
         }

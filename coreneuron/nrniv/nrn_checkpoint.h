@@ -65,13 +65,6 @@ T* chkpnt_soa2aos(T* data, int cnt, int sz, int layout, int* permute) {
   return d;
 }
      
-template <typename T>
-void chkpnt_data_write(FileHandler& F, T* data, int cnt, int sz, int layout, int* permute) {
-  T* d = chkpnt_soa2aos(data, cnt, sz, layout, permute);
-  F.write_array<T>(d, cnt * sz);
-  delete [] d;
-}
-
 int* inverse_permute(int* p, int n);
 void nrn_inverse_i_layout(int i, int& icnt, int cnt, int& isz, int sz, int layout);
 

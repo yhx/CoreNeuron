@@ -42,6 +42,63 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <cassert>
 #include <stdio.h> // only needed for debugging printf
 
+#define UseFileHandlerWrap 0
+
+#if UseFileHandlerWrap
+#include <iomanip>
+class FileHandlerWrap {
+public:
+  FileHandler F;
+  std::fstream G;
+  FileHandlerWrap(){};
+
+  void open(const char* filename, bool reorder, std::ios::openmode mode = std::ios::in) {
+    F.open(filename, reorder, mode);
+    std::ostringstream fname;
+    fname << filename << ".txt";
+    G.open(fname.str().c_str(), mode);
+  }
+
+  void close() {
+    F.close();
+    G.close();
+  }
+
+  void checkpoint(int c) {
+    F.checkpoint(c);
+  }
+
+  template <typename T>
+  void write_array(T* p, size_t nb_elements) {
+    // G first before chkpnt is incremented
+    G << "chkpnt " << F.checkpoint() << std::endl;
+    for (size_t i = 0; i < nb_elements; ++i) {
+      G << std::setprecision(8) << p[i] << std::endl;
+    }
+    F.write_array(p, nb_elements); // chkpnt incremented
+  }
+
+  template <typename T>
+  FileHandlerWrap& operator<<(const T& scalar) {
+    F << scalar;
+    G << scalar;
+    return *this;
+  }
+};
+
+#else
+
+#define FileHandlerWrap FileHandler
+
+#endif // UseFileHandlerWrap
+
+template <typename T>
+void chkpnt_data_write(FileHandlerWrap& F, T* data, int cnt, int sz, int layout, int* permute) {
+  T* d = chkpnt_soa2aos(data, cnt, sz, layout, permute);
+  F.write_array<T>(d, cnt * sz);
+  delete [] d;
+}
+
 NrnThreadChkpnt* nrnthread_chkpnt;
 
 int patstimtype;
@@ -57,9 +114,9 @@ static const char* output_dir;  // output directory to write simple checkpoint
 static bool swap_bytes;
 
 // todo : only keep phase2 as rest (phase1, gan and 3) are constant
-static void write_phase2(NrnThread& nt, FileHandler& file_handle);
-static void write_phase3(NrnThread& nt, FileHandler& file_handle);
-static void write_tqueue(NrnThread& nt, FileHandler& file_handle);
+static void write_phase2(NrnThread& nt, FileHandlerWrap& file_handle);
+static void write_phase3(NrnThread& nt, FileHandlerWrap& file_handle);
+static void write_tqueue(NrnThread& nt, FileHandlerWrap& file_handle);
 static void write_time(const char *dir);
 
 void write_checkpoint(NrnThread* nt, int nb_threads, const char* dir, bool swap_bytes_order) {
@@ -82,7 +139,7 @@ void write_checkpoint(NrnThread* nt, int nb_threads, const char* dir, bool swap_
       #pragma omp parallel for private(i) shared(nt, nb_threads) schedule(runtime)
     #endif
     */
-    FileHandler f;
+    FileHandlerWrap f;
     for (i = 0; i < nb_threads; i++) {
       if (nt[i].ncell) {
         write_phase2(nt[i], f);
@@ -94,7 +151,7 @@ void write_checkpoint(NrnThread* nt, int nb_threads, const char* dir, bool swap_
     }
 }
 
-static void write_phase2(NrnThread& nt, FileHandler& fh) {
+static void write_phase2(NrnThread& nt, FileHandlerWrap& fh) {
 #if CHKPNTDEBUG
     NrnThreadChkpnt& ntc = nrnthread_chkpnt[nt.id];
 #endif
@@ -131,13 +188,13 @@ static void write_phase2(NrnThread& nt, FileHandler& fh) {
     int* pinv_nt = NULL;
     if (nt._permute) {
       int* d = new int[nt.end];
-      int* pinv_nt = inverse_permute(nt._permute, nt.end);
+      pinv_nt = inverse_permute(nt._permute, nt.end);
       for (int i=0; i < nt.end; ++i) {
         int x = nt._v_parent_index[nt._permute[i]];
         if (x >= 0) {
           d[i] = pinv_nt[x];
         }else{
-          d[i] = -1;
+          d[i] = 0; // really should be -1;
         }
       }
 #if CHKPNTDEBUG
@@ -162,7 +219,7 @@ static void write_phase2(NrnThread& nt, FileHandler& fh) {
     chkpnt_data_write(fh, nt._actual_b, nt.end, 1, 0, nt._permute);
 #if CHKPNTDEBUG
       for (int i=0; i < nt.end; ++i) {
-        assert(nt._actual_area[i] == ntc.area[i]);
+        assert(nt._actual_area[i] == ntc.area[pinv_nt[i]]);
       }
 #endif
     chkpnt_data_write(fh, nt._actual_area, nt.end, 1, 0, nt._permute);
@@ -193,7 +250,7 @@ static void write_phase2(NrnThread& nt, FileHandler& fh) {
             for (int i=0; i < cnt; ++i) {
                 int ip = ml->_permute ? ml->_permute[i] : i;
                 int ipval = ml->nodeindices[ip];
-                nd_ix[i] = nt._permute ? nt._permute[ipval] : ipval;
+                nd_ix[i] = pinv_nt[ipval];
             }
             fh.write_array<int>(nd_ix, cnt);
             delete nd_ix;
@@ -205,7 +262,7 @@ static void write_phase2(NrnThread& nt, FileHandler& fh) {
         if (sz) {
             int* d = chkpnt_soa2aos(ml->pdata, cnt, sz, layout, ml->_permute);
             // need to update some values according to Datum semantics.
-            for (int i_instance = 0; i_instance < cnt; ++i_instance) {
+            if (!nrn_is_artificial_[type]) for (int i_instance = 0; i_instance < cnt; ++i_instance) {
                 for (int i = 0; i < sz; ++i) {
                     int ix = i_instance*sz + i;
                     int s = semantics[i];
@@ -345,7 +402,7 @@ static void write_phase2(NrnThread& nt, FileHandler& fh) {
     fh.close();
 }
 
-static void write_phase3(NrnThread&, FileHandler&) {
+static void write_phase3(NrnThread&, FileHandlerWrap&) {
 }
 
 static void write_time(const char *output_dir) {
@@ -372,7 +429,7 @@ double restore_time(const char *restore_dir) {
     return rtime;
 }
 
-static void write_tqueue(TQItem* q, NrnThread& nt, FileHandler& fh) {
+static void write_tqueue(TQItem* q, NrnThread& nt, FileHandlerWrap& fh) {
     DiscreteEvent* d = (DiscreteEvent*)q->data_;
     //printf("  p %.20g %d\n", q->t_, d->type());
     //d->pr("", q->t_, net_cvode_instance);
@@ -511,7 +568,7 @@ extern int checkpoint_save_patternstim(_threadargsproto_);
 extern void checkpoint_restore_patternstim(int, double, _threadargsproto_);
 }
 
-static void write_tqueue(NrnThread& nt, FileHandler& fh) {
+static void write_tqueue(NrnThread& nt, FileHandlerWrap& fh) {
     // VecPlayContinuous
     fh << nt.n_vecplay << " VecPlayContinuous state\n";
     for (int i=0; i < nt.n_vecplay; ++i) {

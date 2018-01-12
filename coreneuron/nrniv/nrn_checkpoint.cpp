@@ -93,6 +93,29 @@ public:
 #endif // UseFileHandlerWrap
 
 template <typename T>
+T* chkpnt_soa2aos(T* data, int cnt, int sz, int layout, int* permute) {
+  // inverse of F -> data. Just a copy if layout=1. If SoA, original file order depends on
+  // padding and permutation.
+  // Good for a, b, area, v, diam, Memb_list.data, or anywhere values do not change.
+  T* d = new T[cnt * sz];
+  if (layout == 1) { /* AoS */
+    for (int i=0; i < cnt*sz; ++i) {
+      d[i] = data[i];
+    }
+  }else if (layout == 0) { /* SoA */
+    int align_cnt = nrn_soa_padded_size(cnt, layout);
+    for (int i=0; i < cnt; ++i) {
+      int ip = i;
+      if (permute) { ip = permute[i]; }
+      for (int j = 0; j < sz; ++j) {
+        d[i*sz + j] = data[ip + j*align_cnt];
+      }
+    }
+  }
+  return d;
+}
+     
+template <typename T>
 void chkpnt_data_write(FileHandlerWrap& F, T* data, int cnt, int sz, int layout, int* permute) {
   T* d = chkpnt_soa2aos(data, cnt, sz, layout, permute);
   F.write_array<T>(d, cnt * sz);

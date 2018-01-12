@@ -70,39 +70,41 @@ extern int patstimtype;
 // NrnThread and Memb_list. Ideally, this should all go away
 
 typedef struct Memb_list_ckpnt {
-    double* data_not_permuted;  // FIXME temporary store to understand data layout
-    Datum* pdata_not_permuted;  // FIXME temporary store to undertsand data layout
-    size_t data_offset;
-
-    int* nodeindices;
+    // debug only
+    double* data_not_permuted;
+    Datum* pdata_not_permuted;
+    int* nodeindices_not_permuted;
 } Memb_list_chkpnt;
 
 typedef struct NrnThreadChkpnt {
+    int file_id;       /* File Id of this NrnThread */
+
     int* src_gids;     // FIXME temporary struct to store netcon_srcgid from file phase1 (nrn_setup.cpp:278)
     int* output_gids;  // We keep it as current version of coreNeuron dont keep Artificial Gids as output when they appears in Phase1 file
     int nmech;         // Size of linked list tml
     int n_outputgids;  // FIXME temp..
-    int ndata_unpadded;        // FIXME temp..
     int* output_vindex;        // FIXME temp..
     double* output_threshold;  // FIXME temp..
     int* pnttype;              // FIXME temp..
     int* pntindex;             // FIXME temp..
     double* delay;             // FIXME temp..
+    // BBCOREPOINTER
     int npnt;                  // FIXME temp..
+    int* type;                 // FIXME temp..
     int* icnt;                 // FIXME temp..
     int* dcnt;                 // FIXME temp..
-    int* mtype;                // FIXME temp..
+    //VecPlay
     int* vtype;                // FIXME temp..
-    int* type;                 // FIXME temp..
+    int* mtype;                // FIXME temp..
     int* vecplay_ix;           // FIXME temp..
     int* vecplay_sz;           // FIXME temp..
     double** vecplay_yvec;     // FIXME temp..
     double** vecplay_tvec;     // FIXME temp..
-    Memb_list_chkpnt** mlmap;  // parallel to NrnThread._ml_list
-    int file_id;       /* File Id of this NrnThread */
 
+    // debug only
     double* area;
     int* parent;
+    Memb_list_chkpnt** mlmap;  // parallel to NrnThread._ml_list
 } NrnThreadChkpnt;
 
 extern NrnThreadChkpnt* nrnthread_chkpnt; // nrn_nthread of these

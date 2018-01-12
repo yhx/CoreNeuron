@@ -77,7 +77,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 // nmech - includes artcell mechanisms
 // for the nmech tml mechanisms
 //   type, nodecount
-// ndata, nidata, nvdata, nweight
+// nidata, nvdata, nweight
 // v_parent_index (nnode)
 // actual_a, b, area, v (nnode)
 // diam - if ndiam > 0. Note that only valid diam is for those nodes with diam semantics mechanisms
@@ -1017,11 +1017,6 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
     NrnThreadMembList* tml_last = NULL;
     nt._ml_list = (Memb_list**)ecalloc(n_memb_func, sizeof(Memb_list*));
 
-    // local unpadded copy needed for updating pdata value indices into nt._data
-    // only field used is the data (as though unpadded aos)
-    // can be freed after that update.
-    Memb_list* unpadded_ml_list = (Memb_list*)ecalloc(n_memb_func, sizeof(Memb_list));
-
 #if CHKPNTDEBUG
     ntc.mlmap = new Memb_list_chkpnt*[n_memb_func];
     for (int i=0; i< n_memb_func; ++i) { ntc.mlmap[i] = NULL; }
@@ -1090,10 +1085,6 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
         nt.shadow_rhs_cnt = shadow_rhs_cnt;
     }
 
-    nt._ndata = F.read_int();
-#if CHKPNTDEBUG
-    ntc.ndata_unpadded = nt._ndata;
-#endif
     nt._nidata = F.read_int();
     nt._nvdata = F.read_int();
     nt.n_weight = F.read_int();
@@ -1111,12 +1102,11 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
         nt._vdata = (void**)ecalloc(nt._nvdata + extra_nv, sizeof(void*));
     else
         nt._vdata = NULL;
-    // printf("_ndata=%d _nidata=%d _nvdata=%d\n", nt._ndata, nt._nidata, nt._nvdata);
+    // printf("_nidata=%d _nvdata=%d\n", nt._nidata, nt._nvdata);
 
     // The data format begins with the matrix data
     int ne = nrn_soa_padded_size(nt.end, MATRIX_LAYOUT);
     size_t offset = 6 * ne;
-    size_t unpadded_offset = 6 * nt.end;
 
     if (ndiam) {
         // in the rare case that a mechanism has dparam with diam semantics
@@ -1124,7 +1114,6 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
         // Generally wasteful since only a few diam are pointed to.
         // Probably better to move the diam semantics to the p array of the mechanism
         offset += ne;
-        unpadded_offset += nt.end;
     }
 
     // Memb_list.data points into the nt.data array.
@@ -1138,20 +1127,14 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
         int sz = nrn_prop_param_size_[type];
         offset = nrn_soa_byte_align(offset);
         ml->data = (double*)0 + offset;  // adjust below since nt._data not allocated
-        unpadded_ml_list[type].data = (double*)0 + unpadded_offset;
-#if CHKPNTDEBUG
-        ntc.mlmap[type]->data_offset = unpadded_offset;
-#endif
         offset += nrn_soa_padded_size(n, layout) * sz;
-        unpadded_offset += n * sz;
         if (pnt_map[type] > 0) {
             npnt += n;
         }
     }
     nt.pntprocs = new Point_process[npnt];  // includes acell with and without gid
     nt.n_pntproc = npnt;
-    // printf("offset=%ld ndata=%ld\n", offset, nt._ndata);
-    // assert(offset == nt._ndata); // not with alignment
+    // printf("offset=%ld\n", offset);
     nt._ndata = offset;
 
     // now that we know the effect of padding, we can allocate data space,
@@ -1290,25 +1273,25 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
                 int area0 = nt._actual_area - nt._data;
                 for (int iml = 0; iml < cnt; ++iml) {
                     int* pd = pdata + nrn_i_layout(iml, cnt, i, szdp, layout);
-                    int ix = *pd - (5 * nt.end);  // unpadded area is 6th vector from beginning
+                    int ix = *pd;  // relative to beginning of _actual_area
                     nrn_assert((ix >= 0) && (ix < nt.end));
-                    *pd = area0 + ix;
+                    *pd = area0 + ix; // relative to nt._data
                 }
             }else if (s == -9) {  // diam
                 int diam0 = nt._actual_diam - nt._data;
                 for (int iml = 0; iml < cnt; ++iml) {
                     int* pd = pdata + nrn_i_layout(iml, cnt, i, szdp, layout);
-                    int ix = *pd - (6 * nt.end);  // unpadded diam is 7th vector from beginning
+                    int ix = *pd;  // relative to beginning of _actual_diam
                     nrn_assert((ix >= 0) && (ix < nt.end));
-                    *pd = diam0 + ix;
+                    *pd = diam0 + ix; // relative to nt._data
                 }
             } else if (s == -5) {  // pointer assumes a pointer to membrane voltage
                 int v0 = nt._actual_v - nt._data;
                 for (int iml = 0; iml < cnt; ++iml) {
                     int* pd = pdata + nrn_i_layout(iml, cnt, i, szdp, layout);
-                    int ix = *pd - (4 * nt.end);  // unpadded voltage is 5th vector from beginning
+                    int ix = *pd;  // relative to _actual_v
                     nrn_assert((ix >= 0) && (ix < nt.end));
-                    *pd = v0 + ix;
+                    *pd = v0 + ix; // relative to nt._data
                 }
             } else if (s >= 0 && s < 1000) {  // ion
                 int etype = s;
@@ -1320,12 +1303,11 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
                 /* ion is SoA so must recalculate pdata values */
                 Memb_list* eml = nt._ml_list[etype];
                 int edata0 = eml->data - nt._data;
-                int unpadded_edata0 = unpadded_ml_list[etype].data - (double*)0;
                 int ecnt = eml->nodecount;
                 int esz = nrn_prop_param_size_[etype];
                 for (int iml = 0; iml < cnt; ++iml) {
                     int* pd = pdata + nrn_i_layout(iml, cnt, i, szdp, layout);
-                    int ix = *pd - unpadded_edata0;
+                    int ix = *pd; // relative to the ion data
                     nrn_assert((ix >= 0) && (ix < ecnt * esz));
                     /* Original pd order assumed ecnt groups of esz */
                     *pd = edata0 + nrn_param_layout(ix, etype, eml);
@@ -1333,8 +1315,6 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
             }
         }
     }
-    // unpadded_ml_list no longer needed
-    free(unpadded_ml_list);
 
     /* if desired, apply the node permutation. This involves permuting
        at least the node parameter arrays for a, b, and area (and diam) and all

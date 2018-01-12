@@ -200,9 +200,6 @@ static void write_phase2(NrnThread& nt, FileHandlerWrap& fh) {
         fh << current_tml->ml->nodecount << "\n";
     }
 
-#if CHKPNTDEBUG
-    fh << ntc.ndata_unpadded << " ndata\n";
-#endif
     fh << nt._nidata << " nidata\n";
     fh << nt._nvdata << " nvdata\n";
     fh << nt.n_weight << " nweight\n";
@@ -291,14 +288,14 @@ static void write_phase2(NrnThread& nt, FileHandlerWrap& fh) {
                     int s = semantics[i];
                     if (s == -1) { // area
                         int p = pinv_nt[d[ix] - (nt._actual_area - nt._data)];
-                        d[ix] = p + (5*nt.end); // unpadded area offset
+                        d[ix] = p; // relative _actual_area
                     }else if (s == -9) { // diam
                         int p = pinv_nt[d[ix] - (nt._actual_diam -nt._data)];
 
-                        d[ix] = p + (6*nt.end);
+                        d[ix] = p; // relative to _actual_diam
                     }else if (s == -5) { // Assume pointer to membrane voltage
                         int p = pinv_nt[d[ix] - (nt._actual_v - nt._data)];
-                        d[ix] = p + (4*nt.end);
+                        d[ix] = p; // relative to _actual_v
                     }else if (s >= 0 && s < 1000) { // ion
                         // determine ei_instance and ei
                         int etype = s;
@@ -320,8 +317,7 @@ static void write_phase2(NrnThread& nt, FileHandlerWrap& fh) {
                                 ei_instance = ml_pinv[etype][ei_instance];
                             }
                         }
-                        int offset = ntc.mlmap[etype]->data_offset;
-                        d[ix] = ei_instance*esz + ei + offset;
+                        d[ix] = ei_instance*esz + ei;
                     }
 #if CHKPNTDEBUG
                     if (s != -8) { // WATCH values change

@@ -184,14 +184,29 @@ static void write_phase2(NrnThread& nt, FileHandlerWrap& fh) {
 #endif
     fh.open(filename.str().c_str(), swap_bytes, std::ios::out);
     fh.checkpoint(2);
+
+    int n_outputgid = 0; // calculate PreSyn with gid >= 0
+    for (int i=0; i < nt.n_presyn; ++i) {
+      if (nt.presyns[i].gid_ >= 0) {
+        ++n_outputgid;
+      }
+    }
+    fh << n_outputgid << " ngid\n";
 #if CHKPNTDEBUG
-    fh << ntc.n_outputgids << " ngid\n";
+    assert(ntc.n_outputgids == n_outputgid);
 #endif
     fh << nt.ncell << " n_real_gid\n";
     fh << nt.end << " nnode\n";
     fh << ((nt._actual_diam == NULL) ? 0 : nt.end) << " ndiam\n";
+    int nmech = 0;
+    for (NrnThreadMembList* tml = nt.tml; tml; tml = tml->next) {
+      if (tml->index != patstimtype) { // skip PatternStim
+        ++nmech;
+      }
+    }
+    fh << nmech << " nmech\n";
 #if CHKPNTDEBUG
-    fh << ntc.nmech << " nmech\n";
+    assert(nmech == ntc.nmech);
 #endif
 
     for (NrnThreadMembList* current_tml = nt.tml; current_tml; current_tml = current_tml->next) {
@@ -331,23 +346,91 @@ static void write_phase2(NrnThread& nt, FileHandlerWrap& fh) {
         }
     }
 
-    for (int i=0; i < n_memb_func; ++i) {
-        if (ml_pinv[i]) { delete [] ml_pinv[i]; }
+    int nnetcon = nt.n_netcon - nrn_setup_extracon;
+
+    int* output_vindex = new int[nt.n_presyn];
+    double* output_threshold = new double[nt.ncell];
+    for (int i=0; i < nt.n_presyn; ++i) {
+      PreSyn* ps = nt.presyns + i;
+      if (ps->thvar_index_ >= 0) { // real cell and index into (permuted) actual_v
+        // if any assert fails in this loop then we have faulty understanding
+        // of the for (int i = 0; i < nt.n_presyn; ++i) loop in nrn_setup.cpp
+        assert(ps->thvar_index_ < nt.end);
+        assert(ps->pntsrc_ == NULL);
+        output_threshold[i] = ps->threshold_;
+        output_vindex[i] = pinv_nt[ps->thvar_index_];
+      }else if (i < nt.ncell) { // real cell without a presyn
+        output_threshold[i] = 0.0; // the way it was set in nrnbbcore_write.cpp
+        output_vindex[i] = -1;
+      }else{
+        Point_process* pnt = ps->pntsrc_;
+        assert(pnt);
+        output_vindex[i] = -(pnt->_i_instance*1000 + pnt->_type);
+      }
     }
-    free(ml_pinv);
+    fh.write_array<int>(output_vindex, nt.n_presyn);
+    fh.write_array<double>(output_threshold, nt.ncell);
+#if CHKPNTDEBUG
+    for (int i = 0; i < nt.n_presyn; ++i) {
+      assert(ntc.output_vindex[i] == output_vindex[i]);
+    }
+    for (int i = 0; i < nt.ncell; ++i) {
+      assert(ntc.output_threshold[i] == output_threshold[i]);
+    }
+#endif
+    delete [] output_vindex;
+    delete [] output_threshold;
+
     delete [] pinv_nt;
 
-    int nnetcon = nt.n_netcon - nrn_setup_extracon;
-#if CHKPNTDEBUG
-    fh.write_array<int>(ntc.output_vindex, nt.n_presyn);
-    fh.write_array<double>(ntc.output_threshold, nt.ncell);
-    fh.write_array<int>(ntc.pnttype, nnetcon);
-    fh.write_array<int>(ntc.pntindex, nnetcon);
+    int synoffset = 0;
+    int* pnt_offset = new int[n_memb_func];
+    for (NrnThreadMembList* tml = nt.tml; tml; tml = tml->next) {
+      int type = tml->index;
+      pnt_offset[type] = -1;
+      if (pnt_map[type] > 0) {
+        pnt_offset[type] = synoffset;
+        synoffset += tml->ml->nodecount;
+      }
+    }
+    int* pnttype = new int[nnetcon];
+    int* pntindex = new int[nnetcon];
+    double* delay = new double[nnetcon];
+    for (int i=0; i < nnetcon; ++i) {
+      NetCon& nc = nt.netcons[i];
+      Point_process* pnt = nc.target_;
+      assert(pnt); // nrn_setup.cpp allows type <=0 which generates NULL target.
+      pnttype[i] = pnt->_type;
+#if 0
+      // this seems most natural, but does not work. Perhaps should look
+      // into how pntindex determined in nrnbbcore_write.cpp and change there.
+      int ix = pnt->_i_instance;
+      if (ml_pinv[pnt->_type]) {
+        ix = ml_pinv[pnt->_type][ix];
+      }
+#else
+      // follow the inverse of nrn_setup.cpp using pnt_offset computed above.
+      int ix = (pnt - nt.pntprocs) - pnt_offset[pnt->_type];
 #endif
+      pntindex[i] = ix;
+      delay[i] = nc.delay_;
+    }
+    fh.write_array<int>(pnttype, nnetcon);
+    fh.write_array<int>(pntindex, nnetcon);
     fh.write_array<double>(nt.weights, nt.n_weight);
+    fh.write_array<double>(delay, nnetcon);
 #if CHKPNTDEBUG
-    fh.write_array<double>(ntc.delay, nnetcon);
+    for (int i=0; i < nnetcon; ++i) {
+      assert(ntc.pnttype[i] == pnttype[i]);
+      assert(ntc.pntindex[i] == pntindex[i]);
+      assert(ntc.delay[i] ==  delay[i]);
+    }
 #endif
+    delete [] pnt_offset;
+    delete [] pnttype;
+    delete [] pntindex;
+    delete [] delay;
+
 #if CHKPNTDEBUG
     int npnt = ntc.npnt;
 #endif
@@ -410,13 +493,56 @@ static void write_phase2(NrnThread& nt, FileHandlerWrap& fh) {
 
     fh << nt.n_vecplay << " VecPlay instances\n";
     for (int i = 0; i < nt.n_vecplay; i++) {
-        fh << ntc.vtype[i] << "\n";
-        fh << ntc.mtype[i] << "\n";
-        fh << ntc.vecplay_ix[i] << "\n";
-        fh << ntc.vecplay_sz[i] << "\n";
-        fh.write_array<double>(ntc.vecplay_yvec[i], ntc.vecplay_sz[i]);
-        fh.write_array<double>(ntc.vecplay_tvec[i], ntc.vecplay_sz[i]);
+        PlayRecord* pr = (PlayRecord*)nt._vecplay[i];
+        int vtype = pr->type();
+        int mtype = -1;
+        int ix = -1;
+
+        // not as efficient as possible but there should not be too many
+        Memb_list* ml = NULL;
+        for (NrnThreadMembList* tml = nt.tml; tml; tml = tml->next) {
+          ml = tml->ml;
+          int nn = nrn_prop_param_size_[tml->index] * ml->nodecount;
+          if (nn && pr->pd_ >= ml->data && pr->pd_ < (ml->data + nn)) {
+            mtype = tml->index;
+            ix = (pr->pd_ - ml->data);
+            break;
+          }
+        }
+        assert (mtype >= 0);
+        int icnt, isz;
+        nrn_inverse_i_layout(ix, icnt, ml->nodecount,
+          isz, nrn_prop_param_size_[mtype], nrn_mech_data_layout_[mtype]);
+        if (ml_pinv[mtype]) {
+          icnt = ml_pinv[mtype][icnt];
+        }
+        ix = nrn_i_layout(icnt, ml->nodecount, isz, nrn_prop_param_size_[mtype],
+          1 /*AOS_LAYOUT*/);
+        
+        fh << vtype << "\n";
+        fh << mtype << "\n";
+        fh << ix << "\n";
+#if CHKPNTDEBUG
+        assert(ntc.vtype[i] == vtype);
+        assert(ntc.mtype[i] == mtype);
+        assert(ntc.vecplay_ix[i] == ix);
+#endif
+        if (vtype == VecPlayContinuousType) {
+            VecPlayContinuous* vpc = (VecPlayContinuous*)pr;
+            int sz = vector_capacity(vpc->y_);
+            fh << sz << "\n";
+            fh.write_array<double>(vector_vec(vpc->y_), sz);
+            fh.write_array<double>(vector_vec(vpc->t_), sz);
+        }else{
+            assert(0);
+        }
     }
+
+    for (int i=0; i < n_memb_func; ++i) {
+        if (ml_pinv[i]) { delete [] ml_pinv[i]; }
+    }
+    free(ml_pinv);
+
     write_tqueue(nt, fh);
     fh.close();
 }

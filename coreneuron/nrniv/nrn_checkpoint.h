@@ -79,32 +79,32 @@ typedef struct Memb_list_ckpnt {
 typedef struct NrnThreadChkpnt {
     int file_id;       /* File Id of this NrnThread */
 
-    int* src_gids;     // FIXME temporary struct to store netcon_srcgid from file phase1 (nrn_setup.cpp:278)
-    int* output_gids;  // We keep it as current version of coreNeuron dont keep Artificial Gids as output when they appears in Phase1 file
-    int nmech;         // Size of linked list tml
-    int n_outputgids;  // FIXME temp..
-    int* output_vindex;        // FIXME temp..
-    double* output_threshold;  // FIXME temp..
-    int* pnttype;              // FIXME temp..
-    int* pntindex;             // FIXME temp..
-    double* delay;             // FIXME temp..
     // BBCOREPOINTER
     int npnt;                  // FIXME temp..
     int* type;                 // FIXME temp..
     int* icnt;                 // FIXME temp..
     int* dcnt;                 // FIXME temp..
-    //VecPlay
-    int* vtype;                // FIXME temp..
-    int* mtype;                // FIXME temp..
-    int* vecplay_ix;           // FIXME temp..
-    int* vecplay_sz;           // FIXME temp..
-    double** vecplay_yvec;     // FIXME temp..
-    double** vecplay_tvec;     // FIXME temp..
 
     // debug only
+
+    int nmech;         // Size of linked list tml
     double* area;
     int* parent;
     Memb_list_chkpnt** mlmap;  // parallel to NrnThread._ml_list
+
+    int n_outputgids;
+    int* output_vindex;
+    double* output_threshold;
+
+    int* pnttype;
+    int* pntindex;
+    double* delay;
+
+    //VecPlay
+    int* vtype;
+    int* mtype;
+    int* vecplay_ix;
+
 } NrnThreadChkpnt;
 
 extern NrnThreadChkpnt* nrnthread_chkpnt; // nrn_nthread of these

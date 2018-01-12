@@ -272,21 +272,10 @@ void read_phase1(FileHandler& F, int imult, NrnThread& nt) {
     nt.netcons = new NetCon[nt.n_netcon + nrn_setup_extracon];
     nt.presyns_helper = (PreSynHelper*)ecalloc(nt.n_presyn, sizeof(PreSynHelper));
 
-    /// Checkpoint in coreneuron is defined for both phase 1 and phase 2 since they are written together
-    /// output_gid has all of output PreSyns, netcon_srcgid is created for NetCons which might be
-    /// 10k times more than output_gid.
     int* output_gid = F.read_array<int>(nt.n_presyn);
-#if CHKPNTDEBUG
-    ntc.output_gids = new int[nt.n_presyn];
-    memcpy(ntc.output_gids, output_gid, sizeof(int) * nt.n_presyn);
-#endif
     // the extra netcon_srcgid will be filled in later
     netcon_srcgid[nt.id] = new int[nt.n_netcon + nrn_setup_extracon];
     F.read_array<int>(netcon_srcgid[nt.id], nt.n_netcon);
-#if CHKPNTDEBUG
-    ntc.src_gids = new int[nt.n_netcon];
-    memcpy(ntc.src_gids, netcon_srcgid[nt.id], nt.n_netcon * sizeof(int));
-#endif
     F.close();
 
 #if 0
@@ -1738,9 +1727,6 @@ for (int i=0; i < nt.end; ++i) {
     }
 #if CHKPNTDEBUG
     ntc.vecplay_ix = new int[n];
-    ntc.vecplay_sz = new int[n];
-    ntc.vecplay_yvec = new double*[n];
-    ntc.vecplay_tvec = new double*[n];
     ntc.vtype = new int[n];
     ntc.mtype = new int[n];
 #endif
@@ -1759,18 +1745,11 @@ for (int i=0; i < nt.end; ++i) {
         int sz = F.read_int();
 #if CHKPNTDEBUG
         ntc.vecplay_ix[i] = ix;
-        ntc.vecplay_sz[i] = sz;
 #endif
         IvocVect* yvec = vector_new1(sz);
         F.read_array<double>(vector_vec(yvec), sz);
         IvocVect* tvec = vector_new1(sz);
         F.read_array<double>(vector_vec(tvec), sz);
-#if CHKPNTDEBUG
-        ntc.vecplay_yvec[i] = new double[sz];
-        ntc.vecplay_tvec[i] = new double[sz];
-        memcpy(ntc.vecplay_yvec[i], yvec->data_, sz * sizeof(double));
-        memcpy(ntc.vecplay_tvec[i], tvec->data_, sz * sizeof(double));
-#endif
         ix = nrn_param_layout(ix, mtype, ml);
         if (ml->_permute) {
             ix = nrn_index_permute(ix, mtype, ml);

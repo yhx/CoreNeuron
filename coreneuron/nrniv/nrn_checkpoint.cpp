@@ -253,7 +253,7 @@ static void write_phase2(NrnThread& nt, FileHandlerWrap& fh) {
                 nd_ix[i] = pinv_nt[ipval];
             }
             fh.write_array<int>(nd_ix, cnt);
-            delete nd_ix;
+            delete[] nd_ix;
         }
 
         chkpnt_data_write(fh, ml->data, cnt, sz, layout, ml->_permute);

@@ -42,6 +42,8 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <cassert>
 #include <stdio.h> // only needed for debugging printf
 
+bool nrn_checkpoint_arg_exists;
+
 #define UseFileHandlerWrap 0
 
 #if UseFileHandlerWrap
@@ -164,7 +166,7 @@ void write_checkpoint(NrnThread* nt, int nb_threads, const char* dir, bool swap_
     */
     FileHandlerWrap f;
     for (i = 0; i < nb_threads; i++) {
-      if (nt[i].ncell) {
+      if (nt[i].ncell || nt[i].tml) {
         write_phase2(nt[i], f);
         write_phase3(nt[i], f);
       }
@@ -431,64 +433,98 @@ static void write_phase2(NrnThread& nt, FileHandlerWrap& fh) {
     delete [] pntindex;
     delete [] delay;
 
+    // BBCOREPOINTER
+    int nbcp = 0;
+    for (NrnThreadMembList* tml = nt.tml; tml; tml = tml->next) {
+      if (nrn_bbcore_read_[tml->index] && tml->index != patstimtype) {
+        ++nbcp;
+      }
+    }
+    fh << nbcp << " bbcorepointer\n";
 #if CHKPNTDEBUG
-    int npnt = ntc.npnt;
+    assert(nbcp == ntc.nbcp);
 #endif
-    fh << npnt << " bbcorepointer\n";
+    nbcp = 0;
+    for (NrnThreadMembList* tml = nt.tml; tml; tml = tml->next) {
+      if (nrn_bbcore_read_[tml->index] && tml->index != patstimtype) {
+        int i = nbcp++;
+        int type = tml->index;
+        assert(nrn_bbcore_write_[type]);
+        Memb_list* ml = tml->ml;
+        double* d = NULL;
+        Datum* pd = NULL;
+        int layout = nrn_mech_data_layout_[type];
+        int dsz = nrn_prop_param_size_[type];
+        int pdsz = nrn_prop_dparam_size_[type];
+        int aln_cntml = nrn_soa_padded_size(ml->nodecount, layout);
+        fh << type << "\n";
+        int icnt=0;
+	int dcnt=0;
+        // data size and allocate
+        for (int j = 0; j < ml->nodecount; ++j) {
+            int jp = j;
 
-    int* iArray = NULL;
-    double* dArray = NULL;
-
-    for (int i = 0; i < npnt; i++) {
-        fh << ntc.type[i] << "\n";
-        fh << ntc.icnt[i] << "\n";
-        fh << ntc.dcnt[i] << "\n";
-
-        iArray = new int[ntc.icnt[i]];
-        dArray = new double[ntc.dcnt[i]];
-        Memb_list* ml = nt._ml_list[ntc.type[i]];
-        int dsz = nrn_prop_param_size_[ntc.type[i]];
-        int pdsz = nrn_prop_dparam_size_[ntc.type[i]];
-
-        if (nrn_bbcore_write_[ntc.type[i]] && (ntc.icnt[i] || ntc.dcnt[i])) {
-            int d_offset = 0;
-            int i_offset = 0;
-            double* d = ml->data;
-            Datum* pd = ml->pdata;
-            int layout = nrn_mech_data_layout_[ntc.type[i]];
-
-            for (int j = 0; j < ml->nodecount; j++) {
-                int jp = j;
-
-                if (ml->_permute) {
-                    jp = ml->_permute[j];
-                }
-
-                d = ml->data + nrn_i_layout(jp, ml->nodecount, 0, dsz, layout);
-                pd = ml->pdata + nrn_i_layout(jp, ml->nodecount, 0, pdsz, layout);
-                int aln_cntml = nrn_soa_padded_size(ml->nodecount, layout);
-
-                // extra parameters after i_offset dont seems to be used
-                (*nrn_bbcore_write_[ntc.type[i]])(dArray, iArray, &d_offset, &i_offset, 0, aln_cntml,
-                                                 d, pd, ml->_thread, &nt, 0.0);
+            if (ml->_permute) {
+                jp = ml->_permute[j];
             }
+
+            d = ml->data + nrn_i_layout(jp, ml->nodecount, 0, dsz, layout);
+            pd = ml->pdata + nrn_i_layout(jp, ml->nodecount, 0, pdsz, layout);
+
+            (*nrn_bbcore_write_[type])(NULL, NULL, &dcnt, &icnt, 0, aln_cntml,
+                                    d, pd, ml->_thread, &nt, 0.0);
+        }
+        fh << icnt << "\n";
+        fh << dcnt << "\n";
+#if CHKPNTDEBUG
+        assert(ntc.bcptype[i] == type);
+        assert(ntc.bcpicnt[i] == icnt);
+        assert(ntc.bcpdcnt[i] == dcnt);
+#endif
+        int* iArray = NULL;
+        double* dArray = NULL;
+        if (icnt) {
+          iArray = new int[icnt];
+        }
+        if (dcnt) {
+          dArray = new double[dcnt];
         }
 
+        icnt = dcnt = 0;
+
+        for (int j = 0; j < ml->nodecount; j++) {
+            int jp = j;
+
+            if (ml->_permute) {
+                jp = ml->_permute[j];
+            }
+
+            d = ml->data + nrn_i_layout(jp, ml->nodecount, 0, dsz, layout);
+            pd = ml->pdata + nrn_i_layout(jp, ml->nodecount, 0, pdsz, layout);
+
+            (*nrn_bbcore_write_[type])(dArray, iArray, &dcnt, &icnt, 0, aln_cntml,
+                                         d, pd, ml->_thread, &nt, 0.0);
+        }
+
+#if 0
         /// if there is data from bbcore pointer but bbcore_write is null means
         /// mod2c generated c file hasn't registered a callback
         if((ntc.icnt[i] || ntc.dcnt[i]) && nrn_bbcore_write_[ntc.type[i]] == NULL) {
             std::cerr << " WARNING: bbcore_write not registered for type : " << nrn_get_mechname(ntc.type[i]) <<  std::endl;
         }
+#endif
 
-        if (ntc.icnt[i]) {
-            fh.write_array<int>(iArray, ntc.icnt[i]);
+        if (icnt) {
+            fh.write_array<int>(iArray, icnt);
+            delete[] iArray;
         }
 
-        if (ntc.dcnt[i]) {
-            fh.write_array<double>(dArray, ntc.dcnt[i]);
+        if (dcnt) {
+            fh.write_array<double>(dArray, dcnt);
+            delete[] dArray;
         }
-        delete[] iArray;
-        delete[] dArray;
+        ++i;
+      }
     }
 
     fh << nt.n_vecplay << " VecPlay instances\n";

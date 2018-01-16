@@ -244,6 +244,9 @@ int main1(int argc, char** argv, char** env) {
     // initializationa and loading functions moved to separate
     nrn_init_and_load_data(argc, argv);
     std::string checkpoint_path = nrnopt_get_str("--checkpoint");
+    if (strlen(checkpoint_path.c_str())) {
+        nrn_checkpoint_arg_exists = true;
+    }
     std::string output_dir = nrnopt_get_str("--outpath");
 
     // todo : need barrier for non=mpi build

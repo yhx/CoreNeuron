@@ -216,6 +216,7 @@ static void bbcore_write(double* x, int* d, int* xx, int *offset, _threadargspro
 		assert(0);
 	}
 	if (d) {
+                char which;
 		uint32_t* di = ((uint32_t*)d) + *offset;
 #if !NRNBBCORE
 		if (_ran_compat == 1) {
@@ -225,16 +226,21 @@ static void bbcore_write(double* x, int* d, int* xx, int *offset, _threadargspro
 				fprintf(stderr, "NetStim: Random123 generator is required\n");
 				assert(0);
 			}
+                        // Assume an unpicked stream.
+			di[3] = 0;
+			di[4] = 0;
 		}else{
 #else
     {
 #endif
 			nrnran123_State** pv = (nrnran123_State**)(&_p_donotuse);
 			nrnran123_getids3(*pv, di, di+1, di+2);
+			nrnran123_getseq(*pv, di+3, &which);
+			di[4] = (int)which;
 		}
 		/*printf("Netstim bbcore_write %d %d %d\n", di[0], di[1], di[3]);*/
 	}
-	*offset += 3;
+	*offset += 5;
 }
 
 static void bbcore_read(double* x, int* d, int* xx, int* offset, _threadargsproto_) {
@@ -243,10 +249,11 @@ static void bbcore_read(double* x, int* d, int* xx, int* offset, _threadargsprot
 		uint32_t* di = ((uint32_t*)d) + *offset;
 		nrnran123_State** pv = (nrnran123_State**)(&_p_donotuse);
 		*pv = nrnran123_newstream3(di[0], di[1], di[2]);
+		nrnran123_setseq(*pv, di[3], (char)di[4]);
 	}else{
 		return;
 	}
-	*offset += 3;
+	*offset += 5;
 }
 ENDVERBATIM
 

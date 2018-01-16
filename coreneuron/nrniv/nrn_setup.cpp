@@ -1661,24 +1661,26 @@ for (int i=0; i < nt.end; ++i) {
     // BBCOREPOINTER information
     npnt = F.read_int();
 #if CHKPNTDEBUG
-    ntc.npnt = npnt;
-    ntc.icnt = new int[npnt];
-    ntc.dcnt = new int[npnt];
-    ntc.type = new int[npnt];
+    ntc.nbcp = npnt;
+    ntc.bcpicnt = new int[npnt];
+    ntc.bcpdcnt = new int[npnt];
+    ntc.bcptype = new int[npnt];
 #endif
     for (int i = 0; i < npnt; ++i) {
         int* iArray = NULL;
         double* dArray = NULL;
         int type = F.read_int();
-#if CHKPNTDEBUG
-        ntc.type[i] = type;
-#endif
         assert(nrn_bbcore_read_[type]);
+        if (!nrn_bbcore_write_[type] && nrn_checkpoint_arg_exists) {
+fprintf(stderr, "Checkpoint is requested involving BBCOREPOINTER but there is no bbcore_write function for %s\n", memb_func[type].sym);
+            assert(nrn_bbcore_write_[type]);
+        }
         int icnt = F.read_int();
         int dcnt = F.read_int();
 #if CHKPNTDEBUG
-        ntc.icnt[i] = icnt;
-        ntc.dcnt[i] = dcnt;
+        ntc.bcptype[i] = type;
+        ntc.bcpicnt[i] = icnt;
+        ntc.bcpdcnt[i] = dcnt;
 #endif
         if (icnt) {
            iArray = F.read_array<int>(icnt);

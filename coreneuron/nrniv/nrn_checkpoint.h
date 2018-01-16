@@ -35,6 +35,8 @@ THE POSSIBILITY OF SUCH DAMAGE.
 class NrnThread;
 class FileHandler;
 
+extern bool nrn_checkpoint_arg_exists;
+
 void write_checkpoint(NrnThread* nt,
                       int nb_threads,
                       const char* dir,
@@ -79,12 +81,6 @@ typedef struct Memb_list_ckpnt {
 typedef struct NrnThreadChkpnt {
     int file_id;       /* File Id of this NrnThread */
 
-    // BBCOREPOINTER
-    int npnt;                  // FIXME temp..
-    int* type;                 // FIXME temp..
-    int* icnt;                 // FIXME temp..
-    int* dcnt;                 // FIXME temp..
-
     // debug only
 
     int nmech;         // Size of linked list tml
@@ -99,6 +95,12 @@ typedef struct NrnThreadChkpnt {
     int* pnttype;
     int* pntindex;
     double* delay;
+
+    // BBCOREPOINTER
+    int nbcp;
+    int* bcptype;
+    int* bcpicnt;
+    int* bcpdcnt;
 
     //VecPlay
     int* vtype;

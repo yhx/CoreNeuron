@@ -27,7 +27,6 @@ THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include <iostream>
-#include <regex>
 #include <vector>
 #include <algorithm>
 #include <map>
@@ -68,7 +67,9 @@ void register_report(int type,
 }
 
 void finalize_report () {
-  for (auto report: reports) {
+  for (std::vector<ReportGenerator*>::iterator it = reports.begin(); it != reports.end(); it++) {
+    ReportGenerator* report = *it;
+  // C++11 for (auto report: reports) {
     if (report) delete report;
   }
   reports.clear();
@@ -113,12 +114,17 @@ void ReportEvent::deliver(double t, NetCvode* nc, NrnThread* nt) {
  *  VAR(, VAR)*
  */
  void ReportGenerator::parseFilterString (std::string filter_list) {
-  for (auto&& element : tokenize(filter_list.c_str(), ',')){
+   std::vector<std::string> tokens = tokenize(filter_list.c_str(), ',');
+   for (std::vector<std::string>::iterator it = tokens.begin(); it != tokens.end(); it++) {
+   std::string& element = *it;
+  //C++11 for (auto&& element : tokenize(filter_list.c_str(), ',')){
     std::vector<std::string> tok (tokenize(element.c_str(), '.'));
     int type                     = nrn_get_mechtype (tok[0].c_str());
     std::string var_name         = tok[1];
-    if (filters.find(type) == filters.end()) 
-        filters[type] =  {var_name};
+    if (filters.find(type) == filters.end()) {
+        filters[type] =  std::vector<std::string> ();
+        filters[type].push_back(var_name);
+    }
     else
         filters[type].push_back(var_name);
   }
@@ -175,8 +181,9 @@ bool ReportGenerator::something_need_to_be_reported (NrnThread& nt, std::vector<
       default:
         for (int i = 0; i < nt.ncell; ++i) {
           int gid = nt.presyns[i].gid_;
-          for (const auto&  filter : filters) {
-               int synapse_type = filter.first;
+          for (ReportFilter::iterator filter = filters.begin(); filter != filters.end(); filter++) {
+          //C++11  for (const auto&  filter : filters) {
+               int synapse_type = filter->first;
                Memb_list *ml = nt._ml_list[synapse_type];
                if (ml && ml->nodecount) {
                  int local_gid = nodes_gid[ml->nodeindices[i]];
@@ -197,8 +204,9 @@ bool ReportGenerator::something_need_to_be_reported (NrnThread& nt, std::vector<
 
 bool ReportGenerator::synapseReportThisGID (NrnThread& nt, std::vector<int>& nodes_gid, int gid) {
   bool result = false;
-  for (const auto&  filter : filters) {
-      int synapse_type = filter.first;
+  for (ReportFilter::iterator filter = filters.begin(); filter != filters.end(); filter++) {
+  // C++11 for (const auto&  filter : filters) {
+      int synapse_type = filter->first;
       Memb_list *ml = nt._ml_list[synapse_type];
       if (ml && ml->nodecount) {
         for (int i = 0; i <  ml->nodecount; i++)  {
@@ -345,15 +353,18 @@ void ReportGenerator::register_report() {
                     }
                 }
                 else { //synapse report
-                    for (const auto&  filter : filters) {
-                      int synapse_type = filter.first;
+                    for (ReportFilter::iterator filter = filters.begin();  filter != filters.end(); filter++) {
+                    // C++11 for (const auto&  filter : filters) {
+                      int synapse_type = filter->first;
                       Memb_list *ml = nt._ml_list[synapse_type];
                       //TODO if all nt dont have an ml: emit a message to user to tell that it try to report something that is
                       //      not existing in loaded model
                       if (! ml ) {
                        continue;
                       }
-                      for (const auto& var_name : filter.second) {
+                          for (size_t j = 0; j < filter->second.size(); j++) {
+                            std::string& var_name = filter->second[j];
+                      // C++11 for (const auto& var_name : filter.second) {
                           for (size_t i = 0; i < ml->nodecount; i++) {
                                int local_gid = nodes_gid[ml->nodeindices[i]];
                                if (local_gid != gid) continue;

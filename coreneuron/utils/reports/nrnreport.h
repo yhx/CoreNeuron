@@ -78,8 +78,11 @@ class ReportEvent : public DiscreteEvent {
     ReportEvent(double t);
     void selectGIDtoReport (NrnThread*, int);
     void sortSelectedGIDs () {
-      for (auto& gids: gids_to_report) {
-        std::sort(gids.second.begin(), gids.second.end());
+      std::map<NrnThread*, std::vector<int> >::iterator it;
+      for (it = gids_to_report.begin(); it != gids_to_report.end(); it++) {
+        std::vector<int>& gids = it->second;
+      //C++11 for (auto& gids: gids_to_report) {
+        std::sort(gids.begin(), gids.end());
       }
     }
     /** on deliver, call ReportingLib and setup next event */

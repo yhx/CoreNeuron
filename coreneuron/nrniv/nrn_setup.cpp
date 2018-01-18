@@ -261,11 +261,6 @@ void nrn_read_filesdat(int& ngrp, int*& grp, int multiple, int*& imult, const ch
 void read_phase1(FileHandler& F, int imult, NrnThread& nt) {
     assert(!F.fail());
     int zz = imult * maxgid;          // offset for each gid
-#if CHKPNTDEBUG
-    NrnThreadChkpnt& ntc = nrnthread_chkpnt[nt.id];
-    ntc.file_id = gidgroups_w[nt.id]; /// FIXME: find a better place to initialize that (usefull for
-                                      /// writing checkpoint)
-#endif
     nt.n_presyn = F.read_int();       /// Number of PreSyn-s in NrnThread nt
     nt.n_netcon = F.read_int();       /// Number of NetCon-s in NrnThread nt
     nt.presyns = new PreSyn[nt.n_presyn];
@@ -588,7 +583,7 @@ void nrn_setup(const char* filesdat, int byte_swap, bool run_setup_cleanup) {
     nrn_threads_create(ngroup <= 1 ? 2 : ngroup,
                        nrnopt_get_flag("--threading") ? 1 : 0);  // serial/parallel threads
 
-#if CHKPNTDEBUG
+#if 1 || CHKPNTDEBUG // only required for NrnThreadChkpnt.file_id
     nrnthread_chkpnt = new NrnThreadChkpnt[nrn_nthread];
 #endif
 
@@ -983,8 +978,9 @@ void nrn_cleanup(bool clean_ion_global_map) {
 void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
     assert(!F.fail());
     nrn_assert(imult >= 0);  // avoid imult unused warning
-#if CHKPNTDEBUG
+#if 1 || CHKPNTDEBUG
     NrnThreadChkpnt& ntc = nrnthread_chkpnt[nt.id];
+    ntc.file_id = gidgroups_w[nt.id];
 #endif
     NrnThreadMembList* tml;
     int n_outputgid = F.read_int();

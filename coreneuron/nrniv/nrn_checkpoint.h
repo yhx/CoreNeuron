@@ -60,7 +60,7 @@ double restore_time(const char* restore_path);
 extern int patstimtype;
 
 #ifndef CHKPNTDEBUG
-#define CHKPNTDEBUG 1
+#define CHKPNTDEBUG 0
 #endif
 #if CHKPNTDEBUG
 // Factored out from checkpoint changes to nrnoc/multicore.h and nrnoc/nrnoc_ml.h
@@ -78,9 +78,12 @@ typedef struct Memb_list_ckpnt {
     int* nodeindices_not_permuted;
 } Memb_list_chkpnt;
 
+#endif //CHKPNTDEBUG but another section for it below
+
 typedef struct NrnThreadChkpnt {
     int file_id;       /* File Id of this NrnThread */
 
+#if CHKPNTDEBUG
     // debug only
 
     int nmech;         // Size of linked list tml
@@ -106,11 +109,9 @@ typedef struct NrnThreadChkpnt {
     int* vtype;
     int* mtype;
     int* vecplay_ix;
-
+#endif //CHKPNTDEBUG
 } NrnThreadChkpnt;
 
 extern NrnThreadChkpnt* nrnthread_chkpnt; // nrn_nthread of these
-
-#endif //CHKPNTDEBUG
 
 #endif

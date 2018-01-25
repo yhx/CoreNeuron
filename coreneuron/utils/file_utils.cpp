@@ -55,7 +55,7 @@ int mkdir_p(const char *path) {
         if (*p == '/') {
             /* temporarily truncate to sub-dir */
             *p = '\0';
-            if (mkdir(dirpath, S_IRWXU) != 0) {
+            if (mkdir(dirpath, S_IRWXU | S_IRGRP | S_IXGRP) != 0) {
                 if (errno != EEXIST)
                     return -1;
             }
@@ -63,7 +63,7 @@ int mkdir_p(const char *path) {
         }
     }
 
-    if (mkdir(dirpath, S_IRWXU) != 0) {
+    if (mkdir(dirpath, S_IRWXU | S_IRGRP | S_IXGRP) != 0) {
         if (errno != EEXIST) {
             return -1;
         }

@@ -104,7 +104,7 @@ ReportGenerator::ReportGenerator(int rtype,
           printf("error while reading %s \n", filter_file);
        nrn_abort(0);
       }
-      fscanf (filter, "%d\n", nb_gids);
+      fread (&nb_gids, sizeof(int), 1, filter);
       gids = (int*) calloc(nb_gids, sizeof(int));
       fread(gids, sizeof(int), nb_gids, filter);
       fclose (filter);

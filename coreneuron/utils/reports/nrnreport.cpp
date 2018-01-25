@@ -36,7 +36,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/utils/reports/nrnreport.h"
 #include "coreneuron/utils/reports/nrnsection_mapping.h"
 #include "coreneuron/nrniv/nrn_assert.h"
-
+#include "nrnmpi/nrnmpi.h"
 #ifdef ENABLE_REPORTING
 #include "reportinglib/Records.h"
 #endif
@@ -99,7 +99,11 @@ ReportGenerator::ReportGenerator(int rtype,
     int* gids;
     if (strcmp (filter_file, "")) {
       FILE* filter = fopen(filter_file, "r");
-      if (!filter) printf("error while reading %s \n", filter_file);
+      if (!filter){
+        if (nrnmpi_myid == 0)
+          printf("error while reading %s \n", filter_file);
+       nrn_abort(0);
+      }
       fscanf (filter, "%d\n", nb_gids);
       gids = (int*) calloc(nb_gids, sizeof(int));
       fread(gids, sizeof(int), nb_gids, filter);

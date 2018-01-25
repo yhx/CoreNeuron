@@ -109,6 +109,7 @@ static param_str param_str_args[] = {
     {"--outpath -o", ".", "Path to place output data files. (.)"},
     {"--write-config", "", "Write configuration file filename."},
     {"--read-config", "", "Read configuration file filename."},
+    {"--filter", "",      "gids filter file filename."},
     {NULL, NULL, NULL}};
 
 static void graceful_exit(int);

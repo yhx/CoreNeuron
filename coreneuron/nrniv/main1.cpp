@@ -283,7 +283,8 @@ int main1(int argc, char** argv, char** env) {
                 r = new ReportGenerator(nrnopt_get_int("--report"), t,
                                         nrnopt_get_dbl("--tstop"), nrnopt_get_dbl("--dt"),
                                         nrnopt_get_dbl("--mindelay"), nrnopt_get_dbl("--dt_report"),
-                                        nrnopt_get_str("--outpath"));
+                                        nrnopt_get_str("--outpath"),
+                                        nrnopt_get_str("--filter").c_str());
                 r->register_report();
             }
 #else

@@ -26,6 +26,9 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <cstring>
 #include <iostream>
 #include <vector>
 #include <algorithm>
@@ -85,13 +88,27 @@ ReportGenerator::ReportGenerator(int rtype,
                                  double dt_,
                                  double delay,
                                  double dt_report_,
-                                 std::string path) {
+                                 std::string path,
+                                 const char* filter_file) {
     start = start_;
     stop = stop_;
     dt = dt_;
     dt_report = dt_report_;
     mindelay = delay;
-
+    int nb_gids = 0;
+    int* gids;
+    if (strcmp (filter_file, "")) {
+      FILE* filter = fopen(filter_file, "r");
+      if (!filter) printf("error while reading %s \n", filter_file);
+      fscanf (filter, "%d\n", nb_gids);
+      gids = (int*) calloc(nb_gids, sizeof(int));
+      fread(gids, sizeof(int), nb_gids, filter);
+      fclose (filter);
+      for (int i =0 ; i < nb_gids; i++) {
+        target.insert(gids[i]);
+      }
+      free(gids);
+    }
     switch (rtype) {
         case 1:
             type = SomaReport;
@@ -148,6 +165,7 @@ void ReportGenerator::register_report() {
             for (int i = 0; i < nt.ncell; ++i) {
                 /** for this gid, get mapping information */
                 int gid = nt.presyns[i].gid_;
+                if( (target.size() > 0) && (target.find(gid) == target.end())) continue; 
                 CellMapping* m = mapinfo->get_cell_mapping(gid);
 
                 if (m == NULL) {

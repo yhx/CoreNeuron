@@ -38,6 +38,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <string>
 #include <map>
+#include <set>
 #include "coreneuron/nrniv/netcon.h"
 
 /** global instance */
@@ -72,7 +73,7 @@ class ReportGenerator {
     double mindelay;
     ReportType type;
     std::string report_filepath;
-
+    std::set<int> target;
   public:
     ReportGenerator(int type,
                     double start,
@@ -80,7 +81,8 @@ class ReportGenerator {
                     double dt,
                     double delay,
                     double dt_report,
-                    std::string path);
+                    std::string path,
+                    const char* filter_file = "");
 
 #ifdef ENABLE_REPORTING
     void register_report();

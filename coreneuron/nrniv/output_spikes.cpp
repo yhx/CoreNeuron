@@ -119,7 +119,7 @@ void output_spikes_parallel(const char* outpath) {
         abort();
     }
 
-    op_status = MPI_File_write_at_all(fh, offset, spike_data, num_chars, MPI_BYTE, &status);
+    op_status = MPI_File_write_at(fh, offset, spike_data, num_chars, MPI_BYTE, &status);
     if(op_status != MPI_SUCCESS && nrnmpi_myid == 0) {
         std::cerr << "Error while writing spike output " << std::endl;
         abort();

@@ -39,6 +39,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <string>
 #include <map>
 #include <set>
+#include <vector>
 #include "coreneuron/nrniv/netcon.h"
 
 /** global instance */
@@ -50,12 +51,14 @@ class ReportEvent : public DiscreteEvent {
     /** every thread or event can have different dt */
     double dt;
     unsigned long step;
-
+    std::vector<int> gids;
   public:
     ReportEvent(double t);
 
     /** on deliver, call ReportingLib and setup next event */
-    virtual void deliver(double t, NetCvode* nc, NrnThread* nt);
+    virtual void deliver  (double t, NetCvode* nc, NrnThread* nt);
+    void         addGID   (int gid) {gids.push_back(gid);}
+    void         sortGIDs ()        {std::sort(gids.begin(), gids.end());}
 };
 
 /** possible voltage report types */

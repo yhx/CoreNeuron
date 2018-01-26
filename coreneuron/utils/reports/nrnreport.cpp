@@ -63,13 +63,13 @@ void ReportEvent::deliver(double t, NetCvode* nc, NrnThread* nt) {
 // each thread needs to know its own step
 #ifdef ENABLE_REPORTING
         // TODO: do not rebuild this cellid vector each reporting dt!
-        std::vector<int> temp;
-        for (int i = 0; i < nt->ncell; i++) {
-            PreSyn& presyn = nt->presyns[i];
-            temp.push_back(presyn.gid_);
-        }
-        std::sort(temp.begin(), temp.end());
-        records_nrec(step, nt->ncell, &temp[0]);
+//        std::vector<int> temp;
+//        for (int i = 0; i < nt->ncell; i++) {
+//            PreSyn& presyn = nt->presyns[i];
+//            temp.push_back(presyn.gid_);
+//        }
+//        std::sort(temp.begin(), temp.end());
+        records_nrec(step, nt->ncell, &gids[0]);
 #endif
         send(t + dt, nc, nt);
         step++;
@@ -145,12 +145,6 @@ void ReportGenerator::register_report() {
 
         /** avoid empty NrnThread */
         if (nt.ncell) {
-            /** new event for every thread : we start recording
-             * reports at t = 0 (to be consistent with neurodamus).
-             * t could be 0 at the begining or some different value
-             * for checkpoint-restart simulations */
-            events.push_back(new ReportEvent(dt));
-            events[ith]->send(t, net_cvode_instance, &nt);
 
             /** @todo: hard coded parameters for ReportingLib from Jim*/
             int sizemapping = 1;
@@ -164,7 +158,7 @@ void ReportGenerator::register_report() {
             int segment_count = 0;
             int section_count = 0;
             int extra_node = 0;
-
+            ReportEvent* event = new ReportEvent(dt);
             /** iterate over all neurons */
             for (int i = 0; i < nt.ncell; ++i) {
                 /** for this gid, get mapping information */
@@ -176,7 +170,7 @@ void ReportGenerator::register_report() {
                     std::cout << "Error : Compartment mapping information is missing! \n";
                     continue;
                 }
-
+                event->addGID(gid);
                 int nsections = m->num_segments();
                 int nsegments = m->num_sections();
 
@@ -236,11 +230,18 @@ void ReportGenerator::register_report() {
                     }
                 }
             }
-
             // sum of sections and segments plus one initial extra node
             // should be equal to number of nodes in coreneuron.
             //  todo : not true in v6 circuit (need to revisit)
             //nrn_assert((section_count + segment_count + extra_node) == nt.end);
+
+            event->sortGIDs();
+            /** new event for every thread : we start recording
+             * reports at t = 0 (to be consistent with neurodamus).
+             * t could be 0 at the begining or some different value
+             * for checkpoint-restart simulations */
+            events.push_back(event);
+            events[ith]->send(t, net_cvode_instance, &nt);
         }
     }
 

@@ -69,7 +69,7 @@ void ReportEvent::deliver(double t, NetCvode* nc, NrnThread* nt) {
 //            temp.push_back(presyn.gid_);
 //        }
 //        std::sort(temp.begin(), temp.end());
-        records_nrec(step, nt->ncell, &gids[0]);
+        records_nrec(step, gids.size(), &gids[0]);
 #endif
         send(t + dt, nc, nt);
         step++;

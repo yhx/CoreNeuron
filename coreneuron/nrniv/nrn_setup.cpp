@@ -49,6 +49,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/nrniv/cellorder.h"
 #include "coreneuron/utils/reports/nrnreport.h"
 #include "coreneuron/utils/reports/nrnsection_mapping.h"
+#include "coreneuron/utils/reports/mech_report.h"
 
 // file format defined in cooperation with nrncore/src/nrniv/nrnbbcore_write.cpp
 // single integers are ascii one per line. arrays are binary int or double
@@ -692,11 +693,12 @@ void nrn_setup(const char* filesdat, int byte_swap, bool run_setup_cleanup) {
     delete[] file_reader;
 
     model_size();
-    delete[] gidgroups;
 
     if (nrnmpi_myid == 0) {
         printf(" Nrn Setup Done (time: %g)\n", nrn_wtime() - time);
     }
+    write_mech_report(nrnopt_get_str("--outpath"), ngroup, gidgroups);
+    delete[] gidgroups;
 }
 
 void setup_ThreadData(NrnThread& nt) {

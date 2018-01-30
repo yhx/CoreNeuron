@@ -48,6 +48,8 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/permute/cellorder.hpp"
 #include "coreneuron/io/nrnsection_mapping.hpp"
 #include "coreneuron/utils/nrnoc_aux.hpp"
+#include "coreneuron/io/mech_report.h"
+#include "coreneuron/apps/corenrn_parameters.hpp"
 
 // callbacks into nrn/src/nrniv/nrnbbcore_write.cpp
 #include "coreneuron/sim/fast_imem.hpp"
@@ -800,12 +802,13 @@ void nrn_setup(const char* filesdat,
     delete[] file_reader;
 
     model_size();
-    delete[] gidgroups;
     delete[] imult;
 
     if (nrnmpi_myid == 0) {
         printf(" Setup Done   : %.2lf seconds \n", nrn_wtime() - time);
     }
+    write_mech_report(corenrn_param.outpath, ngroup, gidgroups);
+    delete[] gidgroups;
 }
 
 void setup_ThreadData(NrnThread& nt) {

@@ -43,6 +43,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdio.h> // only needed for debugging printf
 
 bool nrn_checkpoint_arg_exists;
+int _nrn_skip_initmodel;
 
 #define UseFileHandlerWrap 0
 
@@ -836,11 +837,28 @@ void checkpoint_restore_tqueue(NrnThread& nt, FileHandler& fh) {
 // as that would change all states to a voltage clamp initialization.
 // Nevertheless t and some spike exchange and other computer state needs to
 // be initialized.
+// Also it is occasionally the case that nrn_init allocates data so we
+// need to call it but avoid the internal call to initmodel.
 // Consult finitialize.c to help decide what should be here
 bool checkpoint_initialize() {
     dt2thread(-1.);
     nrn_thread_table_check();
     nrn_spike_exchange_init();
+
+    // in case some nrn_init allocate data we need to do that but do not
+    // want to call initmodel.
+    _nrn_skip_initmodel = 1;
+    for (int i=0; i < nrn_nthread; ++i) { // should be parallel
+      NrnThread& nt = nrn_threads[i];
+      for (NrnThreadMembList* tml = nt.tml; tml; tml = tml->next) {
+        Memb_list* ml = tml->ml;
+        mod_f_t s = memb_func[tml->index].initialize;
+        if (s) {
+          (*s)(&nt, ml, tml->index);
+        }
+      }
+    }
+    _nrn_skip_initmodel = 0;
 
     // if PatternStim exists, needs initialization
     for (NrnThreadMembList* tml = nrn_threads[0].tml; tml; tml = tml->next) {
@@ -852,5 +870,6 @@ bool checkpoint_initialize() {
         break;
       }
     }
+
     return checkpoint_restored_;
 }

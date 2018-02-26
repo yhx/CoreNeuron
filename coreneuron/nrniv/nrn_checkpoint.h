@@ -78,15 +78,15 @@ typedef struct Memb_list_ckpnt {
     int* nodeindices_not_permuted;
 } Memb_list_chkpnt;
 
-#endif //CHKPNTDEBUG but another section for it below
+#endif  // CHKPNTDEBUG but another section for it below
 
 typedef struct NrnThreadChkpnt {
-    int file_id;       /* File Id of this NrnThread */
+    int file_id; /* File Id of this NrnThread */
 
 #if CHKPNTDEBUG
     // debug only
 
-    int nmech;         // Size of linked list tml
+    int nmech;  // Size of linked list tml
     double* area;
     int* parent;
     Memb_list_chkpnt** mlmap;  // parallel to NrnThread._ml_list
@@ -105,13 +105,13 @@ typedef struct NrnThreadChkpnt {
     int* bcpicnt;
     int* bcpdcnt;
 
-    //VecPlay
+    // VecPlay
     int* vtype;
     int* mtype;
     int* vecplay_ix;
-#endif //CHKPNTDEBUG
+#endif  // CHKPNTDEBUG
 } NrnThreadChkpnt;
 
-extern NrnThreadChkpnt* nrnthread_chkpnt; // nrn_nthread of these
+extern NrnThreadChkpnt* nrnthread_chkpnt;  // nrn_nthread of these
 
 #endif

@@ -192,7 +192,7 @@ void nrn_init_and_load_data(int argc,
 
     // show all configuration parameters for current run
     nrnopt_show();
-    if(nrnmpi_myid == 0) {
+    if (nrnmpi_myid == 0) {
         std::cout << " Start time (t) = " << t << std::endl << std::endl;
     }
 
@@ -253,9 +253,9 @@ int main1(int argc, char** argv, char** env) {
     if (nrnmpi_myid == 0) {
         mkdir_p(output_dir.c_str());
     }
-    #if NRNMP
-        nrnmpi_barrier();
-    #endif
+#if NRNMP
+    nrnmpi_barrier();
+#endif
 
     // nrnopt_get... still available until call nrnopt_delete()
     bool compute_gpu = nrnopt_get_flag("-gpu");
@@ -263,7 +263,6 @@ int main1(int argc, char** argv, char** env) {
     #pragma acc data copyin(celsius, secondorder) if (compute_gpu)
     // clang-format on
     {
-
         double v = nrnopt_get_dbl("--voltage");
         if (!checkpoint_initialize()) {
             nrn_finitialize(v != 1000., v);
@@ -283,10 +282,9 @@ int main1(int argc, char** argv, char** env) {
                     printf(
                         "\n WARNING! : Can't enable reports with model duplications feature! \n");
             } else {
-                r = new ReportGenerator(nrnopt_get_int("--report"), t,
-                                        nrnopt_get_dbl("--tstop"), nrnopt_get_dbl("--dt"),
-                                        nrnopt_get_dbl("--mindelay"), nrnopt_get_dbl("--dt_report"),
-                                        nrnopt_get_str("--outpath"));
+                r = new ReportGenerator(nrnopt_get_int("--report"), t, nrnopt_get_dbl("--tstop"),
+                                        nrnopt_get_dbl("--dt"), nrnopt_get_dbl("--mindelay"),
+                                        nrnopt_get_dbl("--dt_report"), nrnopt_get_str("--outpath"));
                 r->register_report();
             }
 #else

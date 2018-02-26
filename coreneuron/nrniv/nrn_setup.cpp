@@ -231,7 +231,8 @@ void nrn_read_filesdat(int& ngrp, int*& grp, int multiple, int*& imult, const ch
     }
 
     if (nrnmpi_numprocs > iNumFiles && nrnmpi_myid == 0) {
-        printf("Info : The number of input datasets are less than ranks, some ranks will be idle!\n");
+        printf(
+            "Info : The number of input datasets are less than ranks, some ranks will be idle!\n");
     }
 
     ngrp = 0;
@@ -260,9 +261,9 @@ void nrn_read_filesdat(int& ngrp, int*& grp, int multiple, int*& imult, const ch
 
 void read_phase1(FileHandler& F, int imult, NrnThread& nt) {
     assert(!F.fail());
-    int zz = imult * maxgid;          // offset for each gid
-    nt.n_presyn = F.read_int();       /// Number of PreSyn-s in NrnThread nt
-    nt.n_netcon = F.read_int();       /// Number of NetCon-s in NrnThread nt
+    int zz = imult * maxgid;     // offset for each gid
+    nt.n_presyn = F.read_int();  /// Number of PreSyn-s in NrnThread nt
+    nt.n_netcon = F.read_int();  /// Number of NetCon-s in NrnThread nt
     nt.presyns = new PreSyn[nt.n_presyn];
     nt.netcons = new NetCon[nt.n_netcon + nrn_setup_extracon];
     nt.presyns_helper = (PreSynHelper*)ecalloc(nt.n_presyn, sizeof(PreSynHelper));
@@ -583,7 +584,7 @@ void nrn_setup(const char* filesdat, int byte_swap, bool run_setup_cleanup) {
     nrn_threads_create(ngroup <= 1 ? 2 : ngroup,
                        nrnopt_get_flag("--threading") ? 1 : 0);  // serial/parallel threads
 
-#if 1 || CHKPNTDEBUG // only required for NrnThreadChkpnt.file_id
+#if 1 || CHKPNTDEBUG  // only required for NrnThreadChkpnt.file_id
     nrnthread_chkpnt = new NrnThreadChkpnt[nrn_nthread];
 #endif
 
@@ -622,13 +623,13 @@ void nrn_setup(const char* filesdat, int byte_swap, bool run_setup_cleanup) {
     std::string restore_path = nrnopt_get_str("--restore");
 
     // if are not restoring then phase2 files will be read from dataset directory
-    if(!restore_path.length()) {
+    if (!restore_path.length()) {
         restore_path = datapath;
     }
 
     /* nrn_multithread_job supports serial, pthread, and openmp. */
-    store_phase_args(ngroup, gidgroups, imult, file_reader, datapath.c_str(),
-                     restore_path.c_str(), byte_swap);
+    store_phase_args(ngroup, gidgroups, imult, file_reader, datapath.c_str(), restore_path.c_str(),
+                     byte_swap);
 
     // gap junctions
     if (nrn_have_gaps) {
@@ -658,8 +659,8 @@ void nrn_setup(const char* filesdat, int byte_swap, bool run_setup_cleanup) {
     double mindelay = set_mindelay(nrnopt_get_dbl("--mindelay"));
     nrnopt_modify_dbl("--mindelay", mindelay);
 
-    if (run_setup_cleanup) //if run_setup_cleanup==false, user must call nrn_setup_cleanup() later
-       nrn_setup_cleanup();
+    if (run_setup_cleanup)  // if run_setup_cleanup==false, user must call nrn_setup_cleanup() later
+        nrn_setup_cleanup();
 
 #if INTERLEAVE_DEBUG
     mk_cell_indices();
@@ -783,13 +784,13 @@ int nrn_i_layout(int icnt, int cnt, int isz, int sz, int layout) {
 // from i to (icnt, isz)
 void nrn_inverse_i_layout(int i, int& icnt, int cnt, int& isz, int sz, int layout) {
     if (layout == 1) {
-        icnt = i/sz;
-        isz = i%sz;
-    }else if (layout == 0) {
+        icnt = i / sz;
+        isz = i % sz;
+    } else if (layout == 0) {
         int padded_cnt = nrn_soa_padded_size(cnt, layout);
-        icnt = i%padded_cnt;
-        isz = i/padded_cnt;
-    }else{
+        icnt = i % padded_cnt;
+        isz = i / padded_cnt;
+    } else {
         assert(0);
     }
 }
@@ -990,13 +991,14 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
     nrn_assert(n_outputgid > 0);  // avoid n_outputgid unused warning
     nt.ncell = F.read_int();
     nt.end = F.read_int();
-    int ndiam = F.read_int(); // 0 if not needed, else nt.end
+    int ndiam = F.read_int();  // 0 if not needed, else nt.end
     int nmech = F.read_int();
 #if CHKPNTDEBUG
     ntc.nmech = nmech;
 #endif
 
-    /// Checkpoint in coreneuron is defined for both phase 1 and phase 2 since they are written together
+    /// Checkpoint in coreneuron is defined for both phase 1 and phase 2 since they are written
+    /// together
     // printf("ncell=%d end=%d nmech=%d\n", nt.ncell, nt.end, nmech);
     // printf("nart=%d\n", nart);
     NrnThreadMembList* tml_last = NULL;
@@ -1004,7 +1006,9 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
 
 #if CHKPNTDEBUG
     ntc.mlmap = new Memb_list_chkpnt*[n_memb_func];
-    for (int i=0; i< n_memb_func; ++i) { ntc.mlmap[i] = NULL; }
+    for (int i = 0; i < n_memb_func; ++i) {
+        ntc.mlmap[i] = NULL;
+    }
 #endif
 
     int shadow_rhs_cnt = 0;
@@ -1138,7 +1142,7 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
     }
 
     // matrix info
-    nt._v_parent_index              = (int*)coreneuron::ecalloc_align(nt.end, NRN_SOA_BYTE_ALIGN, sizeof(int));
+    nt._v_parent_index = (int*)coreneuron::ecalloc_align(nt.end, NRN_SOA_BYTE_ALIGN, sizeof(int));
     F.read_array<int>(nt._v_parent_index, nt.end);
 #if CHKPNTDEBUG
     ntc.parent = new int[nt.end];
@@ -1185,23 +1189,23 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
             ml->pdata = (int*)coreneuron::ecalloc_align(nrn_soa_padded_size(n, layout) * szdp,
                                                         NRN_SOA_BYTE_ALIGN, sizeof(int));
             mech_layout<int>(F, ml->pdata, n, szdp, layout);
-#if CHKPNTDEBUG // Not substantive. Only for debugging.
+#if CHKPNTDEBUG  // Not substantive. Only for debugging.
             Memb_list_ckpnt* mlc = ntc.mlmap[type];
-            mlc->pdata_not_permuted = (int*)coreneuron::ecalloc_align(
-                n * szdp, NRN_SOA_BYTE_ALIGN, sizeof(int));
-            if (layout == 1) { //AoS just copy
-              for (int i=0; i < n; ++i) {
-                for (int j = 0; j < szdp; ++j) {
-                  mlc->pdata_not_permuted[i*szdp + j] = ml->pdata[i*szdp + j];
+            mlc->pdata_not_permuted =
+                (int*)coreneuron::ecalloc_align(n * szdp, NRN_SOA_BYTE_ALIGN, sizeof(int));
+            if (layout == 1) {  // AoS just copy
+                for (int i = 0; i < n; ++i) {
+                    for (int j = 0; j < szdp; ++j) {
+                        mlc->pdata_not_permuted[i * szdp + j] = ml->pdata[i * szdp + j];
+                    }
                 }
-              }
-            } else if (layout == 0) { // SoA transpose and unpad
-              int align_cnt = nrn_soa_padded_size(n, layout);
-              for (int i=0; i < n; ++i) {
-                for (int j = 0; j < szdp; ++j) {
-                  mlc->pdata_not_permuted[i*szdp + j] = ml->pdata[i + j*align_cnt];
+            } else if (layout == 0) {  // SoA transpose and unpad
+                int align_cnt = nrn_soa_padded_size(n, layout);
+                for (int i = 0; i < n; ++i) {
+                    for (int j = 0; j < szdp; ++j) {
+                        mlc->pdata_not_permuted[i * szdp + j] = ml->pdata[i + j * align_cnt];
+                    }
                 }
-              }
             }
 #endif
         } else {
@@ -1260,15 +1264,15 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
                     int* pd = pdata + nrn_i_layout(iml, cnt, i, szdp, layout);
                     int ix = *pd;  // relative to beginning of _actual_area
                     nrn_assert((ix >= 0) && (ix < nt.end));
-                    *pd = area0 + ix; // relative to nt._data
+                    *pd = area0 + ix;  // relative to nt._data
                 }
-            }else if (s == -9) {  // diam
+            } else if (s == -9) {  // diam
                 int diam0 = nt._actual_diam - nt._data;
                 for (int iml = 0; iml < cnt; ++iml) {
                     int* pd = pdata + nrn_i_layout(iml, cnt, i, szdp, layout);
                     int ix = *pd;  // relative to beginning of _actual_diam
                     nrn_assert((ix >= 0) && (ix < nt.end));
-                    *pd = diam0 + ix; // relative to nt._data
+                    *pd = diam0 + ix;  // relative to nt._data
                 }
             } else if (s == -5) {  // pointer assumes a pointer to membrane voltage
                 int v0 = nt._actual_v - nt._data;
@@ -1276,7 +1280,7 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
                     int* pd = pdata + nrn_i_layout(iml, cnt, i, szdp, layout);
                     int ix = *pd;  // relative to _actual_v
                     nrn_assert((ix >= 0) && (ix < nt.end));
-                    *pd = v0 + ix; // relative to nt._data
+                    *pd = v0 + ix;  // relative to nt._data
                 }
             } else if (s >= 0 && s < 1000) {  // ion
                 int etype = s;
@@ -1292,7 +1296,7 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
                 int esz = nrn_prop_param_size_[etype];
                 for (int iml = 0; iml < cnt; ++iml) {
                     int* pd = pdata + nrn_i_layout(iml, cnt, i, szdp, layout);
-                    int ix = *pd; // relative to the ion data
+                    int ix = *pd;  // relative to the ion data
                     nrn_assert((ix >= 0) && (ix < ecnt * esz));
                     /* Original pd order assumed ecnt groups of esz */
                     *pd = edata0 + nrn_param_layout(ix, etype, eml);
@@ -1319,7 +1323,8 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
         permute_data(nt._actual_a, nt.end, p);
         permute_data(nt._actual_b, nt.end, p);
         permute_data(nt._actual_area, nt.end, p);
-        permute_data(nt._actual_v, nt.end, p); // need if restore or finitialize does not initialize voltage
+        permute_data(nt._actual_v, nt.end,
+                     p);  // need if restore or finitialize does not initialize voltage
         if (nt._actual_diam) {
             permute_data(nt._actual_diam, nt.end, p);
         }
@@ -1458,14 +1463,14 @@ for (int i=0; i < nt.end; ++i) {
     // for fast watch statement checking
     // setup a list of types that have WATCH statement
     {
-        int sz = 0; // count the types with WATCH
+        int sz = 0;  // count the types with WATCH
         for (NrnThreadMembList* tml = nt.tml; tml; tml = tml->next) {
             if (nrn_watch_check[tml->index]) {
                 ++sz;
             }
         }
         if (sz) {
-            nt._watch_types = (int*)ecalloc(sz + 1, sizeof(int)); // NULL terminated
+            nt._watch_types = (int*)ecalloc(sz + 1, sizeof(int));  // NULL terminated
             sz = 0;
             for (NrnThreadMembList* tml = nt.tml; tml; tml = tml->next) {
                 if (nrn_watch_check[tml->index]) {
@@ -1515,7 +1520,7 @@ for (int i=0; i < nt.end; ++i) {
         PreSyn* ps = nt.presyns + i;
 
         int ix = output_vindex[i];
-        if (ix == -1 && i < nt.ncell) { // real cell without a presyn
+        if (ix == -1 && i < nt.ncell) {  // real cell without a presyn
             continue;
         }
         if (ix < 0) {
@@ -1668,7 +1673,10 @@ for (int i=0; i < nt.end; ++i) {
         int type = F.read_int();
         assert(nrn_bbcore_read_[type]);
         if (!nrn_bbcore_write_[type] && nrn_checkpoint_arg_exists) {
-fprintf(stderr, "Checkpoint is requested involving BBCOREPOINTER but there is no bbcore_write function for %s\n", memb_func[type].sym);
+            fprintf(
+                stderr,
+                "Checkpoint is requested involving BBCOREPOINTER but there is no bbcore_write function for %s\n",
+                memb_func[type].sym);
             assert(nrn_bbcore_write_[type]);
         }
         int icnt = F.read_int();
@@ -1679,10 +1687,10 @@ fprintf(stderr, "Checkpoint is requested involving BBCOREPOINTER but there is no
         ntc.bcpdcnt[i] = dcnt;
 #endif
         if (icnt) {
-           iArray = F.read_array<int>(icnt);
+            iArray = F.read_array<int>(icnt);
         }
         if (dcnt) {
-           dArray = F.read_array<double>(dcnt);
+            dArray = F.read_array<double>(dcnt);
         }
         int ik = 0;
         int dk = 0;
@@ -1707,10 +1715,10 @@ fprintf(stderr, "Checkpoint is requested involving BBCOREPOINTER but there is no
         assert(dk == dcnt);
         assert(ik == icnt);
         if (ik) {
-          delete[] iArray;
+            delete[] iArray;
         }
         if (dk) {
-          delete[] dArray;
+            delete[] dArray;
         }
     }
 
@@ -1836,17 +1844,16 @@ void read_phase3(FileHandler& F, int imult, NrnThread& nt) {
 
     /** for every neuron */
     for (int i = 0; i < nt.ncell; i++) {
-
         int gid, nsec, nseg, nseclist;
 
         // read counts
         F.read_mapping_count(&gid, &nsec, &nseg, &nseclist);
 
-        CellMapping *cmap = new CellMapping(gid);
+        CellMapping* cmap = new CellMapping(gid);
 
         // read section-segment mapping for every section list
-        for(int j = 0; j < nseclist; j++) {
-            SecMapping *smap = new SecMapping();
+        for (int j = 0; j < nseclist; j++) {
+            SecMapping* smap = new SecMapping();
             F.read_mapping_info(smap);
             cmap->add_sec_map(smap);
         }
@@ -1855,7 +1862,7 @@ void read_phase3(FileHandler& F, int imult, NrnThread& nt) {
     }
 
     // make number #cells match with mapping size
-    nrn_assert( (int)ntmapping->size() ==  nt.ncell);
+    nrn_assert((int)ntmapping->size() == nt.ncell);
 
     // set pointer in NrnThread
     nt.mapping = (void*)ntmapping;

@@ -33,15 +33,15 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <errno.h>
 
 /* adapted from : gist@jonathonreinhart/mkdir_p.c */
-int mkdir_p(const char *path) {
+int mkdir_p(const char* path) {
     const int path_len = strlen(path);
-    if(path_len == 0) {
+    if (path_len == 0) {
         printf("Warning: Empty path for creating directory");
         return -1;
     }
 
-    char *dirpath = new char[path_len+1];
-    if(dirpath == NULL) {
+    char* dirpath = new char[path_len + 1];
+    if (dirpath == NULL) {
         printf("Memory error while creating directory %s \n", path);
         abort();
     }
@@ -49,7 +49,7 @@ int mkdir_p(const char *path) {
     strcpy(dirpath, path);
     errno = 0;
 
-    char *p;
+    char* p;
     /* iterate from outer upto inner dir */
     for (p = dirpath + 1; *p; p++) {
         if (*p == '/') {
@@ -69,6 +69,6 @@ int mkdir_p(const char *path) {
         }
     }
 
-    delete []dirpath;
+    delete[] dirpath;
     return 0;
 }

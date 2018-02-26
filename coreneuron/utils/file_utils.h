@@ -39,6 +39,6 @@ THE POSSIBILITY OF SUCH DAMAGE.
  *  @param Directory path
  *  @return Status
  */
-int mkdir_p(const char *path);
+int mkdir_p(const char* path);
 
 #endif /* ifndef NRN_FILE_UTILS */

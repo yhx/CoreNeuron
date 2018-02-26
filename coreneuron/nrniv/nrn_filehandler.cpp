@@ -57,13 +57,17 @@ void FileHandler::open(const char* filename, bool reorder, std::ios::openmode mo
 }
 
 bool FileHandler::eof() {
-  if (F.eof()) { return true; }
-  int a = F.get();
-  if (F.eof()) { return true; }
-  F.putback(a);
-  return false;
+    if (F.eof()) {
+        return true;
+    }
+    int a = F.get();
+    if (F.eof()) {
+        return true;
+    }
+    F.putback(a);
+    return false;
 }
-    
+
 int FileHandler::read_int() {
     char line_buf[max_line_length];
 

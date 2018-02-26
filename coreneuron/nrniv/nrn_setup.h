@@ -115,11 +115,11 @@ namespace coreneuron {
         char fnamebuf[1000];
         char check_fnamebuf[1000] = "";
         if (i < ngroup_w) {
-            const char *data_dir = path_w;
+            const char* data_dir = path_w;
             // directory to read could be different for phase 2 if we are restoring
             // all other phases still read from dataset directory because the data
             // is constant
-            if(P == 2) {
+            if (P == 2) {
                 data_dir = restore_path_w;
             }
 

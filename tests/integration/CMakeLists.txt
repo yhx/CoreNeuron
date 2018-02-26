@@ -26,7 +26,8 @@
 
 
 set(COMMON_ARGS "--tstop 100. --celsius 6.3 -mpi")
-set(RING_COMMON_ARGS "--datpath ${CMAKE_CURRENT_SOURCE_DIR}/ring ${COMMON_ARGS}")
+set(RING_DATASET_DIR "${CMAKE_CURRENT_SOURCE_DIR}/ring")
+set(RING_COMMON_ARGS "--datpath ${RING_DATASET_DIR} ${COMMON_ARGS}")
 set(RING_GAP_COMMON_ARGS "--datpath ${CMAKE_CURRENT_SOURCE_DIR}/ring_gap ${COMMON_ARGS}")
 set(PERMUTE1_ARGS "--cell-permute 1 --nwarp 8")
 set(PERMUTE2_ARGS "--cell-permute 2 --nwarp 16")
@@ -40,10 +41,9 @@ set(TEST_CASE_ARGS
     "ring_duplicate!${RING_COMMON_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_duplicate -z 3"
     "ring_permute1!${RING_COMMON_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_permute1 ${PERMUTE1_ARGS}"
     "ring_permute2!${RING_COMMON_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_permute2 ${PERMUTE2_ARGS}"
-    "ring_savestate_permute0!${RING_COMMON_ARGS} -e 0 -R 0 --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_savestate_permute0 -ck ${CMAKE_CURRENT_BINARY_DIR}/ring_savestate_permute0"
-    "ring_savestate_permute1!${RING_COMMON_ARGS} -e 0 -R 1 --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_savestate_permute1 -ck ${CMAKE_CURRENT_BINARY_DIR}/ring_savestate_permute1"
-    "ring_savestate_permute2!${RING_COMMON_ARGS} -e 0 -R 2 --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_savestate_permute2 -ck ${CMAKE_CURRENT_BINARY_DIR}/ring_savestate_permute2"
-
+    "ring_savestate_permute0!${RING_COMMON_ARGS} -e 0 -R 0 --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_savestate_permute0 --checkpoint ${CMAKE_CURRENT_BINARY_DIR}/ring_savestate_permute0"
+    "ring_savestate_permute1!${RING_COMMON_ARGS} -e 0 -R 1 --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_savestate_permute1 --checkpoint ${CMAKE_CURRENT_BINARY_DIR}/ring_savestate_permute1"
+    "ring_savestate_permute2!${RING_COMMON_ARGS} -e 0 -R 2 --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_savestate_permute2 --checkpoint ${CMAKE_CURRENT_BINARY_DIR}/ring_savestate_permute2"
     "ring_gap!${RING_GAP_COMMON_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_gap"
     "ring_gap_binqueue!${RING_GAP_COMMON_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_gap_binqueue --binqueue"
     "ring_gap_multisend!${RING_GAP_COMMON_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_gap_multisend --multisend"
@@ -52,21 +52,17 @@ set(TEST_CASE_ARGS
 
 # There are no directories for permute and multisend related tests, create them and copy ref spikes
 foreach(data_dir "ring" "ring_gap")
-    foreach(test_suffix "multisend" "binqueue" "permute1" "permute2")
+    foreach(test_suffix "multisend" "binqueue" "savestate_permute0" "savestate_permute1" "savestate_permute2" "permute1" "permute2")
       file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/${data_dir}/out.dat.ref" DESTINATION "${CMAKE_CURRENT_SOURCE_DIR}/${data_dir}_${test_suffix}/")
     endforeach()
 endforeach()
+
+file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/ring/out.dat.ref" DESTINATION "${CMAKE_CURRENT_SOURCE_DIR}/ring_spike_buffer/")
+
 file (GLOB INPUT_FILES "${CMAKE_CURRENT_SOURCE_DIR}/ring/*.dat")
-file (COPY ${INPUT_FILES} DESTINATION "${CMAKE_CURRENT_SOURCE_DIR}/ring_savestate_permute0")
-file (COPY ${INPUT_FILES} DESTINATION "${CMAKE_CURRENT_SOURCE_DIR}/ring_savestate_permute1")
-file (COPY ${INPUT_FILES} DESTINATION "${CMAKE_CURRENT_SOURCE_DIR}/ring_savestate_permute2")
 
 #Configure test scripts
 foreach (args_line ${TEST_CASE_ARGS})
-  string(REGEX MATCH ".* -ck .*" CHECK_SAVESTATE ${args_line}) # if -ck is specified on command line we want to check savestate functionality
-  if (CHECK_SAVESTATE)
-    set (CHECK_SAVESTATE 1)
-  endif()
   string(REPLACE "!" ";" string_line ${args_line})
   if(MPI_FOUND)
     string(REPLACE ";" " " SRUN_PREFIX  "${TEST_MPI_EXEC_BIN};-n;2")

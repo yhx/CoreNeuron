@@ -30,16 +30,6 @@ then
   exit 1
 fi
 
-if [ @CHECK_SAVESTATE@ ]; then
-  cat [0-9]*_[0-9]*.dat > in_cn.dat
-  diff -w in_cn.dat @MAKE_CURRENT_SOURCE_DIR@/@SIM_NAME@/in.dat.ref > diff_in.dat 2>&1
-  if [ -s diff_in.dat ]
-  then
-    echo "Save state files are different, check the file diff_in.dat. Test failed!"
-    exit 1
-  fi
-fi
-
 sort -k 1n,1n -k 2n,2n out.dat > sort_out.dat
 diff -w sort_out.dat @CMAKE_CURRENT_SOURCE_DIR@/@SIM_NAME@/out.dat.ref > diff.dat 2>&1
 

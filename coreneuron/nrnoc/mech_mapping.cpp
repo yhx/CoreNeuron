@@ -12,10 +12,10 @@ typedef size_t        Offset;
 typedef int           MechId;
 typedef const char*   VariableName;
 
-struct cmp_str
-{
-     bool operator()(char const *a, char const *b)
-     { return std::strcmp(a, b) < 0; }
+struct cmp_str {
+    bool operator()(char const* a, char const* b) const {
+        return std::strcmp(a, b) < 0;
+    }
 };
 
 /*
@@ -27,6 +27,7 @@ static MechNamesMapping mechNamesMapping;
 static void set_an_offset (int mech_id, const char* variable_name, int offset) {
   mechNamesMapping[mech_id][variable_name] = offset;
 }
+
 extern "C" double* get_var_location_from_var_name(int mech_id, const char* variable_name, Memb_list* ml, int node_index) {
     if (mechNamesMapping.find(mech_id) == mechNamesMapping.end()) {
       std::cerr << "ERROR [" << __FUNCTION__ << "] : no variable name mapping exist for mechanism id: " << mech_id << std::endl;
@@ -41,18 +42,18 @@ extern "C" double* get_var_location_from_var_name(int mech_id, const char* varia
     return &(ml->data[ix]);
 }
 
-extern "C" void register_all_variables_offsets (int mech_id, SerializedNames variable_names) {
-  int idx                  = 0; // first of variable_names and offsets are other informations
-  int nb_parsed_variables  = 0;
-  int current_categorie    = 0;
-  int offset               = -1;
-  while (current_categorie < NB_MECH_VAR_CATEGORIES){
-    if (variable_names[idx]) {
-      set_an_offset(mech_id, variable_names[idx], nb_parsed_variables);
-      nb_parsed_variables++;
-    } else {
-      current_categorie++;
+extern "C" void register_all_variables_offsets(int mech_id, SerializedNames variable_names) {
+    int idx = 0;  // first of variable_names and offsets are other informations
+    int nb_parsed_variables = 0;
+    int current_categorie = 1;
+    int offset = -1;
+    while (current_categorie < NB_MECH_VAR_CATEGORIES) {
+        if (variable_names[idx]) {
+            set_an_offset(mech_id, variable_names[idx], nb_parsed_variables);
+            nb_parsed_variables++;
+        } else {
+            current_categorie++;
+        }
+        idx++;
     }
-    idx++;
-  }
 }

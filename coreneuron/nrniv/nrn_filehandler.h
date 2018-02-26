@@ -204,12 +204,6 @@ class FileHandler {
     /** Close currently open file. */
     void close();
 
-    /*
-     * ====================
-     *  Writing Interface
-     * ====================
-     */
-
     /** Write an 1D array **/
     template <typename T>
     void write_array(T* p, size_t nb_elements) {
@@ -226,8 +220,8 @@ class FileHandler {
         nrn_assert(!F.fail());
     }
 
-    /** Write a padded array. nb_elements is number of elements to write per line, line_width is
-     * full size of a line in nb elements**/
+    /** Write a padded array. nb_elements is number of elements to write per line,
+     * line_width is full size of a line in nb elements**/
     template <typename T>
     void write_array(T* p,
                      size_t nb_elements,
@@ -251,8 +245,8 @@ class FileHandler {
         if (reorder_bytes) {
             endian::swap_endian_range(temp_cpy, temp_cpy + nb_elements * nb_lines);
         }
-        // AoS never use padding, SoA is translated above, so one write operation is enought in both
-        // cases
+        // AoS never use padding, SoA is translated above, so one write
+        // operation is enought in both cases
         F.write((const char*)temp_cpy, nb_elements * sizeof(T) * nb_lines);
         nrn_assert(!F.fail());
         delete[] temp_cpy;
@@ -262,9 +256,7 @@ class FileHandler {
     FileHandler& operator<<(const T& scalar) {
         nrn_assert(F.is_open());
         nrn_assert(current_mode & std::ios::out);
-
         F << scalar;
-
         nrn_assert(!F.fail());
         return *this;
     }

@@ -103,8 +103,8 @@ static param_flag param_flag_args[] = {
 static param_str param_str_args[] = {
     {"--pattern -p", "", "Apply patternstim using the specified spike file."},
     {"--datpath -d", ".", "Path containing CoreNeuron data files. (.)"},
-    {"--checkpoint -ck", "", "Enable checkpoint and specify directory to store related files."},
-    {"--restore -rs", "", "Restore simulation from provided checkpoint directory."},
+    {"--checkpoint", "", "Enable checkpoint and specify directory to store related files."},
+    {"--restore", "", "Restore simulation from provided checkpoint directory."},
     {"--filesdat -f", "files.dat", "Name for the distribution file. (files.dat)"},
     {"--outpath -o", ".", "Path to place output data files. (.)"},
     {"--write-config", "", "Write configuration file filename."},

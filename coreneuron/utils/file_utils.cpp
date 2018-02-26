@@ -41,11 +41,6 @@ int mkdir_p(const char* path) {
     }
 
     char* dirpath = new char[path_len + 1];
-    if (dirpath == NULL) {
-        printf("Memory error while creating directory %s \n", path);
-        abort();
-    }
-
     strcpy(dirpath, path);
     errno = 0;
 

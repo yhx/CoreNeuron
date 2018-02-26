@@ -132,7 +132,7 @@ BOOST_AUTO_TEST_CASE(cmdline_interface) {
     BOOST_CHECK(nrnopt_get_flag("--threading") == true);
 
     BOOST_CHECK(!strcmp(nrnopt_get_str("--datpath").c_str(), "/this/is/the/data/path"));
-    
+
     BOOST_CHECK(!strcmp(nrnopt_get_str("--checkpoint").c_str(), "/this/is/the/chkp/path"));
 
     BOOST_CHECK(nrnopt_get_dbl("--dt") == 0.02);

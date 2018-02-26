@@ -114,6 +114,7 @@ int* inverse_permute(int* p, int n) {
     }
     return pinv;
 }
+
 static void invert_permute(int* p, int n) {
     int* pinv = inverse_permute(p, n);
     for (int i = 0; i < n; ++i) {

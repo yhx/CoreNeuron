@@ -127,10 +127,6 @@ void nrn_init_and_load_data(int argc,
     // set global variables for start time, timestep and temperature
     std::string restore_path = nrnopt_get_str("--restore");
     t = restore_time(restore_path.c_str());
-    // tstart is ignored if finitialize is called. finitialize is not called
-    // if nrn_setup.cpp reads checkpoint files.  Note that for
-    // checkpoint files, tstart on the command line must be the same
-    // value of t at which the checkpoint was made.
 
     if (nrnopt_get_dbl("--dt") != -1000.) {  // command line arg highest precedence
         dt = nrnopt_get_dbl("--dt");
@@ -249,21 +245,21 @@ int main1(int argc, char** argv, char** env) {
     }
     std::string output_dir = nrnopt_get_str("--outpath");
 
-    // todo : need barrier for non=mpi build
     if (nrnmpi_myid == 0) {
         mkdir_p(output_dir.c_str());
     }
-#if NRNMP
+#if NRNMPI
     nrnmpi_barrier();
 #endif
-
-    // nrnopt_get... still available until call nrnopt_delete()
     bool compute_gpu = nrnopt_get_flag("-gpu");
+
 // clang-format off
     #pragma acc data copyin(celsius, secondorder) if (compute_gpu)
     // clang-format on
     {
         double v = nrnopt_get_dbl("--voltage");
+
+        // finitialize is not called if running in checkpoint-restore mode
         if (!checkpoint_initialize()) {
             nrn_finitialize(v != 1000., v);
         }

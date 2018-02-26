@@ -25,12 +25,9 @@ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 THE POSSIBILITY OF SUCH DAMAGE.
 */
+
 #ifndef _H_NRNCHECKPOINT_
 #define _H_NRNCHECKPOINT_
-
-/*
- * functional protoype of writting checkpoint file in same format of input data
- * */
 
 class NrnThread;
 class FileHandler;
@@ -62,6 +59,7 @@ extern int patstimtype;
 #ifndef CHKPNTDEBUG
 #define CHKPNTDEBUG 0
 #endif
+
 #if CHKPNTDEBUG
 // Factored out from checkpoint changes to nrnoc/multicore.h and nrnoc/nrnoc_ml.h
 // Put here to avoid potential issues with gpu transfer and to allow
@@ -81,15 +79,13 @@ typedef struct Memb_list_ckpnt {
 #endif  // CHKPNTDEBUG but another section for it below
 
 typedef struct NrnThreadChkpnt {
-    int file_id; /* File Id of this NrnThread */
+    int file_id;
 
 #if CHKPNTDEBUG
-    // debug only
-
-    int nmech;  // Size of linked list tml
+    int nmech;
     double* area;
     int* parent;
-    Memb_list_chkpnt** mlmap;  // parallel to NrnThread._ml_list
+    Memb_list_chkpnt** mlmap;
 
     int n_outputgids;
     int* output_vindex;
@@ -110,8 +106,9 @@ typedef struct NrnThreadChkpnt {
     int* mtype;
     int* vecplay_ix;
 #endif  // CHKPNTDEBUG
+
 } NrnThreadChkpnt;
 
-extern NrnThreadChkpnt* nrnthread_chkpnt;  // nrn_nthread of these
+extern NrnThreadChkpnt* nrnthread_chkpnt;
 
 #endif

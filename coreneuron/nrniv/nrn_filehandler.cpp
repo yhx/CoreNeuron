@@ -37,12 +37,10 @@ FileHandler::FileHandler(const char* filename, bool reorder) {
 }
 
 void FileHandler::open(const char* filename, bool reorder, std::ios::openmode mode) {
-    // we dont want both in and out flags to avoid mixing with checkpoint
     nrn_assert((mode & (std::ios::in | std::ios::out)));
     reorder_bytes = reorder;
-    //    checkpoint(0);
     close();
-    F.open(filename, mode | std::ios::binary);  // we always have binary files
+    F.open(filename, mode | std::ios::binary);
     nrn_assert(F.is_open());
     current_mode = mode;
     char version[256];

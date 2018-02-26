@@ -622,7 +622,7 @@ void nrn_setup(const char* filesdat, int byte_swap, bool run_setup_cleanup) {
     std::string datapath = nrnopt_get_str("--datpath");
     std::string restore_path = nrnopt_get_str("--restore");
 
-    // if are not restoring then phase2 files will be read from dataset directory
+    // if not restoring then phase2 files will be read from dataset directory
     if (!restore_path.length()) {
         restore_path = datapath;
     }
@@ -1763,8 +1763,7 @@ for (int i=0; i < nt.end; ++i) {
         nt._vecplay[i] = new VecPlayContinuous(ml->data + ix, yvec, tvec, NULL, nt.id);
     }
 
-    // If not at end of file, then this must be a checkpoint and restore
-    // the tqueue.
+    // If not at end of file, then this must be a checkpoint and restore tqueue.
     if (!F.eof()) {
         checkpoint_restore_tqueue(nt, F);
     }

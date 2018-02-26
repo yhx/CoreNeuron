@@ -40,7 +40,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <fstream>
 #include <sstream>
 #include <cassert>
-#include <stdio.h>  // only needed for debugging printf
+#include <stdio.h>
 
 bool nrn_checkpoint_arg_exists;
 int _nrn_skip_initmodel;
@@ -48,7 +48,10 @@ int _nrn_skip_initmodel;
 #define UseFileHandlerWrap 0
 
 #if UseFileHandlerWrap
+
 #include <iomanip>
+
+/// wrapper class for FileHandler used for debugging checkpointing
 class FileHandlerWrap {
   public:
     FileHandler F;
@@ -97,8 +100,8 @@ class FileHandlerWrap {
 
 template <typename T>
 T* chkpnt_soa2aos(T* data, int cnt, int sz, int layout, int* permute) {
-    // inverse of F -> data. Just a copy if layout=1. If SoA, original file order depends on
-    // padding and permutation.
+    // inverse of F -> data. Just a copy if layout=1. If SoA,
+    // original file order depends on padding and permutation.
     // Good for a, b, area, v, diam, Memb_list.data, or anywhere values do not change.
     T* d = new T[cnt * sz];
     if (layout == 1) { /* AoS */
@@ -134,46 +137,42 @@ int patstimtype;
 #ifndef LAYOUT
 #define LAYOUT 1
 #endif
-/*
- * LAYOUT = 0 => SoA, LAYOUT = 1 => AoS
- *
- * */
-static const char* output_dir;  // output directory to write simple checkpoint
+
+// output directory to for checkpoint
+static const char* output_dir;
 static bool swap_bytes;
 
-// todo : only keep phase2 as rest (phase1, gan and 3) are constant
 static void write_phase2(NrnThread& nt, FileHandlerWrap& file_handle);
-static void write_phase3(NrnThread& nt, FileHandlerWrap& file_handle);
 static void write_tqueue(NrnThread& nt, FileHandlerWrap& file_handle);
 static void write_time(const char* dir);
 
 void write_checkpoint(NrnThread* nt, int nb_threads, const char* dir, bool swap_bytes_order) {
-    if (!strlen(dir))
-        return;  // empty directory means the option is not enabled
-    output_dir = dir;
+    // empty directory means the option is not enabled
+    if (!strlen(dir)) {
+        return;
+    }
 
-    // todo : mpi barrier required
+    output_dir = dir;
     if (nrnmpi_myid == 0) {
         mkdir_p(output_dir);
     }
 #if NRNMPI
     nrnmpi_barrier();
 #endif
-
     int i;
     swap_bytes = swap_bytes_order;
-    /*
-    #if defined(_OPENMP)
-      #pragma omp parallel for private(i) shared(nt, nb_threads) schedule(runtime)
-    #endif
-    */
+
+    /**
+     * if openmp threading needed:
+     *  #pragma omp parallel for private(i) shared(nt, nb_threads) schedule(runtime)
+     */
     FileHandlerWrap f;
     for (i = 0; i < nb_threads; i++) {
         if (nt[i].ncell || nt[i].tml) {
             write_phase2(nt[i], f);
-            write_phase3(nt[i], f);
         }
     }
+
     if (nrnmpi_myid == 0) {
         write_time(output_dir);
     }
@@ -181,10 +180,12 @@ void write_checkpoint(NrnThread* nt, int nb_threads, const char* dir, bool swap_
 
 static void write_phase2(NrnThread& nt, FileHandlerWrap& fh) {
     std::ostringstream filename;
+
 #if 1 || CHKPNTDEBUG
     NrnThreadChkpnt& ntc = nrnthread_chkpnt[nt.id];
     filename << output_dir << "/" << ntc.file_id << "_2.dat";
 #endif
+
     fh.open(filename.str().c_str(), swap_bytes, std::ios::out);
     fh.checkpoint(2);
 
@@ -194,10 +195,12 @@ static void write_phase2(NrnThread& nt, FileHandlerWrap& fh) {
             ++n_outputgid;
         }
     }
+
     fh << n_outputgid << " ngid\n";
 #if CHKPNTDEBUG
     assert(ntc.n_outputgids == n_outputgid);
 #endif
+
     fh << nt.ncell << " n_real_gid\n";
     fh << nt.end << " nnode\n";
     fh << ((nt._actual_diam == NULL) ? 0 : nt.end) << " ndiam\n";
@@ -207,6 +210,7 @@ static void write_phase2(NrnThread& nt, FileHandlerWrap& fh) {
             ++nmech;
         }
     }
+
     fh << nmech << " nmech\n";
 #if CHKPNTDEBUG
     assert(nmech == ntc.nmech);
@@ -259,18 +263,21 @@ static void write_phase2(NrnThread& nt, FileHandlerWrap& fh) {
 
     chkpnt_data_write(fh, nt._actual_a, nt.end, 1, 0, nt._permute);
     chkpnt_data_write(fh, nt._actual_b, nt.end, 1, 0, nt._permute);
+
 #if CHKPNTDEBUG
     for (int i = 0; i < nt.end; ++i) {
         assert(nt._actual_area[i] == ntc.area[pinv_nt[i]]);
     }
 #endif
+
     chkpnt_data_write(fh, nt._actual_area, nt.end, 1, 0, nt._permute);
     chkpnt_data_write(fh, nt._actual_v, nt.end, 1, 0, nt._permute);
 
-    if (nt._actual_diam)
+    if (nt._actual_diam) {
         chkpnt_data_write(fh, nt._actual_diam, nt.end, 1, 0, nt._permute);
+    }
 
-    // Will need the ml_pinv inverse permutation of ml._permute for ions
+    // will need the ml_pinv inverse permutation of ml._permute for ions
     int** ml_pinv = (int**)ecalloc(n_memb_func, sizeof(int*));
 
     for (NrnThreadMembList* current_tml = nt.tml; current_tml; current_tml = current_tml->next) {
@@ -364,7 +371,8 @@ static void write_phase2(NrnThread& nt, FileHandlerWrap& fh) {
     double* output_threshold = new double[nt.ncell];
     for (int i = 0; i < nt.n_presyn; ++i) {
         PreSyn* ps = nt.presyns + i;
-        if (ps->thvar_index_ >= 0) {  // real cell and index into (permuted) actual_v
+        if (ps->thvar_index_ >= 0) {
+            // real cell and index into (permuted) actual_v
             // if any assert fails in this loop then we have faulty understanding
             // of the for (int i = 0; i < nt.n_presyn; ++i) loop in nrn_setup.cpp
             assert(ps->thvar_index_ < nt.end);
@@ -392,7 +400,6 @@ static void write_phase2(NrnThread& nt, FileHandlerWrap& fh) {
 #endif
     delete[] output_vindex;
     delete[] output_threshold;
-
     delete[] pinv_nt;
 
     int synoffset = 0;
@@ -405,6 +412,7 @@ static void write_phase2(NrnThread& nt, FileHandlerWrap& fh) {
             synoffset += tml->ml->nodecount;
         }
     }
+
     int* pnttype = new int[nnetcon];
     int* pntindex = new int[nnetcon];
     double* delay = new double[nnetcon];
@@ -413,13 +421,14 @@ static void write_phase2(NrnThread& nt, FileHandlerWrap& fh) {
         Point_process* pnt = nc.target_;
         assert(pnt);  // nrn_setup.cpp allows type <=0 which generates NULL target.
         pnttype[i] = pnt->_type;
+
 #if 0
-      // this seems most natural, but does not work. Perhaps should look
-      // into how pntindex determined in nrnbbcore_write.cpp and change there.
-      int ix = pnt->_i_instance;
-      if (ml_pinv[pnt->_type]) {
-        ix = ml_pinv[pnt->_type][ix];
-      }
+        // todo: this seems most natural, but does not work. Perhaps should look
+        // into how pntindex determined in nrnbbcore_write.cpp and change there.
+        int ix = pnt->_i_instance;
+        if (ml_pinv[pnt->_type]) {
+            ix = ml_pinv[pnt->_type][ix];
+        }
 #else
         // follow the inverse of nrn_setup.cpp using pnt_offset computed above.
         int ix = (pnt - nt.pntprocs) - pnt_offset[pnt->_type];
@@ -450,6 +459,7 @@ static void write_phase2(NrnThread& nt, FileHandlerWrap& fh) {
             ++nbcp;
         }
     }
+
     fh << nbcp << " bbcorepointer\n";
 #if CHKPNTDEBUG
     assert(nbcp == ntc.nbcp);
@@ -473,14 +483,11 @@ static void write_phase2(NrnThread& nt, FileHandlerWrap& fh) {
             // data size and allocate
             for (int j = 0; j < ml->nodecount; ++j) {
                 int jp = j;
-
                 if (ml->_permute) {
                     jp = ml->_permute[j];
                 }
-
                 d = ml->data + nrn_i_layout(jp, ml->nodecount, 0, dsz, layout);
                 pd = ml->pdata + nrn_i_layout(jp, ml->nodecount, 0, pdsz, layout);
-
                 (*nrn_bbcore_write_[type])(NULL, NULL, &dcnt, &icnt, 0, aln_cntml, d, pd,
                                            ml->_thread, &nt, 0.0);
             }
@@ -499,9 +506,7 @@ static void write_phase2(NrnThread& nt, FileHandlerWrap& fh) {
             if (dcnt) {
                 dArray = new double[dcnt];
             }
-
             icnt = dcnt = 0;
-
             for (int j = 0; j < ml->nodecount; j++) {
                 int jp = j;
 
@@ -515,14 +520,6 @@ static void write_phase2(NrnThread& nt, FileHandlerWrap& fh) {
                 (*nrn_bbcore_write_[type])(dArray, iArray, &dcnt, &icnt, 0, aln_cntml, d, pd,
                                            ml->_thread, &nt, 0.0);
             }
-
-#if 0
-        /// if there is data from bbcore pointer but bbcore_write is null means
-        /// mod2c generated c file hasn't registered a callback
-        if((ntc.icnt[i] || ntc.dcnt[i]) && nrn_bbcore_write_[ntc.type[i]] == NULL) {
-            std::cerr << " WARNING: bbcore_write not registered for type : " << nrn_get_mechname(ntc.type[i]) <<  std::endl;
-        }
-#endif
 
             if (icnt) {
                 fh.write_array<int>(iArray, icnt);
@@ -579,6 +576,7 @@ static void write_phase2(NrnThread& nt, FileHandlerWrap& fh) {
             fh.write_array<double>(vector_vec(vpc->y_), sz);
             fh.write_array<double>(vector_vec(vpc->t_), sz);
         } else {
+            std::cerr << "Error checkpointing vecplay type" << std::endl;
             assert(0);
         }
     }
@@ -594,14 +592,10 @@ static void write_phase2(NrnThread& nt, FileHandlerWrap& fh) {
     fh.close();
 }
 
-static void write_phase3(NrnThread&, FileHandlerWrap&) {
-}
-
 static void write_time(const char* output_dir) {
     std::ostringstream filename;
     FileHandler f;
-    filename << output_dir << "/"
-             << "time.dat";
+    filename << output_dir << "/" << "time.dat";
     f.open(filename.str().c_str(), swap_bytes, std::ios::out);
     f.write_array(&t, 1);
     f.close();
@@ -613,9 +607,7 @@ double restore_time(const char* restore_dir) {
     if (strlen(restore_dir)) {
         std::ostringstream filename;
         FileHandler f;
-
-        filename << restore_dir << "/"
-                 << "time.dat";
+        filename << restore_dir << "/" << "time.dat";
         f.open(filename.str().c_str(), swap_bytes, std::ios::in);
         f.read_array(&rtime, 1);
         f.close();
@@ -804,7 +796,6 @@ static void write_tqueue(NrnThread& nt, FileHandlerWrap& fh) {
         write_tqueue(q, nt, fh);
     }
     fh << 0 << "\n";
-
     fh << -1 << " TQItemsfrom binq_\n";
     for (q = tqe->binq_->first(); q; q = tqe->binq_->next(q)) {
         write_tqueue(q, nt, fh);

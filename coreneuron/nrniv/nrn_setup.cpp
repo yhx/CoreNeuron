@@ -1762,6 +1762,9 @@ for (int i=0; i < nt.end; ++i) {
         nt._vecplay[i] = new VecPlayContinuous(ml->data + ix, yvec, tvec, NULL, nt.id);
     }
 
+    // store current checkpoint state to continue reading mapping
+    F.record_checkpoint();
+
     // If not at end of file, then this must be a checkpoint and restore tqueue.
     if (!F.eof()) {
         checkpoint_restore_tqueue(nt, F);
@@ -1829,6 +1832,9 @@ for (int i=0; i < nt.end; ++i) {
 /** read mapping information for neurons */
 void read_phase3(FileHandler& F, int imult, NrnThread& nt) {
     (void)imult;
+
+    /** restore checkpoint state (before restoring queue items */
+    F.restore_checkpoint();
 
     /** mapping information for all neurons in single NrnThread */
     NrnThreadMappingInfo* ntmapping = new NrnThreadMappingInfo();

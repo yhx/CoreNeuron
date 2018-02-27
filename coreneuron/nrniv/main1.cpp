@@ -54,6 +54,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/nrniv/multisend.h"
 #include "coreneuron/utils/file_utils.h"
 #include <string.h>
+#include <climits>
 
 #if 0
 #include <fenv.h>
@@ -241,6 +242,12 @@ void call_prcellstate_for_prcellgid(int prcellgid, int compute_gpu, int is_init)
 
 int main1(int argc, char** argv, char** env) {
     (void)env; /* unused */
+
+// mpi initialisation at the begining (required for optarg parsing)
+#if NRNMPI
+    nrnmpi_init(1, &argc, &argv);
+#endif
+
     // read command line parameters and parameter config files
     nrnopt_parse(argc, (const char**)argv);
     std::vector<ReportConfiguration> configs;
@@ -277,7 +284,9 @@ int main1(int argc, char** argv, char** env) {
     {
         double v = nrnopt_get_dbl("--voltage");
 
-        // finitialize is not called if running in checkpoint-restore mode
+        // TODO : if some ranks are empty then restore will go in deadlock
+        // phase (as some ranks won't have restored anything and hence return
+        // false in checkpoint_initialize
         if (!checkpoint_initialize()) {
             nrn_finitialize(v != 1000., v);
         }
@@ -285,11 +294,23 @@ int main1(int argc, char** argv, char** env) {
         report_mem_usage("After nrn_finitialize");
         double dt = nrnopt_get_dbl("--dt");
         double delay = nrnopt_get_dbl("--mindelay");
-        // register all reports into reportinglib
-        for (int i = 0; i < configs.size(); i++) {
-            register_report(dt, delay, configs[i]);
+        double tstop = nrnopt_get_dbl("--tstop");
+
+        if (tstop < t && nrnmpi_myid == 0) {
+            printf("Error: Stop time (%lf) < Start time (%lf), restoring from checkpoint? \n",
+                   tstop, t);
+            abort();
         }
-        setup_report_engine(dt, delay);
+
+        // register all reports into reportinglib
+        double min_report_dt = INT_MAX;
+        for (int i = 0; i < configs.size(); i++) {
+            register_report(dt, tstop, delay, configs[i]);
+            if (configs[i].report_dt < min_report_dt) {
+                min_report_dt = configs[i].report_dt;
+            }
+        }
+        setup_report_engine(min_report_dt, delay);
         configs.clear();
 
         // call prcellstate for prcellgid
@@ -309,21 +330,23 @@ int main1(int argc, char** argv, char** env) {
         // Report global cell statistics
         report_cell_stats();
 
-#ifdef ENABLE_SELECTIVE_PROFILING
-        stop_profile();
-#endif
-
         // prcellstate after end of solver
         call_prcellstate_for_prcellgid(nrnopt_get_int("--prcellgid"), compute_gpu, 0);
-
-        if (reports_needs_finalize)
-            finalize_report();
     }
-
-    write_checkpoint(nrn_threads, nrn_nthread, checkpoint_path.c_str(), nrn_need_byteswap);
 
     // write spike information to outpath
     output_spikes(output_dir.c_str());
+
+    write_checkpoint(nrn_threads, nrn_nthread, checkpoint_path.c_str(), nrn_need_byteswap);
+
+#ifdef ENABLE_SELECTIVE_PROFILING
+    stop_profile();
+#endif
+
+    // must be done after checkpoint (to avoid deleting events)
+    if (reports_needs_finalize) {
+        finalize_report();
+    }
 
     // Cleaning the memory
     nrn_cleanup();

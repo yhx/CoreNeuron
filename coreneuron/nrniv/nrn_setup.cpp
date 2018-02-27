@@ -1281,11 +1281,8 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
             } else if (s >= 0 && s < 1000) {  // ion
                 int etype = s;
                 int elayout = nrn_mech_data_layout_[etype];
-                if (elayout == 1) {
-                    continue;
-                } /* ion is AoS so nothing to do */
-                assert(elayout == 0);
-                /* ion is SoA so must recalculate pdata values */
+                /* if ion is SoA, must recalculate pdata values */
+		/* if ion is AoS, have to deal with offset */
                 Memb_list* eml = nt._ml_list[etype];
                 int edata0 = eml->data - nt._data;
                 int ecnt = eml->nodecount;

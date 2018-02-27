@@ -162,6 +162,11 @@ void nrn_init_and_load_data(int argc,
     use_interleave_permute = nrnopt_get_int("--cell-permute");
     cellorder_nwarp = nrnopt_get_int("--nwarp");
     use_solve_interleave = nrnopt_get_int("--cell-permute");
+#if LAYOUT==1
+    //permuting not allowed for AoS
+    use_interleave_permute = 0;
+    use_solve_interleave = 0;
+#endif
 
     // pass by flag so existing tests do not need a changed nrn_setup prototype.
     nrn_setup_multiple = nrnopt_get_int("--multiple");

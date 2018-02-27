@@ -54,6 +54,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/nrniv/multisend.h"
 #include "coreneuron/utils/file_utils.h"
 #include <string.h>
+#include <climits>
 
 #if 0
 #include <fenv.h>
@@ -292,10 +293,14 @@ int main1(int argc, char** argv, char** env) {
         double dt = nrnopt_get_dbl("--dt");
         double delay =  nrnopt_get_dbl("--mindelay");
         // register all reports into reportinglib
+        double min_dt = INT_MAX;
         for (int i =0;i < configs.size(); i++) {
           register_report (dt, delay, configs[i]);
+          if (configs[i].report_dt < min_dt) {
+              min_dt = configs[i].report_dt;
+          }
         }
-        setup_report_engine(dt,delay);
+        setup_report_engine(min_dt, delay);
         configs.clear();
 
         // call prcellstate for prcellgid

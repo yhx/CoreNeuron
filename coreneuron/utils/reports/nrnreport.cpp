@@ -325,10 +325,16 @@ std::vector<int> map_gids (NrnThread& nt) {
  *     Public API implementation
  * ---                           ---
  */
+static int num_min_delay_to_buffer = 500;
+static int num_min_delays_completed = 0;
 
 extern "C" void nrn_flush_reports(double t) {
 #ifdef ENABLE_REPORTING
-    records_flush(t);
+    if(num_min_delays_completed == (num_min_delay_to_buffer-2)) {
+        records_flush(t);
+        num_min_delays_completed = 0;
+    }
+    num_min_delays_completed++;
 #endif
 }
 
@@ -342,6 +348,8 @@ extern "C" void nrn_flush_reports(double t) {
 void setup_report_engine(double dt_report, double mindelay) {
 #ifdef ENABLE_REPORTING
     int timesteps_to_buffer = mindelay / dt_report + 2;
+    timesteps_to_buffer *= num_min_delay_to_buffer;
+
     records_set_steps_to_buffer(timesteps_to_buffer);
     /** reportinglib setup */
     records_setup_communicator();

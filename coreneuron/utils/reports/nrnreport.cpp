@@ -209,7 +209,6 @@ void register_soma_report ( NrnThread& nt,
   int mapping[] = {0};            // first column i.e. section numbers
   int extra[] = {1, 0, 0, 0, 1};  // first row, from 2nd value (skip gid)
   VarsToReport::iterator it;
-   std::cout << "Soma Report name : " << config.name << vars_to_report.size() << "\n";
   for (it = vars_to_report.begin(); it != vars_to_report.end(); ++it) {
     int gid = it->first;
     std::vector<VarWithMapping>& vars = it->second;

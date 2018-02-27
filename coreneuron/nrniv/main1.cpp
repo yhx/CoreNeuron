@@ -242,6 +242,12 @@ void call_prcellstate_for_prcellgid(int prcellgid, int compute_gpu, int is_init)
 
 int main1(int argc, char** argv, char** env) {
     (void)env; /* unused */
+
+// mpi initialisation at the begining (required for optarg parsing)
+#if NRNMPI
+    nrnmpi_init(1, &argc, &argv);
+#endif
+
     // read command line parameters and parameter config files
     nrnopt_parse(argc, (const char**)argv);
     std::vector<ReportConfiguration> configs;

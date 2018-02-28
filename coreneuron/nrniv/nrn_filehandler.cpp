@@ -50,7 +50,7 @@ void FileHandler::open(const char* filename, bool reorder, std::ios::openmode mo
         check_bbcore_write_version(version);
     }
     if (current_mode & std::ios::out) {
-        F << bbcore_write_version << std::endl;
+        F << bbcore_write_version << "\n";
     }
 }
 

@@ -77,9 +77,9 @@ class FileHandlerWrap {
     template <typename T>
     void write_array(T* p, size_t nb_elements) {
         // G first before chkpnt is incremented
-        G << "chkpnt " << F.checkpoint() << std::endl;
+        G << "chkpnt " << F.checkpoint() << "\n";
         for (size_t i = 0; i < nb_elements; ++i) {
-            G << std::setprecision(8) << p[i] << std::endl;
+            G << std::setprecision(8) << p[i] << "\n";
         }
         F.write_array(p, nb_elements);  // chkpnt incremented
     }

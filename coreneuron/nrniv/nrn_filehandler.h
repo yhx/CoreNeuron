@@ -265,7 +265,7 @@ class FileHandler {
     /* write_checkpoint is callable only for our internal uses, making it accesible to user, makes
      * file format unpredictable */
     void write_checkpoint() {
-        F << "chkpnt " << chkpnt++ << std::endl;
+        F << "chkpnt " << chkpnt++ << "\n";
     }
 };
 

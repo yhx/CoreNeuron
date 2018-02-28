@@ -328,10 +328,10 @@ int main1(int argc, char** argv, char** env) {
             finalize_report();
     }
 
-    write_checkpoint(nrn_threads, nrn_nthread, checkpoint_path.c_str(), nrn_need_byteswap);
-
     // write spike information to outpath
     output_spikes(output_dir.c_str());
+
+    write_checkpoint(nrn_threads, nrn_nthread, checkpoint_path.c_str(), nrn_need_byteswap);
 
 #ifdef ENABLE_SELECTIVE_PROFILING
         stop_profile();

@@ -176,6 +176,9 @@ void write_checkpoint(NrnThread* nt, int nb_threads, const char* dir, bool swap_
     if (nrnmpi_myid == 0) {
         write_time(output_dir);
     }
+#if NRNMPI
+    nrnmpi_barrier();
+#endif
 }
 
 static void write_phase2(NrnThread& nt, FileHandlerWrap& fh) {

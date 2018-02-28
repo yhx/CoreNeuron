@@ -292,10 +292,11 @@ int main1(int argc, char** argv, char** env) {
         report_mem_usage("After nrn_finitialize");
         double dt = nrnopt_get_dbl("--dt");
         double delay =  nrnopt_get_dbl("--mindelay");
+        double tstop = nrnopt_get_dbl("--tstop");
         // register all reports into reportinglib
         double min_dt = INT_MAX;
         for (int i =0;i < configs.size(); i++) {
-          register_report (dt, delay, configs[i]);
+          register_report (dt, tstop, delay, configs[i]);
           if (configs[i].report_dt < min_dt) {
               min_dt = configs[i].report_dt;
           }

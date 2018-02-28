@@ -321,10 +321,6 @@ int main1(int argc, char** argv, char** env) {
         // Report global cell statistics
         report_cell_stats();
 
-#ifdef ENABLE_SELECTIVE_PROFILING
-        stop_profile();
-#endif
-
         // prcellstate after end of solver
         call_prcellstate_for_prcellgid(nrnopt_get_int("--prcellgid"), compute_gpu, 0);
 
@@ -336,6 +332,10 @@ int main1(int argc, char** argv, char** env) {
 
     // write spike information to outpath
     output_spikes(output_dir.c_str());
+
+#ifdef ENABLE_SELECTIVE_PROFILING
+        stop_profile();
+#endif
 
     // Cleaning the memory
     nrn_cleanup();

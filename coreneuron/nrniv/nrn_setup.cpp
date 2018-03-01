@@ -184,6 +184,9 @@ std::vector<NetCon*> netcon_in_presyn_order_;
 /// Only for setup vector of netcon source gids
 std::vector<int*> netcon_srcgid;
 
+// checkpoint index before restoring spike queue
+static int checkpoint_index;
+
 // Wrap read_phase1 and read_phase2 calls to allow using  nrn_multithread_job.
 // Args marshaled by store_phase_args are used by phase1_wrapper
 // and phase2_wrapper.
@@ -1759,6 +1762,9 @@ for (int i=0; i < nt.end; ++i) {
         nt._vecplay[i] = new VecPlayContinuous(ml->data + ix, yvec, tvec, NULL, nt.id);
     }
 
+    // store checkpoint index to continue reading mapping
+    checkpoint_index = F.checkpoint();
+
     // If not at end of file, then this must be a checkpoint and restore tqueue.
     if (!F.eof()) {
         checkpoint_restore_tqueue(nt, F);
@@ -1826,6 +1832,9 @@ for (int i=0; i < nt.end; ++i) {
 /** read mapping information for neurons */
 void read_phase3(FileHandler& F, int imult, NrnThread& nt) {
     (void)imult;
+
+    // restore back checkpoint counter (might get increased by checkpointing)
+    F.checkpoint(checkpoint_index);
 
     /** mapping information for all neurons in single NrnThread */
     NrnThreadMappingInfo* ntmapping = new NrnThreadMappingInfo();

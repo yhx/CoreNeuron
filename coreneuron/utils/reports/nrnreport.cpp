@@ -337,7 +337,7 @@ static int num_min_delays_completed = 0;
 
 extern "C" void nrn_flush_reports(double t) {
 #ifdef ENABLE_REPORTING
-    if(num_min_delays_completed == (num_min_delay_to_buffer-2)) {
+    if(num_min_delays_completed == (num_min_delay_to_buffer-2) || 1 ) {
         records_flush(t);
         num_min_delays_completed = 0;
     }

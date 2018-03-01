@@ -404,6 +404,7 @@ void register_report(double dt,  double tstop, double delay, ReportConfiguration
 
 void finalize_report () {
 #ifdef ENABLE_REPORTING
+  records_flush(nrn_threads[0]._t);
   for (int i = 0 ; i < reports.size(); i++) {
     delete reports[i];
   }

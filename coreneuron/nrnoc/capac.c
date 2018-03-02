@@ -120,6 +120,9 @@ void nrn_init_capacitance(NrnThread* _nt, Memb_list* ml, int type) {
     (void)type;
     (void)_cntml_padded; /* unused */
 
+    if (_nrn_skip_initmodel == 1) {
+        return;
+    }
 #if LAYOUT == 1 /*AoS*/
     for (_iml = 0; _iml < _cntml_actual; _iml++) {
         vdata = ml->data + _iml * nparm;

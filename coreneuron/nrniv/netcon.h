@@ -60,8 +60,11 @@ class DiscreteEvent {
     virtual int type() {
         return DiscreteEventType;
     }
-
+    virtual bool require_checkpoint() {
+        return true;
+    }
     virtual void pr(const char*, double t, NetCvode*);
+
 };
 
 class NetCon : public DiscreteEvent {

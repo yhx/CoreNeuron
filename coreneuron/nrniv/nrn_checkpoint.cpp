@@ -620,8 +620,13 @@ double restore_time(const char* restore_dir) {
 
 static void write_tqueue(TQItem* q, NrnThread& nt, FileHandlerWrap& fh) {
     DiscreteEvent* d = (DiscreteEvent*)q->data_;
+
     // printf("  p %.20g %d\n", q->t_, d->type());
     // d->pr("", q->t_, net_cvode_instance);
+
+    if(!d->require_checkpoint()) {
+        return;
+    }
 
     fh << d->type() << "\n";
     fh.write_array(&q->t_, 1);

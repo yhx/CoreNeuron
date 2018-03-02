@@ -285,6 +285,9 @@ int main1(int argc, char** argv, char** env) {
         double v = nrnopt_get_dbl("--voltage");
 
         // finitialize is not called if running in checkpoint-restore mode
+        // TODO : if some ranks are emoty then restore will go in deadlock
+        // phase (as some ranks won't have restored anything and hence return
+        // false.
         if (!checkpoint_initialize()) {
             nrn_finitialize(v != 1000., v);
         }
@@ -293,6 +296,12 @@ int main1(int argc, char** argv, char** env) {
         double dt = nrnopt_get_dbl("--dt");
         double delay =  nrnopt_get_dbl("--mindelay");
         double tstop = nrnopt_get_dbl("--tstop");
+
+        if (tstop < t && nrnmpi_myid == 0) {
+            printf("Error: Stop time %lf is less than start time %lf (restoring from checkpoint?) \n", tstop, t);
+            abort();
+        }
+
         // register all reports into reportinglib
         double min_dt = INT_MAX;
         for (int i =0;i < configs.size(); i++) {
@@ -324,8 +333,6 @@ int main1(int argc, char** argv, char** env) {
         // prcellstate after end of solver
         call_prcellstate_for_prcellgid(nrnopt_get_int("--prcellgid"), compute_gpu, 0);
 
-        if (reports_needs_finalize )
-            finalize_report();
     }
 
     // write spike information to outpath
@@ -336,6 +343,11 @@ int main1(int argc, char** argv, char** env) {
 #ifdef ENABLE_SELECTIVE_PROFILING
         stop_profile();
 #endif
+
+    // must be done after checkpoint (to avoid deleting events)
+    if (reports_needs_finalize ) {
+            finalize_report();
+    }
 
     // Cleaning the memory
     nrn_cleanup();

@@ -172,4 +172,11 @@ const char* nrn_get_mechname(int type) {
     }
     return NULL;
 }
-}  // namespace coreneuron
+
+/* return the number of mechanisms initilaized at the begining of the simulation
+ * it might be different than the actual number of mechanisms in use
+ */
+int get_nb_mechs_avail () {
+  return mech2type.size();
+}
+} //namespace coreneuron

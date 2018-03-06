@@ -106,6 +106,7 @@ extern pnt_receive_t* pnt_receive_init;
 
 extern int nrn_get_mechtype(const char*);
 extern const char* nrn_get_mechname(int);  // slow. use memb_func[i].sym if posible
+extern int get_nb_mechs_avail ();
 extern int register_mech(const char** m,
                          mod_alloc_t alloc,
                          mod_f_t cur,

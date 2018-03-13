@@ -106,7 +106,7 @@ VarsToReport get_soma_vars_to_report ( NrnThread& nt, std::set<int>& target ) {
     NrnThreadMappingInfo* mapinfo = (NrnThreadMappingInfo*)nt.mapping;
     if (! mapinfo) {
       std::cout << "[SOMA] Error : mapping information is missing for a Cell group " << std::endl;
-      return vars_to_report;
+      nrn_abort(1);
     } 
     for (int i = 0; i < nt.ncell; i++) {
       int gid = nt.presyns[i].gid_;
@@ -115,7 +115,7 @@ VarsToReport get_soma_vars_to_report ( NrnThread& nt, std::set<int>& target ) {
         CellMapping* m = mapinfo->get_cell_mapping(gid);
         if (m == NULL) {
             std::cout << "[SOMA] Error : mapping information is missing for Soma Report! \n";
-            continue;
+            nrn_abort(1);
         }
         /** get  section list mapping for soma */
         SecMapping* s = m->get_seclist_mapping("soma");
@@ -135,15 +135,15 @@ VarsToReport get_compartment_vars_to_report ( NrnThread& nt, std::set<int>& targ
     NrnThreadMappingInfo* mapinfo = (NrnThreadMappingInfo*)nt.mapping;
     if (! mapinfo) {
       std::cout << "[COMPARTMENTS] Error : mapping information is missing for a Cell group " << nt.ncell << std::endl;
-      return vars_to_report;
-    };
+      nrn_abort(1);
+    }
     for (int i = 0; i < nt.ncell; i++) {
       int gid = nt.presyns[i].gid_;
       if (target.find(gid) != target.end()) {
         CellMapping* m = mapinfo->get_cell_mapping(gid);
         if (m == NULL) {
             std::cout << "[COMPARTMENTS] Error : Compartment mapping information is missing! \n";
-            continue;
+            nrn_abort(1);
         }
         std::vector<VarWithMapping> to_report;
         to_report.reserve(m->size());
@@ -290,14 +290,12 @@ void register_custom_report(NrnThread& nt,
         
         extra[4] = m->get_seclist_section_count("apic");
         extra[0] = extra[1] + extra[2] + extra[3] + extra[4];
-        std::cout << gid << "," << extra[0]<< "," <<extra[1]<< "," <<extra[2]<< "," << extra[3] << "," << extra[4] << std::endl;
         records_add_report((char*)config.output_path, gid, gid, gid, config.start, config.stop,
                            config.report_dt, sizemapping, (char*)config.type_str, extramapping,
                            (char*)config.unit);
         /** add extra mapping : @todo api changes in reportinglib*/
         records_extra_mapping((char*)config.output_path, gid, 5, extra);
         for (int var_idx = 0; var_idx < vars.size(); ++var_idx) {
-            std::cout << vars[var_idx].id << std::endl;
             mapping[0] = vars[var_idx].id;
             records_add_var_with_mapping(config.output_path, gid, vars[var_idx].var_value,
                                          sizemapping, mapping);
@@ -369,7 +367,7 @@ void register_report(double dt,  double delay, ReportConfiguration& report) {
     report.mech_id  = nrn_get_mechtype (report.mech_name);
     if ( report.type == SynapseReport && report.mech_id == -1) {
       std::cerr << "[ERROR] mechanism to report: " << report.mech_name << " is not mapped in this simulation, cannot report on it" << std::endl;
-      return;
+      nrn_abort(1);
     }
     for (int ith = 0; ith < nrn_nthread; ++ith) {
         NrnThread& nt                  = nrn_threads[ith];

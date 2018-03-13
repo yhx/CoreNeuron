@@ -558,7 +558,10 @@ void nrn_setup_cleanup() {
     neg_gid2out.clear();
 }
 
-void nrn_setup(const char* filesdat, bool is_mapping_needed, int byte_swap, bool run_setup_cleanup) {
+void nrn_setup(const char* filesdat,
+               bool is_mapping_needed,
+               int byte_swap,
+               bool run_setup_cleanup) {
     /// Number of local cell groups
     int ngroup = 0;
 
@@ -652,7 +655,7 @@ void nrn_setup(const char* filesdat, bool is_mapping_needed, int byte_swap, bool
     /* nrn_multithread_job supports serial, pthread, and openmp. */
     coreneuron::phase_wrapper<(coreneuron::phase)2>();
 
-    if (is_mapping_needed )
+    if (is_mapping_needed)
         coreneuron::phase_wrapper<(coreneuron::phase)3>();
 
     double mindelay = set_mindelay(nrnopt_get_dbl("--mindelay"));
@@ -1285,7 +1288,7 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
                 int etype = s;
                 int elayout = nrn_mech_data_layout_[etype];
                 /* if ion is SoA, must recalculate pdata values */
-		/* if ion is AoS, have to deal with offset */
+                /* if ion is AoS, have to deal with offset */
                 Memb_list* eml = nt._ml_list[etype];
                 int edata0 = eml->data - nt._data;
                 int ecnt = eml->nodecount;

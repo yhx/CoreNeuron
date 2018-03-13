@@ -224,7 +224,7 @@ int register_mech(const char** m,
     memb_list[type].nodecount = 0;
     memb_list[type]._thread = (ThreadDatum*)0;
 #endif
-    register_all_variables_offsets (type, &m[2]);
+    register_all_variables_offsets(type, &m[2]);
     return type;
 }
 

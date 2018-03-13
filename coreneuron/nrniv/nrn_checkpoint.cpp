@@ -595,7 +595,7 @@ static void write_phase2(NrnThread& nt, FileHandlerWrap& fh) {
 static void write_time(const char* output_dir) {
     std::ostringstream filename;
     FileHandler f;
-    filename << output_dir << "/" << "time.dat";
+    filename << output_dir << "/time.dat";
     f.open(filename.str().c_str(), swap_bytes, std::ios::out);
     f.write_array(&t, 1);
     f.close();
@@ -607,7 +607,7 @@ double restore_time(const char* restore_dir) {
     if (strlen(restore_dir)) {
         std::ostringstream filename;
         FileHandler f;
-        filename << restore_dir << "/" << "time.dat";
+        filename << restore_dir << "/time.dat";
         f.open(filename.str().c_str(), swap_bytes, std::ios::in);
         f.read_array(&rtime, 1);
         f.close();

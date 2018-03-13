@@ -49,8 +49,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
  */
 #ifdef ENABLE_REPORTING
 class ReportEvent;
-#endif //ENABLE_REPORTING
-
+#endif  // ENABLE_REPORTING
 
 /*
  * ---                         ---
@@ -59,143 +58,151 @@ class ReportEvent;
  */
 #ifdef ENABLE_REPORTING
 
-static  std::vector<ReportEvent*> reports;
-struct  VarWithMapping {
-  int     id;
-  double* var_value;
-  VarWithMapping (int id_, double* v_): id(id_), var_value(v_) {}
+static std::vector<ReportEvent*> reports;
+struct VarWithMapping {
+    int id;
+    double* var_value;
+    VarWithMapping(int id_, double* v_) : id(id_), var_value(v_) {
+    }
 };
 
-typedef std::map <int, std::vector<VarWithMapping> > VarsToReport; // mapping the set of variables pointers to report to its gid
+typedef std::map<int, std::vector<VarWithMapping> >
+    VarsToReport;  // mapping the set of variables pointers to report to its gid
 
 class ReportEvent : public DiscreteEvent {
   private:
-    double           dt;
-    unsigned long    step;
-    char             report_name [MAX_REPORT_NAME_LEN];
+    double dt;
+    unsigned long step;
+    char report_name[MAX_REPORT_NAME_LEN];
     std::vector<int> gids_to_report;
 
   public:
-    ReportEvent(double t, VarsToReport& filtered_gids, const char* name):
-                                      dt(t), step(0) {
-      strcpy (report_name, name);
-      VarsToReport::iterator it;
-      nrn_assert(filtered_gids.size());
-      gids_to_report.reserve(filtered_gids.size());
-      for (it = filtered_gids.begin(); it != filtered_gids.end(); ++it) {
-        gids_to_report.push_back(it->first);
-      }
-      std::sort(gids_to_report.begin(), gids_to_report.end());
+    ReportEvent(double t, VarsToReport& filtered_gids, const char* name) : dt(t), step(0) {
+        strcpy(report_name, name);
+        VarsToReport::iterator it;
+        nrn_assert(filtered_gids.size());
+        gids_to_report.reserve(filtered_gids.size());
+        for (it = filtered_gids.begin(); it != filtered_gids.end(); ++it) {
+            gids_to_report.push_back(it->first);
+        }
+        std::sort(gids_to_report.begin(), gids_to_report.end());
     }
     /** on deliver, call ReportingLib and setup next event */
     virtual void deliver(double t, NetCvode* nc, NrnThread* nt) {
-      /** @todo: reportinglib is not thread safe, fix this */
-      #pragma omp critical
-      {
-          // each thread needs to know its own step
-          records_nrec(step, gids_to_report.size(), &gids_to_report[0], report_name);
-          send(t + dt, nc, nt);
-          step++;
-      }
+/** @todo: reportinglib is not thread safe, fix this */
+#pragma omp critical
+        {
+            // each thread needs to know its own step
+            records_nrec(step, gids_to_report.size(), &gids_to_report[0], report_name);
+            send(t + dt, nc, nt);
+            step++;
+        }
     }
 };
 
-
-VarsToReport get_soma_vars_to_report ( NrnThread& nt, std::set<int>& target ) {
+VarsToReport get_soma_vars_to_report(NrnThread& nt, std::set<int>& target) {
     VarsToReport vars_to_report;
     NrnThreadMappingInfo* mapinfo = (NrnThreadMappingInfo*)nt.mapping;
-    if (! mapinfo) {
-      std::cout << "[SOMA] Error : mapping information is missing for a Cell group " << std::endl;
-      nrn_abort(1);
-    } 
-    for (int i = 0; i < nt.ncell; i++) {
-      int gid = nt.presyns[i].gid_;
-      std::vector<VarWithMapping> to_report; // only one element for each gid in this case
-      if (target.find(gid) != target.end()) {
-        CellMapping* m = mapinfo->get_cell_mapping(gid);
-        if (m == NULL) {
-            std::cout << "[SOMA] Error : mapping information is missing for Soma Report! \n";
-            nrn_abort(1);
-        }
-        /** get  section list mapping for soma */
-        SecMapping* s = m->get_seclist_mapping("soma");
-        /** 1st key is section-id and 1st value is segment of soma */
-        int section_id = s->secmap.begin()->first;
-        int idx        = s->secmap.begin()->second.front();
-        double* v      = nt._actual_v + idx;
-        to_report.push_back(VarWithMapping(section_id, v));
-        vars_to_report[gid] = to_report;
-      }
-    }
-    return vars_to_report;
-}
-
-VarsToReport get_compartment_vars_to_report ( NrnThread& nt, std::set<int>& target ) {
-    VarsToReport vars_to_report;
-    NrnThreadMappingInfo* mapinfo = (NrnThreadMappingInfo*)nt.mapping;
-    if (! mapinfo) {
-      std::cout << "[COMPARTMENTS] Error : mapping information is missing for a Cell group " << nt.ncell << std::endl;
-      nrn_abort(1);
+    if (!mapinfo) {
+        std::cout << "[SOMA] Error : mapping information is missing for a Cell group " << std::endl;
+        nrn_abort(1);
     }
     for (int i = 0; i < nt.ncell; i++) {
-      int gid = nt.presyns[i].gid_;
-      if (target.find(gid) != target.end()) {
-        CellMapping* m = mapinfo->get_cell_mapping(gid);
-        if (m == NULL) {
-            std::cout << "[COMPARTMENTS] Error : Compartment mapping information is missing! \n";
-            nrn_abort(1);
-        }
-        std::vector<VarWithMapping> to_report;
-        to_report.reserve(m->size());
-        for (int j = 0; j < m->size(); j++) {
-          SecMapping* s = m->secmapvec[j];
-          for ( secseg_it_type iterator = s->secmap.begin();
-               iterator != s->secmap.end(); iterator++) {
-            int compartment_id = iterator->first;
-            segvec_type& vec   = iterator->second;
-            for (size_t k = 0; k < vec.size(); k++) {
-              int idx = vec[k];
-              /** corresponding voltage in coreneuron voltage array */
-              double* v = nt._actual_v + idx;
-              to_report.push_back(VarWithMapping(compartment_id, v));
+        int gid = nt.presyns[i].gid_;
+        std::vector<VarWithMapping> to_report;  // only one element for each gid in this case
+        if (target.find(gid) != target.end()) {
+            CellMapping* m = mapinfo->get_cell_mapping(gid);
+            if (m == NULL) {
+                std::cout << "[SOMA] Error : mapping information is missing for Soma Report! \n";
+                nrn_abort(1);
             }
-          }
+            /** get  section list mapping for soma */
+            SecMapping* s = m->get_seclist_mapping("soma");
+            /** 1st key is section-id and 1st value is segment of soma */
+            int section_id = s->secmap.begin()->first;
+            int idx = s->secmap.begin()->second.front();
+            double* v = nt._actual_v + idx;
+            to_report.push_back(VarWithMapping(section_id, v));
+            vars_to_report[gid] = to_report;
         }
-        vars_to_report[gid] = to_report;
-      }
     }
     return vars_to_report;
 }
 
-VarsToReport get_custom_vars_to_report ( NrnThread& nt, 
-                                         ReportConfiguration& report,
-                                         std::vector<int>& nodes_to_gids) {
+VarsToReport get_compartment_vars_to_report(NrnThread& nt, std::set<int>& target) {
+    VarsToReport vars_to_report;
+    NrnThreadMappingInfo* mapinfo = (NrnThreadMappingInfo*)nt.mapping;
+    if (!mapinfo) {
+        std::cout << "[COMPARTMENTS] Error : mapping information is missing for a Cell group "
+                  << nt.ncell << std::endl;
+        nrn_abort(1);
+    }
+    for (int i = 0; i < nt.ncell; i++) {
+        int gid = nt.presyns[i].gid_;
+        if (target.find(gid) != target.end()) {
+            CellMapping* m = mapinfo->get_cell_mapping(gid);
+            if (m == NULL) {
+                std::cout
+                    << "[COMPARTMENTS] Error : Compartment mapping information is missing! \n";
+                nrn_abort(1);
+            }
+            std::vector<VarWithMapping> to_report;
+            to_report.reserve(m->size());
+            for (int j = 0; j < m->size(); j++) {
+                SecMapping* s = m->secmapvec[j];
+                for (secseg_it_type iterator = s->secmap.begin(); iterator != s->secmap.end();
+                     iterator++) {
+                    int compartment_id = iterator->first;
+                    segvec_type& vec = iterator->second;
+                    for (size_t k = 0; k < vec.size(); k++) {
+                        int idx = vec[k];
+                        /** corresponding voltage in coreneuron voltage array */
+                        double* v = nt._actual_v + idx;
+                        to_report.push_back(VarWithMapping(compartment_id, v));
+                    }
+                }
+            }
+            vars_to_report[gid] = to_report;
+        }
+    }
+    return vars_to_report;
+}
+
+VarsToReport get_custom_vars_to_report(NrnThread& nt,
+                                       ReportConfiguration& report,
+                                       std::vector<int>& nodes_to_gids) {
     VarsToReport vars_to_report;
     for (int i = 0; i < nt.ncell; i++) {
-      int gid = nt.presyns[i].gid_;
-      if (report.target.find(gid) == report.target.end()) continue;
-      Memb_list *ml = nt._ml_list[report.mech_id];
-      if (! ml ) continue;
-      std::vector<VarWithMapping> to_report;
-      to_report.reserve(ml->nodecount);
-      for (int j = 0; j <  ml->nodecount; j++)  {
-          double* is_selected = get_var_location_from_var_name ( report.mech_id, "selected_for_report", ml, j);
-          //assert (is_selected);
-          bool selection = false; //truly ugly, but selected_for_report is not existing on every mechanisms.
-          if (! is_selected) 
-              selection = true;
-          else
-              selection = *is_selected;
-          if ((nodes_to_gids[ml->nodeindices[j]] == gid) && selection) {
-            double* var_value   =  get_var_location_from_var_name (  report.mech_id, report.var_name, ml, j);
-            double* synapse_id  =  get_var_location_from_var_name (  report.mech_id, "synapseID", ml, j);
-            assert(synapse_id && var_value);
-            to_report.push_back(VarWithMapping( (int) *synapse_id, var_value));
-          }
-      }
-      if (to_report.size()) {
-        vars_to_report[gid] = to_report;
-      }
+        int gid = nt.presyns[i].gid_;
+        if (report.target.find(gid) == report.target.end())
+            continue;
+        Memb_list* ml = nt._ml_list[report.mech_id];
+        if (!ml)
+            continue;
+        std::vector<VarWithMapping> to_report;
+        to_report.reserve(ml->nodecount);
+        for (int j = 0; j < ml->nodecount; j++) {
+            double* is_selected =
+                get_var_location_from_var_name(report.mech_id, "selected_for_report", ml, j);
+            // assert (is_selected);
+            bool selection =
+                false;  // truly ugly, but selected_for_report is not existing on every mechanisms.
+            if (!is_selected)
+                selection = true;
+            else
+                selection = *is_selected;
+            if ((nodes_to_gids[ml->nodeindices[j]] == gid) && selection) {
+                double* var_value =
+                    get_var_location_from_var_name(report.mech_id, report.var_name, ml, j);
+                double* synapse_id =
+                    get_var_location_from_var_name(report.mech_id, "synapseID", ml, j);
+                assert(synapse_id && var_value);
+                to_report.push_back(VarWithMapping((int)*synapse_id, var_value));
+            }
+        }
+        if (to_report.size()) {
+            vars_to_report[gid] = to_report;
+        }
     }
     return vars_to_report;
 }
@@ -223,14 +230,15 @@ void register_soma_report(NrnThread& nt,
                            config.report_dt, sizemapping, (char*)config.type_str, extramapping,
                            (char*)config.unit);
 
-    /** add extra mapping : TODO api changes in reportinglib*/
-    records_extra_mapping(config.output_path, gid, 5, extra);
-    for (int var_idx = 0; var_idx < vars.size(); ++var_idx) {
-      /** 1st key is section-id and 1st value is segment of soma */
-      mapping[0] = vars[var_idx].id;
-      records_add_var_with_mapping(config.output_path, gid, vars[var_idx].var_value, sizemapping, mapping);
+        /** add extra mapping : TODO api changes in reportinglib*/
+        records_extra_mapping(config.output_path, gid, 5, extra);
+        for (int var_idx = 0; var_idx < vars.size(); ++var_idx) {
+            /** 1st key is section-id and 1st value is segment of soma */
+            mapping[0] = vars[var_idx].id;
+            records_add_var_with_mapping(config.output_path, gid, vars[var_idx].var_value,
+                                         sizemapping, mapping);
+        }
     }
-  }
 }
 
 void register_compartment_report(NrnThread& nt,
@@ -267,7 +275,7 @@ void register_compartment_report(NrnThread& nt,
 }
 
 void register_custom_report(NrnThread& nt,
-                            ReportConfiguration& config, 
+                            ReportConfiguration& config,
                             VarsToReport& vars_to_report) {
     int sizemapping = 1;
     int extramapping = 5;
@@ -287,7 +295,7 @@ void register_custom_report(NrnThread& nt,
         // axon seems masked on neurodamus side
         // extra[2] = m->get_seclist_section_count("axon");
         // extra[3] = m->get_seclist_section_count("dend");
-        
+
         extra[4] = m->get_seclist_section_count("apic");
         extra[0] = extra[1] + extra[2] + extra[3] + extra[4];
         records_add_report((char*)config.output_path, gid, gid, gid, config.start, config.stop,
@@ -303,31 +311,31 @@ void register_custom_report(NrnThread& nt,
     }
 }
 
-
 // map GIDs of every compartment, it consist in a backward sweep then forward sweep algorithm
-std::vector<int> map_gids (NrnThread& nt) {
-     std::vector<int> nodes_gid (nt.end, -1);
-     // backward sweep: from presyn compartment propagate back GID to parent
-     for(int i=0; i < nt.n_presyn; i++) {
-         int gid = nt.presyns[i].gid_;
-         int thvar_index = nt.presyns[i].thvar_index_;
-         // only for non artificial cells
-         if (thvar_index >= 0) {
-             // setting all roots gids of the presyns nodes,
-             // index 0 have parent set to 0, so we must stop at j > 0
-             // also 0 is the parent of all, so it is an error to attribute a GID to it.
-               nodes_gid[thvar_index]  = gid;
-               for (int j = thvar_index; j > 0; j=nt._v_parent_index[j]) {
-                       nodes_gid[nt._v_parent_index[j]] = gid;
-               }
-         }
-     }
-     // forward sweep: setting all compartements nodes to the GID of its root
-     //  already sets on above loop. This is working only because compartments are stored in order parents follow by childrens
-     for(int i=nt.ncell + 1; i < nt.end; i++) {
-             nodes_gid[i] = nodes_gid[nt._v_parent_index[i]];
-     }
-  return nodes_gid;
+std::vector<int> map_gids(NrnThread& nt) {
+    std::vector<int> nodes_gid(nt.end, -1);
+    // backward sweep: from presyn compartment propagate back GID to parent
+    for (int i = 0; i < nt.n_presyn; i++) {
+        int gid = nt.presyns[i].gid_;
+        int thvar_index = nt.presyns[i].thvar_index_;
+        // only for non artificial cells
+        if (thvar_index >= 0) {
+            // setting all roots gids of the presyns nodes,
+            // index 0 have parent set to 0, so we must stop at j > 0
+            // also 0 is the parent of all, so it is an error to attribute a GID to it.
+            nodes_gid[thvar_index] = gid;
+            for (int j = thvar_index; j > 0; j = nt._v_parent_index[j]) {
+                nodes_gid[nt._v_parent_index[j]] = gid;
+            }
+        }
+    }
+    // forward sweep: setting all compartements nodes to the GID of its root
+    //  already sets on above loop. This is working only because compartments are stored in order
+    //  parents follow by childrens
+    for (int i = nt.ncell + 1; i < nt.end; i++) {
+        nodes_gid[i] = nodes_gid[nt._v_parent_index[i]];
+    }
+    return nodes_gid;
 }
 #endif  // ENABLE_REPORTING
 
@@ -357,22 +365,25 @@ void setup_report_engine(double dt_report, double mindelay) {
     /** reportinglib setup */
     records_setup_communicator();
     records_finish_and_share();
-#endif // ENABLE_REPORTING
+#endif  // ENABLE_REPORTING
 }
 
-//TODO: in theory we can have one ReportEvent per register_report_call generated by MPI rank instead of one per cell group
-void register_report(double dt,  double delay, ReportConfiguration& report) {
+// TODO: in theory we can have one ReportEvent per register_report_call generated by MPI rank
+// instead of one per cell group
+void register_report(double dt, double delay, ReportConfiguration& report) {
 #ifdef ENABLE_REPORTING
     records_set_atomic_step(dt);
-    report.mech_id  = nrn_get_mechtype (report.mech_name);
-    if ( report.type == SynapseReport && report.mech_id == -1) {
-      std::cerr << "[ERROR] mechanism to report: " << report.mech_name << " is not mapped in this simulation, cannot report on it" << std::endl;
-      nrn_abort(1);
+    report.mech_id = nrn_get_mechtype(report.mech_name);
+    if (report.type == SynapseReport && report.mech_id == -1) {
+        std::cerr << "[ERROR] mechanism to report: " << report.mech_name
+                  << " is not mapped in this simulation, cannot report on it" << std::endl;
+        nrn_abort(1);
     }
     for (int ith = 0; ith < nrn_nthread; ++ith) {
-        NrnThread& nt                  = nrn_threads[ith];
-        if (! nt.ncell) continue;
-        std::vector<int> nodes_to_gid  = map_gids(nt);
+        NrnThread& nt = nrn_threads[ith];
+        if (!nt.ncell)
+            continue;
+        std::vector<int> nodes_to_gid = map_gids(nt);
         VarsToReport vars_to_report;
         switch (report.type) {
             case SomaReport:
@@ -388,21 +399,21 @@ void register_report(double dt,  double delay, ReportConfiguration& report) {
                 register_custom_report(nt, report, vars_to_report);
         }
         if (vars_to_report.size()) {
-          reports.push_back (new ReportEvent(dt, vars_to_report, report.output_path));
-          reports[reports.size()-1]->send (t, net_cvode_instance, &nt);
+            reports.push_back(new ReportEvent(dt, vars_to_report, report.output_path));
+            reports[reports.size() - 1]->send(t, net_cvode_instance, &nt);
         }
     }
 #else
     if (nrnmpi_myid == 0)
-       printf("\n WARNING! : Can't enable reports, recompile with ReportingLib! \n");
-#endif //ENABLE_REPORTING
+        printf("\n WARNING! : Can't enable reports, recompile with ReportingLib! \n");
+#endif  // ENABLE_REPORTING
 }
 
-void finalize_report () {
+void finalize_report() {
 #ifdef ENABLE_REPORTING
-  for (int i = 0 ; i < reports.size(); i++) {
-    delete reports[i];
-  }
-  reports.clear();
+    for (int i = 0; i < reports.size(); i++) {
+        delete reports[i];
+    }
+    reports.clear();
 #endif
 }

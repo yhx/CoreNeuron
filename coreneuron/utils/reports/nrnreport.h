@@ -44,34 +44,32 @@
 #define MAX_REPORT_NAME_LEN 256
 #define MAX_REPORT_PATH_LEN 512
 
-enum ReportType { SomaReport,
-                  CompartmentReport,
-                  SynapseReport
-                };
+enum ReportType { SomaReport, CompartmentReport, SynapseReport };
 
 typedef struct {
-  char            name         [MAX_REPORT_NAME_LEN]; // name of the report
-  char            output_path  [MAX_REPORT_PATH_LEN]; // full path of the report
-  char            target_name  [MAX_REPORT_NAME_LEN]; // target of the report
-  char            mech_name    [MAX_REPORT_NAME_LEN]; // mechanism name
-  char            var_name     [MAX_REPORT_NAME_LEN]; // variable name
-  char            unit         [MAX_REPORT_NAME_LEN]; // unit of the report
-  char            format       [MAX_REPORT_NAME_LEN]; // format of the report (bin, hdf5)
-  char            type_str     [MAX_REPORT_NAME_LEN]; // type of report string
-  ReportType      type;                               // type of the report
-  int             mech_id;                            // mechanism
-  double          report_dt;                          // reporting timestep
-  double          start;                              // start time of report
-  double          stop;                               // stop time of report
-  int             num_gids;                           // total number of gids
-  std::set<int>   target;                             // list of gids for this report
+    char name[MAX_REPORT_NAME_LEN];         // name of the report
+    char output_path[MAX_REPORT_PATH_LEN];  // full path of the report
+    char target_name[MAX_REPORT_NAME_LEN];  // target of the report
+    char mech_name[MAX_REPORT_NAME_LEN];    // mechanism name
+    char var_name[MAX_REPORT_NAME_LEN];     // variable name
+    char unit[MAX_REPORT_NAME_LEN];         // unit of the report
+    char format[MAX_REPORT_NAME_LEN];       // format of the report (bin, hdf5)
+    char type_str[MAX_REPORT_NAME_LEN];     // type of report string
+    ReportType type;                        // type of the report
+    int mech_id;                            // mechanism
+    double report_dt;                       // reporting timestep
+    double start;                           // start time of report
+    double stop;                            // stop time of report
+    int num_gids;                           // total number of gids
+    std::set<int> target;                   // list of gids for this report
 } ReportConfiguration;
 
-void                             setup_report_engine          (double dt_report, double mindelay);
-void                             register_report              (double dt, double delay, ReportConfiguration& config );
-std::vector<ReportConfiguration> create_report_configurations (const char* filename, const char* output_dir);
-void                             setup_report_engine          (double dt_report, double mindelay);
-void                             finalize_report              ();
-extern "C" void                  nrn_flush_reports            (double t);
+void setup_report_engine(double dt_report, double mindelay);
+void register_report(double dt, double delay, ReportConfiguration& config);
+std::vector<ReportConfiguration> create_report_configurations(const char* filename,
+                                                              const char* output_dir);
+void setup_report_engine(double dt_report, double mindelay);
+void finalize_report();
+extern "C" void nrn_flush_reports(double t);
 
 #endif  //_H_NRN_REPORT_

@@ -93,7 +93,6 @@ void nrn_init_and_load_data(int argc,
     // create mutex for nrn123, protect instance_count_
     nrnran123_mutconstruct();
 
-
     // set global variables
     // precedence is: set by user, globals.dat, 34.0
     celsius = nrnopt_get_dbl("--celsius");
@@ -159,8 +158,8 @@ void nrn_init_and_load_data(int argc,
     use_interleave_permute = nrnopt_get_int("--cell-permute");
     cellorder_nwarp = nrnopt_get_int("--nwarp");
     use_solve_interleave = nrnopt_get_int("--cell-permute");
-#if LAYOUT==1
-    //permuting not allowed for AoS
+#if LAYOUT == 1
+    // permuting not allowed for AoS
     use_interleave_permute = 0;
     use_solve_interleave = 0;
 #endif
@@ -247,13 +246,14 @@ int main1(int argc, char** argv, char** env) {
     std::vector<ReportConfiguration> configs;
     bool reports_needs_finalize = false;
     if (nrnopt_get_str("--report-conf").size()) {
-      if (nrnopt_get_int("--multiple") > 1) {
-        if (nrnmpi_myid == 0)
-            printf("\n WARNING! : Can't enable reports with model duplications feature! \n");
-      } else {
-         configs = create_report_configurations (nrnopt_get_str("--report-conf").c_str(), nrnopt_get_str("--outpath").c_str());
-         reports_needs_finalize = configs.size();
-      }
+        if (nrnopt_get_int("--multiple") > 1) {
+            if (nrnmpi_myid == 0)
+                printf("\n WARNING! : Can't enable reports with model duplications feature! \n");
+        } else {
+            configs = create_report_configurations(nrnopt_get_str("--report-conf").c_str(),
+                                                   nrnopt_get_str("--outpath").c_str());
+            reports_needs_finalize = configs.size();
+        }
     }
     // initializationa and loading functions moved to separate
     nrn_init_and_load_data(argc, argv, configs.size() > 0);
@@ -284,12 +284,12 @@ int main1(int argc, char** argv, char** env) {
 
         report_mem_usage("After nrn_finitialize");
         double dt = nrnopt_get_dbl("--dt");
-        double delay =  nrnopt_get_dbl("--mindelay");
+        double delay = nrnopt_get_dbl("--mindelay");
         // register all reports into reportinglib
-        for (int i =0;i < configs.size(); i++) {
-          register_report (dt, delay, configs[i]);
+        for (int i = 0; i < configs.size(); i++) {
+            register_report(dt, delay, configs[i]);
         }
-        setup_report_engine(dt,delay);
+        setup_report_engine(dt, delay);
         configs.clear();
 
         // call prcellstate for prcellgid
@@ -316,7 +316,7 @@ int main1(int argc, char** argv, char** env) {
         // prcellstate after end of solver
         call_prcellstate_for_prcellgid(nrnopt_get_int("--prcellgid"), compute_gpu, 0);
 
-        if (reports_needs_finalize )
+        if (reports_needs_finalize)
             finalize_report();
     }
 

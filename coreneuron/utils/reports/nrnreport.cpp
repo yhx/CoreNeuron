@@ -42,21 +42,9 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <map>
 #include <set>
 
-/*
- * ---                      ---
- *     Forward Declarations
- * ---                      ---
- */
 #ifdef ENABLE_REPORTING
-class ReportEvent;
-#endif  // ENABLE_REPORTING
 
-/*
- * ---                         ---
- *     Internal Implementation
- * ---                         ---
- */
-#ifdef ENABLE_REPORTING
+class ReportEvent;
 
 static std::vector<ReportEvent*> reports;
 struct VarWithMapping {
@@ -66,8 +54,8 @@ struct VarWithMapping {
     }
 };
 
-typedef std::map<int, std::vector<VarWithMapping> >
-    VarsToReport;  // mapping the set of variables pointers to report to its gid
+// mapping the set of variables pointers to report to its gid
+typedef std::map<int, std::vector<VarWithMapping> > VarsToReport;
 
 class ReportEvent : public DiscreteEvent {
   private:
@@ -90,6 +78,7 @@ class ReportEvent : public DiscreteEvent {
         }
         std::sort(gids_to_report.begin(), gids_to_report.end());
     }
+
     /** on deliver, call ReportingLib and setup next event */
     virtual void deliver(double t, NetCvode* nc, NrnThread* nt) {
 /** @todo: reportinglib is not thread safe */
@@ -110,13 +99,16 @@ class ReportEvent : public DiscreteEvent {
 VarsToReport get_soma_vars_to_report(NrnThread& nt, std::set<int>& target) {
     VarsToReport vars_to_report;
     NrnThreadMappingInfo* mapinfo = (NrnThreadMappingInfo*)nt.mapping;
+
     if (!mapinfo) {
         std::cout << "[SOMA] Error : mapping information is missing for a Cell group " << std::endl;
         nrn_abort(1);
     }
+
     for (int i = 0; i < nt.ncell; i++) {
         int gid = nt.presyns[i].gid_;
-        std::vector<VarWithMapping> to_report;  // only one element for each gid in this case
+        // only one element for each gid in this case
+        std::vector<VarWithMapping> to_report;
         if (target.find(gid) != target.end()) {
             CellMapping* m = mapinfo->get_cell_mapping(gid);
             if (m == NULL) {
@@ -144,6 +136,7 @@ VarsToReport get_compartment_vars_to_report(NrnThread& nt, std::set<int>& target
                   << nt.ncell << std::endl;
         nrn_abort(1);
     }
+
     for (int i = 0; i < nt.ncell; i++) {
         int gid = nt.presyns[i].gid_;
         if (target.find(gid) != target.end()) {
@@ -188,21 +181,24 @@ VarsToReport get_custom_vars_to_report(NrnThread& nt,
             continue;
         std::vector<VarWithMapping> to_report;
         to_report.reserve(ml->nodecount);
+
         for (int j = 0; j < ml->nodecount; j++) {
             double* is_selected =
-                get_var_location_from_var_name(report.mech_id, "selected_for_report", ml, j);
-            // assert (is_selected);
-            bool selection =
-                false;  // truly ugly, but selected_for_report is not existing on every mechanisms.
-            if (!is_selected)
-                selection = true;
+                get_var_location_from_var_name(report.mech_id, SELECTED_VAR_MOD_NAME, ml, j);
+            bool report_variable = false;
+
+            /// if there is no variable in mod file then report on every compartment
+            /// otherwise check the flag set in mod file
+            if (is_selected == NULL)
+                report_variable = true;
             else
-                selection = *is_selected;
-            if ((nodes_to_gids[ml->nodeindices[j]] == gid) && selection) {
+                report_variable = *is_selected;
+
+            if ((nodes_to_gids[ml->nodeindices[j]] == gid) && report_variable) {
                 double* var_value =
                     get_var_location_from_var_name(report.mech_id, report.var_name, ml, j);
                 double* synapse_id =
-                    get_var_location_from_var_name(report.mech_id, "synapseID", ml, j);
+                    get_var_location_from_var_name(report.mech_id, SYNAPSE_ID_MOD_NAME, ml, j);
                 assert(synapse_id && var_value);
                 to_report.push_back(VarWithMapping((int)*synapse_id, var_value));
             }
@@ -219,9 +215,12 @@ void register_soma_report(NrnThread& nt,
                           VarsToReport& vars_to_report) {
     int sizemapping = 1;
     int extramapping = 5;
-    int mapping[] = {0};            // first column i.e. section numbers
-    int extra[] = {1, 0, 0, 0, 0};  // first row, from 2nd value (skip gid)
+    // first column i.e. section numbers
+    int mapping[] = {0};
+    // first row, from 2nd value (skip gid)
+    int extra[] = {1, 0, 0, 0, 0};
     VarsToReport::iterator it;
+
     for (it = vars_to_report.begin(); it != vars_to_report.end(); ++it) {
         int gid = it->first;
         std::vector<VarWithMapping>& vars = it->second;
@@ -229,15 +228,17 @@ void register_soma_report(NrnThread& nt,
             continue;
         NrnThreadMappingInfo* mapinfo = (NrnThreadMappingInfo*)nt.mapping;
         CellMapping* m = mapinfo->get_cell_mapping(gid);
+
         /* report extra "mask" all infos not written in report: here only soma count is reported */
         extra[0] = vars.size();
         extra[1] = m->get_seclist_segment_count("soma");
+
         /** for this gid, get mapping information */
         records_add_report((char*)config.output_path, gid, gid, gid, config.start, config.stop,
                            config.report_dt, sizemapping, (char*)config.type_str, extramapping,
                            (char*)config.unit);
 
-        /** add extra mapping : TODO api changes in reportinglib*/
+        /** add extra mapping */
         records_extra_mapping(config.output_path, gid, 5, extra);
         for (int var_idx = 0; var_idx < vars.size(); ++var_idx) {
             /** 1st key is section-id and 1st value is segment of soma */
@@ -253,8 +254,9 @@ void register_compartment_report(NrnThread& nt,
                                  VarsToReport& vars_to_report) {
     int sizemapping = 1;
     int extramapping = 5;
-    int mapping[] = {0};            // first column i.e. section numbers
-    int extra[] = {1, 0, 0, 0, 1};  // first row, from 2nd value (skip gid)
+    int mapping[] = {0};
+    int extra[] = {1, 0, 0, 0, 1};
+
     VarsToReport::iterator it;
     for (it = vars_to_report.begin(); it != vars_to_report.end(); ++it) {
         int gid = it->first;
@@ -271,7 +273,7 @@ void register_compartment_report(NrnThread& nt,
         records_add_report((char*)config.output_path, gid, gid, gid, config.start, config.stop,
                            config.report_dt, sizemapping, (char*)config.type_str, extramapping,
                            (char*)config.unit);
-        /** add extra mapping : TODO api changes in reportinglib*/
+        /** add extra mapping */
         records_extra_mapping(config.output_path, gid, 5, extra);
         for (int var_idx = 0; var_idx < vars.size(); ++var_idx) {
             mapping[0] = vars[var_idx].id;
@@ -286,10 +288,11 @@ void register_custom_report(NrnThread& nt,
                             VarsToReport& vars_to_report) {
     int sizemapping = 1;
     int extramapping = 5;
-    int mapping[] = {0};            // first column i.e. section numbers
-    int extra[] = {1, 0, 0, 0, 1};  // first row, from 2nd value (skip gid)
+    int mapping[] = {0};
+    int extra[] = {1, 0, 0, 0, 1};
     int segment_count = 0;
     int section_count = 0;
+
     VarsToReport::iterator it;
     for (it = vars_to_report.begin(); it != vars_to_report.end(); ++it) {
         int gid = it->first;
@@ -299,10 +302,8 @@ void register_custom_report(NrnThread& nt,
         NrnThreadMappingInfo* mapinfo = (NrnThreadMappingInfo*)nt.mapping;
         CellMapping* m = mapinfo->get_cell_mapping(gid);
         extra[1] = m->get_seclist_section_count("soma");
-        // axon seems masked on neurodamus side
-        // extra[2] = m->get_seclist_section_count("axon");
-        // extra[3] = m->get_seclist_section_count("dend");
-
+        // todo: axon seems masked on neurodamus side, need to check
+        // extra[2] and extra[3]
         extra[4] = m->get_seclist_section_count("apic");
         extra[0] = extra[1] + extra[2] + extra[3] + extra[4];
         records_add_report((char*)config.output_path, gid, gid, gid, config.start, config.stop,

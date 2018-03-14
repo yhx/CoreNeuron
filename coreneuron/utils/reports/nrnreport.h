@@ -44,6 +44,13 @@
 #define MAX_REPORT_NAME_LEN 256
 #define MAX_REPORT_PATH_LEN 512
 
+// name of the variable in mod file that is used to indicate which synapse
+// is enabled or disable for reporting
+#define SELECTED_VAR_MOD_NAME "selected_for_report"
+
+/// name of the variable in mod file used for setting synapse id
+#define SYNAPSE_ID_MOD_NAME "synapseID"
+
 enum ReportType { SomaReport, CompartmentReport, SynapseReport };
 
 typedef struct {

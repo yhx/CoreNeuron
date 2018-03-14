@@ -2,7 +2,8 @@
 #define MECH_MAPPING_H
 
 /*
- * we "know" that in mod files we have exactly 4 different variable categories
+ * todo : currently mod2c has exactly 4 different variable categories
+ * that are registered to coreneuron.
  */
 #define NB_MECH_VAR_CATEGORIES 4
 

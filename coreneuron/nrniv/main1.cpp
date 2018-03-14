@@ -243,7 +243,6 @@ void call_prcellstate_for_prcellgid(int prcellgid, int compute_gpu, int is_init)
 int main1(int argc, char** argv, char** env) {
     (void)env; /* unused */
 
-// mpi initialisation at the begining (required for optarg parsing)
 #if NRNMPI
     nrnmpi_init(1, &argc, &argv);
 #endif
@@ -252,6 +251,7 @@ int main1(int argc, char** argv, char** env) {
     nrnopt_parse(argc, (const char**)argv);
     std::vector<ReportConfiguration> configs;
     bool reports_needs_finalize = false;
+
     if (nrnopt_get_str("--report-conf").size()) {
         if (nrnopt_get_int("--multiple") > 1) {
             if (nrnmpi_myid == 0)
@@ -262,6 +262,7 @@ int main1(int argc, char** argv, char** env) {
             reports_needs_finalize = configs.size();
         }
     }
+
     // initializationa and loading functions moved to separate
     nrn_init_and_load_data(argc, argv, configs.size() > 0);
     std::string checkpoint_path = nrnopt_get_str("--checkpoint");

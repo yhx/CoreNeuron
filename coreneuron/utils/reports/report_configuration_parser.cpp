@@ -24,7 +24,7 @@
    CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
    ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
    THE POSSIBILITY OF SUCH DAMAGE.
-   */
+*/
 
 #include "coreneuron/nrniv/nrn_assert.h"
 #include "coreneuron/utils/reports/nrnreport.h"
@@ -35,39 +35,26 @@
 #include <string>
 #include <vector>
 #include <string.h>
-//#include "coreneuron/nrnoc/membfunc.h"
 
-#define MAX_LINE_LENGTH 1024
-// extern "C" int nrn_get_mechtype    (const char*);
-
-/*
- * ---           ---
- *     Internals
- * ---           ---
- */
+#define MAX_LINE_LENGTH 4096
 
 /*
  * Split filter string ("mech.var_name") into mech_id and var_name
  */
 void parse_filter_string(char* filter, ReportConfiguration& config) {
     char* token = strtok(filter, ".");
-    if (!token)
-        std::cerr
-            << "WARNING ! correct format of variable to report must be: <MECHANISM NAME>.<VARIABLE_NAME>"
-            << std::endl;
+    if (!token) {
+        std::cerr << "Error : Invalid report variable, should be mch_name.var_name" << std::endl;
+        abort();
+    }
     strcpy(config.mech_name, token);
     token = strtok(NULL, "\n");
-    if (!token)
-        std::cerr
-            << "WARNING ! correct format of variable to report must be: <MECHANISM NAME>.<VARIABLE_NAME>"
-            << std::endl;
+    if (!token) {
+        std::cerr << "Error : Invalid report variable, should be mch_name.var_name" << std::endl;
+        abort();
+    }
     strcpy(config.var_name, token);
 }
-/*
- * ---                           ---
- *     Public API implementation
- * ---                           ---
- */
 
 std::vector<ReportConfiguration> create_report_configurations(const char* conf_file,
                                                               const char* output_dir) {
@@ -77,18 +64,20 @@ std::vector<ReportConfiguration> create_report_configurations(const char* conf_f
     char raw_line[MAX_LINE_LENGTH] = "";
     int is_soma;
     int* gids;
+
     FILE* fp = fopen(conf_file, "r");
     if (!fp) {
-        printf("Error while reading %s \n", conf_file);
-        return reports;
+        std::cerr << "Error while reading report configuration " << conf_file << std::endl;
+        abort();
     }
+
     fgets(raw_line, MAX_LINE_LENGTH, fp);
     sscanf(raw_line, "%d\n", &num_reports);
     for (int i = 0; i < num_reports; i++) {
         reports.push_back(ReportConfiguration());
         ReportConfiguration& report = reports[reports.size() - 1];
-        report.mech_id =
-            -1;  // to be filled after initialization of simulation, cannot be deduced before
+        // mechansim id registered in coreneuron
+        report.mech_id = -1;
         fgets(raw_line, MAX_LINE_LENGTH, fp);
         sscanf(raw_line, "\n%s %s %s %s %s %s %d %lf %lf %lf %d\n", report.name, report.target_name,
                report.type_str, report_on, report.unit, report.format, &is_soma, &report.report_dt,
@@ -97,7 +86,6 @@ std::vector<ReportConfiguration> create_report_configurations(const char* conf_f
             report.type_str[i] = tolower(report.type_str[i]);
         }
         sprintf(report.output_path, "%s/%s", output_dir, report.name);
-
         if (strcmp(report.type_str, "compartment") == 0) {
             if (is_soma)
                 report.type = SomaReport;
@@ -106,18 +94,18 @@ std::vector<ReportConfiguration> create_report_configurations(const char* conf_f
         } else if (strcmp(report.type_str, "synapse") == 0) {
             report.type = SynapseReport;
         } else {
-            std::cout << "Report error: unsupported type " << report.type_str << "\n";
-            nrn_abort(1);
+            std::cerr << "Report error: unsupported type " << report.type_str << "\n";
+            abort();
         }
 
         if (report.type == SynapseReport)
             parse_filter_string(report_on, report);
+
         if (report.num_gids) {
             gids = (int*)calloc(report.num_gids, sizeof(int));
             fread(gids, sizeof(int), report.num_gids, fp);
-            fgets(raw_line, MAX_LINE_LENGTH, fp);  // for debugging purpose we add a new line
-                                                   // character at the end of binary gids data, we
-                                                   // just ned to swallow this char
+            // extra new line
+            fgets(raw_line, MAX_LINE_LENGTH, fp);
             for (int i = 0; i < report.num_gids; i++) {
                 report.target.insert(gids[i]);
             }

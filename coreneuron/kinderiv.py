@@ -14,7 +14,7 @@ kf = '_kinderiv.h'
 
 import os
 
-fnames = [f.replace('.mod', '.c') for f in os.listdir('.') if f.endswith('.mod')]
+fnames = [f.replace('.mod', '.cpp') for f in os.listdir('.') if f.endswith('.mod')]
 euler = []
 deriv = []
 kin = []

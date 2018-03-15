@@ -55,7 +55,7 @@ set(MOD2C env "MODLUNIT=${MOD2C_UNITS}" ${MOD2C})
 macro(mod2c_target name input)
     get_filename_component(mod2c_source_ ${input} ABSOLUTE)
     get_filename_component(mod2c_modname_ ${input} NAME)
-    string(REGEX REPLACE "\\.mod$" ".c" mod2c_cname_ "${mod2c_modname_}")
+    string(REGEX REPLACE "\\.mod$" ".cpp" mod2c_cname_ "${mod2c_modname_}")
 
     set(mod2c_output_ "${CMAKE_CURRENT_BINARY_DIR}/${mod2c_cname_}")
     list(APPEND MOD2C_${name}_OUTPUTS "${mod2c_output_}")
@@ -64,7 +64,7 @@ macro(mod2c_target name input)
     add_custom_command(OUTPUT "${mod2c_output_}"
       DEPENDS ${input} mod2c
       COMMAND ${CMAKE_COMMAND} -E copy "${mod2c_source_}" "${CMAKE_CURRENT_BINARY_DIR}"
-      COMMAND ${MOD2C} "${mod2c_modname_}"
+      COMMAND ${MOD2C} --cpp_lib "${mod2c_modname_}"
       WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
 endmacro()
 

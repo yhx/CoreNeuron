@@ -64,7 +64,7 @@ int checkpoint_save_patternstim(_threadargsproto_) {
 void checkpoint_restore_patternstim(int _index, double _te, _threadargsproto_) {
     INFOCAST; Info* info = *ip;
     info->index = _index;
-    artcell_net_send(_tqitem, -1, _nt->_vdata[_ppvar[1*_STRIDE]], _te, 1.0);
+    artcell_net_send(_tqitem, -1, (Point_process*) _nt->_vdata[_ppvar[1*_STRIDE]], _te, 1.0);
 }
 
 ENDVERBATIM

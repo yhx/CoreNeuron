@@ -150,7 +150,7 @@ void mk_mech(const char* datpath) {
 
     /// Calling the rest of additional Neurodamus or other _reg functions from the file mod_func.c
     /// (built during the config time from mech/mod_func.c.pl)
-    modl_reg();
+    coreneuron::modl_reg();
 }
 
 /// Get mechanism type by the mechanism name

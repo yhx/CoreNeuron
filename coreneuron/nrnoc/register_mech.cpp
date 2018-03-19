@@ -127,7 +127,6 @@ void add_nrn_fornetcons(int type, int indx) {
 }
 
 /* array is parallel to memb_func. All are 0 except 1 for ARTIFICIAL_CELL */
-short* nrn_is_artificial_;
 short* nrn_artcell_qindex_;
 
 void add_nrn_artcell(int type, int qi) {
@@ -215,11 +214,11 @@ int register_mech(const char** m,
 #if VECTORIZE
     memb_func[type].vectorized = vectorized ? 1 : 0;
     memb_func[type].thread_size_ = vectorized ? (vectorized - 1) : 0;
-    memb_func[type].thread_mem_init_ = (void*)0;
-    memb_func[type].thread_cleanup_ = (void*)0;
-    memb_func[type].thread_table_check_ = (void*)0;
+    memb_func[type].thread_mem_init_ = NULL;
+    memb_func[type].thread_cleanup_ = NULL;
+    memb_func[type].thread_table_check_ = NULL;
     memb_func[type].is_point = 0;
-    memb_func[type].setdata_ = (void*)0;
+    memb_func[type].setdata_ = NULL;
     memb_func[type].dparam_semantics = (int*)0;
     memb_list[type].nodecount = 0;
     memb_list[type]._thread = (ThreadDatum*)0;

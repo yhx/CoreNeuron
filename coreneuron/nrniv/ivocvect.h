@@ -94,8 +94,8 @@ typedef void IvocVect;
 #endif /* !defined(__cplusplus) */
 
 extern IvocVect* vector_new1(int n);
-extern int vector_capacity(IvocVect* v);
-extern double* vector_vec(IvocVect* v);
+extern int vector_capacity(void* v);
+extern double* vector_vec(void* v);
 
 #if defined(__cplusplus)
 }

@@ -20,6 +20,7 @@
 #endif
 
 extern InterleaveInfo* interleave_info;
+namespace coreneuron {
 void copy_ivoc_vect_to_device(IvocVect*& iv, IvocVect*& div);
 
 /* note: threads here are corresponding to global nrn_threads array */
@@ -869,7 +870,6 @@ void finalize_data_on_device() {
     acc_shutdown(acc_device_default);
 #endif
 }
-
 void nrn_newtonspace_copyto_device(NewtonSpace* ns) {
 #ifdef _OPENACC
     if (nrn_threads[0].compute_gpu == 0) {
@@ -998,4 +998,5 @@ void nrn_sparseobj_copyto_device(SparseObj* so) {
         acc_memcpy_to_device(&(d_coef_list[i]), &pd, sizeof(double*));
     }
 #endif
-}
+  }
+} //namespace coreneuron

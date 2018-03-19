@@ -29,6 +29,9 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef nrnoc_decl_h
 #define nrnoc_decl_h
 
+namespace coreneuron{
+    extern void modl_reg(void);
+}
 #if defined(__cplusplus)
 extern "C" {
 #endif
@@ -54,7 +57,6 @@ extern void dt2thread(double);
 extern void clear_event_queue(void);
 extern void nrn_spike_exchange_init(void);
 extern void nrn_spike_exchange(NrnThread*);
-extern void modl_reg(void);
 extern int nrn_is_ion(int);
 extern void nrn_finitialize(int setv, double v);
 extern void nrn_fixed_step_group_minimal(int n);

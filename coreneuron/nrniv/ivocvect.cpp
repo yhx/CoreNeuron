@@ -32,10 +32,11 @@ extern "C" {
 IvocVect* vector_new1(int n) {
     return new IvocVect(n);
 }
-int vector_capacity(IvocVect* v) {
-    return v->size();
+
+int vector_capacity(void* v) {
+    return ((IvocVect*)v)->size();
 }
-double* vector_vec(IvocVect* v) {
-    return v->data();
+double* vector_vec(void* v) {
+    return ((IvocVect*)v)->data();
 }
 }

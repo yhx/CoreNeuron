@@ -57,6 +57,7 @@ extern int nrn_newton_steer(int, _threadargsproto_);
 extern int nrn_euler_steer(int, _threadargsproto_);
 #define eulerfun(arg) nrn_euler_steer(arg, _threadargs_);
 
+
 #endif
 
 typedef struct Elm {
@@ -102,6 +103,13 @@ typedef struct SparseObj {  /* all the state information */
                              that haven't been used */
     int do_flag;
 } SparseObj;
+
+#pragma acc routine seq
+extern double* _nrn_thread_getelm(SparseObj* so, int row, int col, int _iml);
+
+extern void* nrn_cons_sparseobj(SPFUN, int, Memb_list*, _threadargsproto_);
+
+extern void _nrn_destroy_sparseobj_thread(SparseObj* so);
 
 #pragma acc routine seq
 extern int nrn_kinetic_steer(int, SparseObj*, double*, _threadargsproto_);

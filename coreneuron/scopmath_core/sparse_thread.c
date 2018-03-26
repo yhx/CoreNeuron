@@ -1,5 +1,6 @@
 #include "coreneuron/mech/cfile/scoplib.h"
 #include "coreneuron/nrniv/nrn_assert.h"
+
 /******************************************************************************
  *
  * File: sparse.c

@@ -57,7 +57,6 @@ extern int nrn_newton_steer(int, _threadargsproto_);
 extern int nrn_euler_steer(int, _threadargsproto_);
 #define eulerfun(arg) nrn_euler_steer(arg, _threadargs_);
 
-
 #endif
 
 typedef struct Elm {

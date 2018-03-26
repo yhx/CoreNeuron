@@ -44,6 +44,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <libhpm.h>
 #endif
 
+namespace coreneuron {
 int nrnmusic;
 
 MPI_Comm nrnmpi_world_comm;
@@ -215,3 +216,5 @@ int nrnmpi_initialized() {
 #endif
     return flag;
 }
+
+} //namespace coreneuron

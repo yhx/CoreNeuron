@@ -34,7 +34,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/nrniv/netcon.h"
 #include "coreneuron/utils/endianness.h"
 #include "coreneuron/nrniv/nrnoptarg.h"
-
+namespace coreneuron {
 extern int cvode_active_;
 /// Vector of maps for negative presyns
 extern std::vector<std::map<int, PreSyn*> > neg_gid2out;
@@ -81,5 +81,5 @@ extern int nrn_soa_padded_size(int cnt, int layout);
 
 extern int use_interleave_permute;
 extern int cellorder_nwarp;
-
+} //namespace coreneuron
 #endif

@@ -30,7 +30,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdlib.h>
 #include <math.h>
 #include "coreneuron/utils/randoms/nrnran123.h"
-
+namespace coreneuron {
 /* global data structure per process */
 __device__ static const double SHIFT32 = 1.0 / 4294967297.0; /* 1/(2^32 + 1) */
 __device__ static philox4x32_key_t k = {{0}};
@@ -164,3 +164,4 @@ void nrnran123_deletestream(nrnran123_State* s) {
 
     cudaFree(s);
 }
+} //namespace coreneuron

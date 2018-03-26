@@ -32,7 +32,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/nrnmpi/nrnmpi.h"
 #include "coreneuron/nrniv/nrnoptarg.h"
 #include "coreneuron/utils/ezoption/ezOptionParser.hpp"
-
+namespace coreneuron {
 struct param_int {
     const char* names; /* space separated (includes - or --) */
     int dflt, low, high;
@@ -368,3 +368,4 @@ static void graceful_exit(int err) {
 #endif
     exit(nrnmpi_myid == 0 ? err : 0);
 }
+} //namespace coreneuron

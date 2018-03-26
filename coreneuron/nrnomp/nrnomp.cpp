@@ -32,7 +32,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #if defined(_OPENMP)
 #include <omp.h>
 #endif  // _OPENMP
-
+namespace coreneuron {
 int nrnomp_get_numthreads() {
 #if defined(_OPENMP)
     return (omp_get_max_threads());
@@ -40,3 +40,4 @@ int nrnomp_get_numthreads() {
     return 1;
 #endif
 }
+} //namespace coreneuron

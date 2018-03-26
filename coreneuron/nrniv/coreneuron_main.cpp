@@ -25,9 +25,9 @@ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 THE POSSIBILITY OF SUCH DAMAGE.
 */
-
-extern int main1(int argc, char** argv, char** env);
-
+namespace coreneuron { 
+    extern int main1(int argc, char** argv, char** env);
+}
 int main(int argc, char** argv, char** env) {
-    return main1(argc, argv, env);
+    return coreneuron::main1(argc, argv, env);
 }

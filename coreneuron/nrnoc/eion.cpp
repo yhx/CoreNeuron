@@ -68,6 +68,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #define _PRAGMA_FOR_SEC_ORDER_CUR_ACC_LOOP_ _Pragma("")
 #endif
 
+namespace coreneuron {
 
 #define nparm 5
 static char* mechanism[] = {/*just a template*/
@@ -395,5 +396,5 @@ void second_order_cur(NrnThread* _nt, int secondorder) {
             }
     }
 }
-
+} //namespace coreneuron
 #endif

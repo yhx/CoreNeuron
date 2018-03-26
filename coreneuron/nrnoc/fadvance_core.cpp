@@ -32,7 +32,8 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/nrnoc/nrnoc_decl.h"
 #include "coreneuron/nrniv/nrn_acc_manager.h"
 #include "coreneuron/coreneuron.h"
-extern nrn_flush_reports(double t); // TODO remove when this file goes as cpp 
+#include "coreneuron/utils/reports/nrnreport.h"
+namespace coreneuron {
 static void* nrn_fixed_step_thread(NrnThread*);
 static void* nrn_fixed_step_group_thread(NrnThread*);
 
@@ -249,3 +250,4 @@ void* nrn_fixed_step_lastpart(NrnThread* nth) {
     nrn_deliver_events(nth); /* up to but not past texit */
     return (void*)0;
 }
+} //namespace coreneuron

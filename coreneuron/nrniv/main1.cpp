@@ -65,6 +65,7 @@ int nrn_feenableexcept() {
   return result;
 }
 #endif
+namespace coreneuron {
 int main1(int argc, char* argv[], char** env);
 void call_prcellstate_for_prcellgid(int prcellgid, int compute_gpu, int is_init);
 void nrn_init_and_load_data(int argc,
@@ -386,3 +387,4 @@ void handle_forward_skip(double forwardskip, int prcellgid) {
 const char* nrn_version(int) {
     return "version id unimplemented";
 }
+} //namespace coreneuron

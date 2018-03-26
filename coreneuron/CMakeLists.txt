@@ -55,7 +55,7 @@ set(MOD2C env "MODLUNIT=${MOD2C_UNITS}" ${MOD2C})
 macro(mod2c_target name input)
     get_filename_component(mod2c_source_ ${input} ABSOLUTE)
     get_filename_component(mod2c_modname_ ${input} NAME)
-    string(REGEX REPLACE "\\.mod$" ".c" mod2c_cname_ "${mod2c_modname_}")
+    string(REGEX REPLACE "\\.mod$" ".cpp" mod2c_cname_ "${mod2c_modname_}")
 
     set(mod2c_output_ "${CMAKE_CURRENT_BINARY_DIR}/${mod2c_cname_}")
     list(APPEND MOD2C_${name}_OUTPUTS "${mod2c_output_}")
@@ -192,7 +192,7 @@ mod2c_from_file(OPTMECH "${ADDITIONAL_MECHS}" "${ADDITIONAL_MECHPATH}")
 
 # For 'non-standard' mod files, need to generate registering function in mod_func.c
 
-set(MOD_FUNC_C    "${CMAKE_CURRENT_BINARY_DIR}/mod_func.c")
+set(MOD_FUNC_C    "${CMAKE_CURRENT_BINARY_DIR}/mod_func.cpp")
 set(MOD_FUNC_C_PL "${CMAKE_CURRENT_SOURCE_DIR}/mech/mod_func.c.pl")
 
 # ... pass as argument to the perl script the list of mod file names;
@@ -221,7 +221,7 @@ add_custom_command(OUTPUT "${KINDERIV_H}"
 
 if (EXPORT_MECHS_FUNCTIONS)
   # Create C file with all "get function pointers" methods
-  set(MOD_FUNC_PTRS_C    "${CMAKE_CURRENT_BINARY_DIR}/mod_func_ptrs.c")
+  set(MOD_FUNC_PTRS_C    "${CMAKE_CURRENT_BINARY_DIR}/mod_func_ptrs.cpp")
   set(MOD_FUNC_PTRS_C_PL "${CMAKE_CURRENT_SOURCE_DIR}/mech/mod_func_ptrs.c.pl")
 
   # ... pass as argument to the perl script the list of mods full paths;

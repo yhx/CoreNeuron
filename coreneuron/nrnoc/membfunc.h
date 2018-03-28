@@ -204,6 +204,12 @@ extern void net_event(Point_process*, double);
 extern void net_send(void**, int, Point_process*, double, double);
 extern void net_move(void**, Point_process*, double);
 extern void artcell_net_send(void**, int, Point_process*, double, double);
+extern void artcell_net_move(void**, Point_process*, double);
+extern void nrn2ncs_outputevent(int netcon_output_index, double firetime);
+extern short* nrn_artcell_qindex_;
+extern bool nrn_use_localgid_;
+extern void net_sem_from_gpu(int sendtype, int i_vdata, int, int ith, int ipnt, double, double);
+
 // _OPENACC and/or NET_RECEIVE_BUFFERING
 extern void net_sem_from_gpu(int, int, int, int, int, double, double);
 

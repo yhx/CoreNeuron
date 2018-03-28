@@ -65,17 +65,6 @@ void mk_netcvode() {
     }
 }
 
-//TODO following declarations dont appears in any include files
-extern short* nrn_artcell_qindex_;
-extern bool nrn_use_localgid_;
-extern void nrn2ncs_outputevent(int netcon_output_index, double firetime);
-void net_send(void**, int, Point_process*, double, double);
-void net_event(Point_process* pnt, double time);
-void net_move(void**, Point_process*, double);
-void net_sem_from_gpu(int sendtype, int i_vdata, int, int ith, int ipnt, double, double);
-void artcell_net_send(void**, int, Point_process*, double, double);
-void artcell_net_move(void**, Point_process*, double);
-
 #ifdef DEBUG
 // temporary
 static int nrn_errno_check(int type) {

@@ -1751,9 +1751,9 @@ for (int i=0; i < nt.end; ++i) {
 #if CHKPNTDEBUG
         ntc.vecplay_ix[i] = ix;
 #endif
-        IvocVect* yvec = vector_new1(sz);
+        IvocVect* yvec = vector_new(sz);
         F.read_array<double>(vector_vec(yvec), sz);
-        IvocVect* tvec = vector_new1(sz);
+        IvocVect* tvec = vector_new(sz);
         F.read_array<double>(vector_vec(tvec), sz);
         ix = nrn_param_layout(ix, mtype, ml);
         if (ml->_permute) {

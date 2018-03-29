@@ -73,6 +73,8 @@ extern void ncs2nrn_integrate(double tstop);
 extern void handle_forward_skip(double forwardskip, int prcellgid);
 
 extern int nrn_set_timeout(int);
+extern void nrn_fake_fire(int gid, double spiketime, int fake_out);
+
 
 extern void netpar_tid_gid2ps(int tid, int gid, PreSyn** ps, InputPreSyn** psi);
 extern double set_mindelay(double maxdelay);

@@ -89,6 +89,7 @@ struct Memb_list {
     NetSendBuffer_t* _net_send_buffer;
     int nodecount; /* actual node count */
     int _nodecount_padded;
+    void* instance; /* holds extra information about variables */
 };
 } //namespace coreneuron
 #endif

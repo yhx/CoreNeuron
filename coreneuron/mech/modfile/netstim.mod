@@ -125,6 +125,8 @@ int nrn_random_isran123(void* r, uint32_t* id1, uint32_t* id2, uint32_t* id3);
 ENDVERBATIM
 
 FUNCTION erand() {
+    LOCAL computed
+    computed = 0
 VERBATIM
 	if (_p_donotuse) {
 		/*
@@ -141,7 +143,7 @@ VERBATIM
 #else
 		_lerand = nrnran123_negexp((nrnran123_State*)_p_donotuse);
 #endif
-		return _lerand;
+        _lcomputed = 1;
 	}else{
 #if NRNBBCORE
 		assert(0);
@@ -156,7 +158,9 @@ VERBATIM
 	}
 #if !NRNBBCORE
 ENDVERBATIM
-	erand = exprand(1)
+    if (computed == 0) {
+	    erand = exprand(1)
+    }
 VERBATIM
 #endif
 ENDVERBATIM

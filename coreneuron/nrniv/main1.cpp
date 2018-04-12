@@ -269,8 +269,7 @@ const char* nrn_version(int) {
 } //namespace coreneuron
 
 using namespace coreneuron;
-extern "C" int core_psolve(int argc, char** argv, char** env) {
-    (void)env; /* unused */
+extern "C" int psolve_core(int argc, char** argv) {
 
 #if NRNMPI
     nrnmpi_init(1, &argc, &argv);

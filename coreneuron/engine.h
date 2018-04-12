@@ -1,4 +1,12 @@
-#pragma once
+#ifndef CORENEURON_ENGINE_H
+#define CORENEURON_ENGINE_H
 
-extern "C" int core_psolve (int argc, char** argv, char** env);
+#ifdef __cplusplus
+extern "C" {
+#endif
+    extern int psolve_core (int argc, char** argv);
+#ifdef __cplusplus
+    } 
+#endif
 
+#endif

@@ -29,8 +29,8 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <coreneuron/engine.h>
 extern "C" {extern void modl_reg(void);}
 
-int main(int argc, char** argv, char** env) {
-  return core_psolve(argc, argv, env);
+int main(int argc, char** argv) {
+  return psolve_core(argc, argv);
 }
 
 /// Declare an empty function if Neurodamus mechanisms are not used, otherwise register them in mechs/cfile/mod_func.c

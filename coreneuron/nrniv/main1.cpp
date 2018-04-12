@@ -269,7 +269,7 @@ const char* nrn_version(int) {
 } //namespace coreneuron
 
 using namespace coreneuron;
-extern "C" int psolve_core(int argc, char** argv) {
+extern "C" int solve_core(int argc, char** argv) {
 
 #if NRNMPI
     nrnmpi_init(1, &argc, &argv);
@@ -306,6 +306,7 @@ extern "C" int psolve_core(int argc, char** argv) {
     nrnmpi_barrier();
 #endif
     bool compute_gpu = nrnopt_get_flag("-gpu");
+    bool skip_mpi_finalize = nrnopt_get_flag("--skip-mpi-finalize");
 
 // clang-format off
     #pragma acc data copyin(celsius, secondorder) if (compute_gpu)
@@ -382,7 +383,9 @@ extern "C" int psolve_core(int argc, char** argv) {
 
 // mpi finalize
 #if NRNMPI
-    nrnmpi_finalize();
+    if (!skip_mpi_finalize) {
+        nrnmpi_finalize();
+    }
 #endif
 
     finalize_data_on_device();

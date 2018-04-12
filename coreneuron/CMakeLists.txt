@@ -285,6 +285,7 @@ set_target_properties(coreneuron PROPERTIES
 install(TARGETS coreneuron
              LIBRARY DESTINATION ${LIB_INSTALL_DIR}
              ARCHIVE DESTINATION ${LIB_INSTALL_DIR} )
+         install(FILES "engine.h" DESTINATION include/coreneuron)
 
 if(ENABLE_DEV_FILES_INSTALLATION)
     install(DIRECTORY .

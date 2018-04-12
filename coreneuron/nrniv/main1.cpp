@@ -34,6 +34,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <vector>
 #include <string.h>
+#include "coreneuron/engine.h"
 #include "coreneuron/utils/randoms/nrnran123.h"
 #include "coreneuron/nrnconf.h"
 #include "coreneuron/nrnoc/multicore.h"
@@ -66,7 +67,6 @@ int nrn_feenableexcept() {
 }
 #endif
 namespace coreneuron {
-int main1(int argc, char* argv[], char** env);
 void call_prcellstate_for_prcellgid(int prcellgid, int compute_gpu, int is_init);
 void nrn_init_and_load_data(int argc,
                             char* argv[],
@@ -241,7 +241,35 @@ void call_prcellstate_for_prcellgid(int prcellgid, int compute_gpu, int is_init)
     }
 }
 
-int main1(int argc, char** argv, char** env) {
+
+/* perform forwardskip and call prcellstate for prcellgid */
+void handle_forward_skip(double forwardskip, int prcellgid) {
+    double savedt = dt;
+    double savet = t;
+
+    dt = forwardskip * 0.1;
+    t = -1e9;
+
+    for (int step = 0; step < 10; ++step) {
+        nrn_fixed_step_minimal();
+    }
+
+    if (prcellgid >= 0) {
+        prcellstate(prcellgid, "fs");
+    }
+
+    dt = savedt;
+    t = savet;
+    dt2thread(-1.);
+}
+
+const char* nrn_version(int) {
+    return "version id unimplemented";
+}
+} //namespace coreneuron
+
+using namespace coreneuron;
+extern "C" int core_psolve(int argc, char** argv, char** env) {
     (void)env; /* unused */
 
 #if NRNMPI
@@ -363,28 +391,3 @@ int main1(int argc, char** argv, char** env) {
     return 0;
 }
 
-/* perform forwardskip and call prcellstate for prcellgid */
-void handle_forward_skip(double forwardskip, int prcellgid) {
-    double savedt = dt;
-    double savet = t;
-
-    dt = forwardskip * 0.1;
-    t = -1e9;
-
-    for (int step = 0; step < 10; ++step) {
-        nrn_fixed_step_minimal();
-    }
-
-    if (prcellgid >= 0) {
-        prcellstate(prcellgid, "fs");
-    }
-
-    dt = savedt;
-    t = savet;
-    dt2thread(-1.);
-}
-
-const char* nrn_version(int) {
-    return "version id unimplemented";
-}
-} //namespace coreneuron

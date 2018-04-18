@@ -249,6 +249,7 @@ void nrn_read_filesdat(int& ngrp, int*& grp, int multiple, int*& imult, const ch
             ngrp++;
         }
         if ((iNum + 1) % iNumFiles == 0) {
+            // re-read file for each multiple (skipping the two header lines)
             rewind(fp);
             fscanf(fp, "%*s\n");
             fscanf(fp, "%*d\n");

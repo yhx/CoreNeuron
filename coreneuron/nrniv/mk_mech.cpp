@@ -40,7 +40,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/nrniv/nrn_assert.h"
 #include "coreneuron/utils/sdprintf.h"
 #include "coreneuron/mech/cfile/cabvars.h"
-#include "coreneuron/nrniv/nrnbbcore_direct.h"
+#include "coreneuron/nrniv/nrn2core_direct.h"
 
 static char banner[] = "Duke, Yale, and the BlueBrain Project -- Copyright 1984-2015";
 
@@ -66,7 +66,7 @@ int nrn_need_byteswap;
 
 std::map<std::string, int> mech2type;
 
-void (*nrnbbcore_write_mkmech_info_)(std::ostream&);
+void (*nrn2core_mkmech_info_)(std::ostream&);
 static void mk_mech();
 static void mk_mech(std::istream&);
 
@@ -118,8 +118,8 @@ void mk_mech(const char* datpath) {
 static void mk_mech() {
   nrn_need_byteswap = 0;
   std::stringstream ss;
-  nrn_assert(nrnbbcore_write_mkmech_info_);
-  (*nrnbbcore_write_mkmech_info_)(ss);
+  nrn_assert(nrn2core_mkmech_info_);
+  (*nrn2core_mkmech_info_)(ss);
   mk_mech(ss);
 }
 

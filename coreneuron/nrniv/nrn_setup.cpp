@@ -48,6 +48,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/nrniv/node_permute.h"
 #include "coreneuron/nrniv/cellorder.h"
 #include "coreneuron/utils/reports/nrnsection_mapping.h"
+#include "coreneuron/nrniv/nrn2core_direct.h"
 
 // file format defined in cooperation with nrncore/src/nrniv/nrnbbcore_write.cpp
 // single integers are ascii one per line. arrays are binary int or double
@@ -183,6 +184,12 @@ std::vector<NetCon*> netcon_in_presyn_order_;
 
 /// Only for setup vector of netcon source gids
 std::vector<int*> netcon_srcgid;
+
+int corenrn_embedded;
+
+/// when embedded, get the gap setup info from NEURON.
+void (*nrn2core_get_partrans_setup_info_)(int tid, int& ntar, int& nsrc,
+  int& type, int& ix_vpre, int*& sid_target, int*& sid_src, int*& v_indices);
 
 // Wrap read_phase1 and read_phase2 calls to allow using  nrn_multithread_job.
 // Args marshaled by store_phase_args are used by phase1_wrapper
@@ -639,7 +646,15 @@ void nrn_setup(const char* filesdat,
         assert(nrn_setup_multiple == 1);
         nrn_partrans::transfer_thread_data_ = new nrn_partrans::TransferThreadData[nrn_nthread];
         nrn_partrans::setup_info_ = new nrn_partrans::SetupInfo[ngroup];
-        coreneuron::phase_wrapper<coreneuron::gap>();
+        if (!corenrn_embedded) {
+            coreneuron::phase_wrapper<coreneuron::gap>();
+        }else{
+            for (int i=0; i < ngroup; ++i) {
+              nrn_partrans::SetupInfo& si = nrn_partrans::setup_info_[i];
+              (*nrn2core_get_partrans_setup_info_)(i, si.ntar, si.nsrc, si.type,
+                si.ix_vpre, si.sid_target, si.sid_src, si.v_indices);
+            }
+        }
         nrn_partrans::gap_mpi_setup(ngroup);
     }
 

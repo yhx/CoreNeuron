@@ -9,10 +9,10 @@
 #include "coreneuron/nrniv/nrniv_decl.h"
 #include "coreneuron/nrnoc/membfunc.h"
 #include "coreneuron/nrniv/nrn_assert.h"
-#include "coreneuron/nrniv/nrnbbcore_direct.h"
+#include "coreneuron/nrniv/nrn2core_direct.h"
 
-void* (*nrnbbcore_get_global_dbl_item_)(void*, const char*& name, int& size, double*& val);
-int (*nrnbbcore_get_global_int_item_)(const char* name);
+void* (*nrn2core_get_global_dbl_item_)(void*, const char*& name, int& size, double*& val);
+int (*nrn2core_get_global_int_item_)(const char* name);
 
 using namespace std;
 namespace coreneuron {
@@ -46,7 +46,7 @@ void set_globals(const char* path) {
     const char* name;
     int size;
     double* val = NULL;
-    for (void* p = NULL; (p = (*nrnbbcore_get_global_dbl_item_)(p, name, size, val)) != NULL;){
+    for (void* p = NULL; (p = (*nrn2core_get_global_dbl_item_)(p, name, size, val)) != NULL;){
         N2V::iterator it;
         it = n2v->find(name);
         if (it != n2v->end()) {
@@ -63,8 +63,8 @@ void set_globals(const char* path) {
         }
         delete [] val;
     }
-    secondorder = (*nrnbbcore_get_global_int_item_)("secondorder");
-    nrnran123_set_globalindex((*nrnbbcore_get_global_int_item_)("Random123_global_index"));
+    secondorder = (*nrn2core_get_global_int_item_)("secondorder");
+    nrnran123_set_globalindex((*nrn2core_get_global_int_item_)("Random123_global_index"));
 
   }else{ // get the info from the globals.dat file
 

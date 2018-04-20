@@ -50,6 +50,9 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/utils/reports/nrnsection_mapping.h"
 #include "coreneuron/nrniv/nrn2core_direct.h"
 
+void (*nrn2core_get_dat1_)(int tid, int& n_presyn, int& n_netcon,
+  int*& output_gid, int*& netcon_srcgid);
+
 // file format defined in cooperation with nrncore/src/nrniv/nrnbbcore_write.cpp
 // single integers are ascii one per line. arrays are binary int or double
 // Note that regardless of the gid contents of a group, since all gids are
@@ -266,9 +269,18 @@ void nrn_read_filesdat(int& ngrp, int*& grp, int multiple, int*& imult, const ch
     fclose(fp);
 }
 
+static void read_phase1(int* output_gid, int imult, NrnThread& nt);
+
+static void* direct_phase1(NrnThread* n) {
+    NrnThread& nt = *n;
+    int* output_gid;
+    (*nrn2core_get_dat1_)(nt.id, nt.n_presyn, nt.n_netcon, output_gid, netcon_srcgid[nt.id]);
+    read_phase1(output_gid, 0, nt);
+    return NULL;
+}
+
 void read_phase1(FileHandler& F, int imult, NrnThread& nt) {
     assert(!F.fail());
-    int zz = imult * maxgid;     // offset for each gid
     nt.n_presyn = F.read_int();  /// Number of PreSyn-s in NrnThread nt
     nt.n_netcon = F.read_int();  /// Number of NetCon-s in NrnThread nt
     nt.presyns = new PreSyn[nt.n_presyn];
@@ -281,22 +293,11 @@ void read_phase1(FileHandler& F, int imult, NrnThread& nt) {
     F.read_array<int>(netcon_srcgid[nt.id], nt.n_netcon);
     F.close();
 
-#if 0
-  // for checking whether negative gids fit into the gid space
-  // not used for now since negative gids no longer encode the thread id.
-  double dmaxint = 1073741824.; //2^30
-  for (;;) {
-    if (dmaxint*2. == double(int(dmaxint*2.))) {
-      dmaxint *= 2.;
-    }else{
-      if (dmaxint*2. - 1. == double(int(dmaxint*2. - 1.))) {
-        dmaxint = 2.*dmaxint - 1.;
-        break;
-      }
-    }
-  }
-#endif
+    read_phase1(output_gid, imult, nt);
+}
 
+static void read_phase1(int* output_gid, int imult, NrnThread& nt) {
+    int zz = imult * maxgid;     // offset for each gid
     // offset the (non-negative) gids according to multiple
     // make sure everything fits into gid space.
     for (int i = 0; i < nt.n_presyn; ++i) {
@@ -658,8 +659,12 @@ void nrn_setup(const char* filesdat,
         nrn_partrans::gap_mpi_setup(ngroup);
     }
 
-    coreneuron::phase_wrapper<(
-        coreneuron::phase)1>();  /// If not the xlc compiler, it should be coreneuron::phase::one
+    if (!corenrn_embedded) {
+      coreneuron::phase_wrapper<(
+          coreneuron::phase)1>();  /// If not the xlc compiler, it should be coreneuron::phase::one
+    }else{
+      nrn_multithread_job(direct_phase1);
+    }
 
     // from the gid2out map and the netcon_srcgid array,
     // fill the gid2in, and from the number of entries,

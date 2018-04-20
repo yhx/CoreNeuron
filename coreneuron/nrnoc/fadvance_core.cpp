@@ -26,12 +26,12 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include "coreneuron/coreneuron.h"
 #include "coreneuron/nrnconf.h"
 #include "coreneuron/nrnoc/multicore.h"
 #include "coreneuron/nrnmpi/nrnmpi.h"
 #include "coreneuron/nrnoc/nrnoc_decl.h"
 #include "coreneuron/nrniv/nrn_acc_manager.h"
-#include "coreneuron/coreneuron.h"
 #include "coreneuron/utils/reports/nrnreport.h"
 namespace coreneuron {
 static void* nrn_fixed_step_thread(NrnThread*);

@@ -59,6 +59,8 @@ typedef char Symbol;
 
 
 extern double celsius;
+#pragma acc declare create(celsius)
+
 extern double t, dt;
 extern int rev_dt;
 extern int secondorder;

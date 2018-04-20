@@ -57,6 +57,11 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <string.h>
 #include <climits>
 
+namespace coreneuron {
+#pragma acc declare create (nrn_threads)
+extern NrnThread* nrn_threads;
+}
+
 #if 0
 #include <fenv.h>
 #define NRN_FEEXCEPT (FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW)

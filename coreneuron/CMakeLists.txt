@@ -236,10 +236,10 @@ set(GENERATED_MECH_C_FILES ${MOD_FUNC_C} ${MOD_FUNC_PTRS_C} ${MOD2C_STDMECH_OUTP
 
 # artificial cells must be on cpu, defaul nrnran123.c is for cpu, nrn_setup.cpp uses nrnran123 for only memory calculation purpose which should use cpu version of nrnran123
 set(NOACC_MECH_C_FILES
-    ${CMAKE_CURRENT_BINARY_DIR}/netstim.c
-    ${CMAKE_CURRENT_BINARY_DIR}/netstim_inhpoisson.c
-    ${CMAKE_CURRENT_BINARY_DIR}/pattern.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/utils/randoms/nrnran123.c
+    ${CMAKE_CURRENT_BINARY_DIR}/netstim.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/netstim_inhpoisson.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/pattern.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/utils/randoms/nrnran123.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/nrniv/nrn_setup.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/nrniv/global_vars.cpp)
 

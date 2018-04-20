@@ -28,8 +28,8 @@ THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <stdlib.h>
 #include <math.h>
-#include "coreneuron/nrnconf.h"
 #include "coreneuron/utils/randoms/nrnran123.h"
+#include "coreneuron/nrnconf.h"
 #include "coreneuron/utils/randoms/Random123/philox.h"
 #include "coreneuron/nrniv/nrnmutdec.h"
 namespace coreneuron {

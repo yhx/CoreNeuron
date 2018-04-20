@@ -181,7 +181,6 @@ the USEION statement of any model using this ion\n",
 #define FARADAY 96485.309
 #define ktf (1000. * 8.3134 * (celsius + 273.15) / FARADAY)
 
-#pragma acc routine seq
 double nrn_nernst(double ci, double co, double z, double celsius) {
     /*printf("nrn_nernst %g %g %g\n", ci, co, z);*/
     if (z == 0) {
@@ -196,7 +195,6 @@ double nrn_nernst(double ci, double co, double z, double celsius) {
     }
 }
 
-#pragma acc routine seq
 void nrn_wrote_conc(int type,
                     double* p1,
                     int p2,

@@ -140,10 +140,10 @@ extern nrn_watch_check_t* nrn_watch_check;
 
 extern void nrn_jacob_capacitance(NrnThread*, Memb_list*, int);
 extern void nrn_writes_conc(int, int);
-#if defined(_OPENACC)
 #pragma acc routine seq
-#endif
 extern void nrn_wrote_conc(int, double*, int, int, double**, double, int);
+#pragma acc routine seq
+double nrn_nernst(double ci, double co, double z, double celsius);
 extern void hoc_register_prop_size(int, int, int);
 extern void hoc_register_dparam_semantics(int type, int, const char* name);
 

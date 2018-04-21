@@ -128,7 +128,6 @@ struct NrnThread {
 extern void nrn_threads_create(int n, int parallel);
 extern int nrn_nthread;
 extern NrnThread* nrn_threads;
-#pragma acc declare present (nrn_threads)
 extern void nrn_multithread_job(void* (*)(NrnThread*));
 extern void nrn_thread_table_check(void);
 

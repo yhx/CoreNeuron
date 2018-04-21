@@ -62,7 +62,6 @@ namespace coreneuron {
 #define ix(arg) ((arg)*_STRIDE)
 #define s_(arg) _p[s[arg] * _STRIDE]
 
-//#pragma acc routine seq
 int nrn_newton_thread(NewtonSpace* ns,
                       int n,
                       int* s,

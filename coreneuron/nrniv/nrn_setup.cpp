@@ -50,7 +50,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/utils/reports/nrnsection_mapping.h"
 #include "coreneuron/nrniv/nrn2core_direct.h"
 
-void (*nrn2core_get_dat1_)(int tid, int& n_presyn, int& n_netcon,
+int (*nrn2core_get_dat1_)(int tid, int& n_presyn, int& n_netcon,
   int*& output_gid, int*& netcon_srcgid);
 
 // file format defined in cooperation with nrncore/src/nrniv/nrnbbcore_write.cpp
@@ -188,11 +188,15 @@ std::vector<NetCon*> netcon_in_presyn_order_;
 /// Only for setup vector of netcon source gids
 std::vector<int*> netcon_srcgid;
 
+extern "C" {
 int corenrn_embedded;
+}
 
 /// when embedded, get the gap setup info from NEURON.
+extern "C" {
 void (*nrn2core_get_partrans_setup_info_)(int tid, int& ntar, int& nsrc,
   int& type, int& ix_vpre, int*& sid_target, int*& sid_src, int*& v_indices);
+}
 
 // Wrap read_phase1 and read_phase2 calls to allow using  nrn_multithread_job.
 // Args marshaled by store_phase_args are used by phase1_wrapper
@@ -274,8 +278,10 @@ static void read_phase1(int* output_gid, int imult, NrnThread& nt);
 static void* direct_phase1(NrnThread* n) {
     NrnThread& nt = *n;
     int* output_gid;
-    (*nrn2core_get_dat1_)(nt.id, nt.n_presyn, nt.n_netcon, output_gid, netcon_srcgid[nt.id]);
-    read_phase1(output_gid, 0, nt);
+    int valid = (*nrn2core_get_dat1_)(nt.id, nt.n_presyn, nt.n_netcon, output_gid, netcon_srcgid[nt.id]);
+    if (valid) {
+      read_phase1(output_gid, 0, nt);
+    }
     return NULL;
 }
 
@@ -283,9 +289,6 @@ void read_phase1(FileHandler& F, int imult, NrnThread& nt) {
     assert(!F.fail());
     nt.n_presyn = F.read_int();  /// Number of PreSyn-s in NrnThread nt
     nt.n_netcon = F.read_int();  /// Number of NetCon-s in NrnThread nt
-    nt.presyns = new PreSyn[nt.n_presyn];
-    nt.netcons = new NetCon[nt.n_netcon + nrn_setup_extracon];
-    nt.presyns_helper = (PreSynHelper*)ecalloc(nt.n_presyn, sizeof(PreSynHelper));
 
     int* output_gid = F.read_array<int>(nt.n_presyn);
     // the extra netcon_srcgid will be filled in later
@@ -306,6 +309,11 @@ static void read_phase1(int* output_gid, int imult, NrnThread& nt) {
             output_gid[i] += zz;
         }
     }
+
+    nt.presyns = new PreSyn[nt.n_presyn];
+    nt.netcons = new NetCon[nt.n_netcon + nrn_setup_extracon];
+    nt.presyns_helper = (PreSynHelper*)ecalloc(nt.n_presyn, sizeof(PreSynHelper));
+
     int* nc_srcgid = netcon_srcgid[nt.id];
     for (int i = 0; i < nt.n_netcon; ++i) {
         if (nc_srcgid[i] >= 0) {
@@ -354,6 +362,7 @@ static void read_phase1(int* output_gid, int imult, NrnThread& nt) {
             nt.presyns[i].output_index_ = -1;
         }
     }
+
     delete[] output_gid;
 
     if (nrn_setup_extracon > 0) {
@@ -1001,6 +1010,9 @@ void nrn_cleanup(bool clean_ion_global_map) {
 
 void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
     assert(!F.fail());
+    if (corenrn_embedded) {
+      F.checkpoint(2); // do not know why
+    }
     nrn_assert(imult >= 0);  // avoid imult unused warning
 #if 1 || CHKPNTDEBUG
     NrnThreadChkpnt& ntc = nrnthread_chkpnt[nt.id];

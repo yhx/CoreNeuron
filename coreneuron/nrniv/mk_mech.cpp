@@ -66,7 +66,9 @@ int nrn_need_byteswap;
 
 std::map<std::string, int> mech2type;
 
+extern "C" {
 void (*nrn2core_mkmech_info_)(std::ostream&);
+}
 static void mk_mech();
 static void mk_mech(std::istream&);
 

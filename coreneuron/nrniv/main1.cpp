@@ -54,9 +54,22 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/nrniv/partrans.h"
 #include "coreneuron/nrniv/multisend.h"
 #include "coreneuron/utils/file_utils.h"
+#include "coreneuron/nrniv/nrn2core_direct.h"
 #include <string.h>
 #include <climits>
 
+extern "C" {
+int corenrn_embedded_run(int nthread) {
+  corenrn_embedded = 1;
+  int argc = 3;
+  char** argv = new char*[argc];
+  argv[0] = strdup("corenrn");
+  argv[1] = strdup("-d");
+  argv[2] = strdup("coredat");
+  solve_core(argc, argv);
+  return corenrn_embedded;
+}
+}
 
 #if 0
 #include <fenv.h>
@@ -291,7 +304,6 @@ extern "C" int solve_core(int argc, char** argv) {
             reports_needs_finalize = configs.size();
         }
     }
-
     // initializationa and loading functions moved to separate
     nrn_init_and_load_data(argc, argv, configs.size() > 0);
     std::string checkpoint_path = nrnopt_get_str("--checkpoint");

@@ -35,6 +35,8 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #define nrn_spikebuf_size 0
 #endif
 
+namespace coreneuron {
+
 #if nrn_spikebuf_size > 0
 struct NRNMPI_Spikebuf{
     int nspike;
@@ -43,7 +45,6 @@ struct NRNMPI_Spikebuf{
 };
 #endif
 
-namespace coreneuron {
 
 #define icapacity_ nrnmpi_i_capacity_
 #define spikeout_ nrnmpi_spikeout_
@@ -80,8 +81,7 @@ extern NRNMPI_Spikebuf* spbufout_;
 extern NRNMPI_Spikebuf* spbufin_;
 #endif
 
-#endif  // NRNMPI
-
 } //namespace coreneuron
 
+#endif  // NRNMPI
 #endif

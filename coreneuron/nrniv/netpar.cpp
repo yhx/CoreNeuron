@@ -42,6 +42,9 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/nrniv/ivocvect.h"
 #include "coreneuron/nrniv/multisend.h"
 #include "coreneuron/nrniv/nrn_assert.h"
+#if NRNMPI
+#include "coreneuron/nrnmpi/mpispike.h"
+#endif
 
 namespace coreneuron {
 
@@ -52,12 +55,8 @@ static double t_exchange_;
 static double dt1_;  // 1/dt
 
 void nrn_spike_exchange_init();
-} //namespace coreneuron
+
 #if NRNMPI
-
-#include "coreneuron/nrnmpi/mpispike.h"
-
-namespace coreneuron {
 
 void nrn_timeout(int);
 void nrn_spike_exchange(NrnThread*);
@@ -85,6 +84,7 @@ static bool use_compress_;
 static int spfixout_capacity_;
 static int idxout_;
 static void nrn_spike_exchange_compressed(NrnThread*);
+
 #endif  // NRNMPI
 
 static int active_;

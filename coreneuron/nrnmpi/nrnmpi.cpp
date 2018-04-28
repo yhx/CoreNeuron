@@ -36,6 +36,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/nrnoc/nrnpthread.h"
 #include "coreneuron/nrnomp/nrnomp.h"
 
+namespace coreneuron {
 #if NRNMPI
 #include <mpi.h>
 
@@ -44,7 +45,6 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <libhpm.h>
 #endif
 
-namespace coreneuron {
 int nrnmusic;
 
 MPI_Comm nrnmpi_world_comm;

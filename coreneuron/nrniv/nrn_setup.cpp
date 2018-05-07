@@ -48,10 +48,34 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/nrniv/node_permute.h"
 #include "coreneuron/nrniv/cellorder.h"
 #include "coreneuron/utils/reports/nrnsection_mapping.h"
+
+// callbacks into nrn/src/nrniv/nrnbbcore_write.cpp
 #include "coreneuron/nrniv/nrn2core_direct.h"
 
 int (*nrn2core_get_dat1_)(int tid, int& n_presyn, int& n_netcon,
   int*& output_gid, int*& netcon_srcgid);
+
+int (*nrn2core_get_dat2_1_)(int tid, int& ngid, int& n_real_gid, int& nnode, int& ndiam,
+  int& nmech, int*& tml_index, int*& ml_nodecount, int& nidata, int& nvdata, int& nweight);
+
+int (*nrn2core_get_dat2_2_)(int tid, int*& v_parent_index, double*& a, double*& b,
+  double*& area, double*& v, double*& diamvec);
+
+int (*nrn2core_get_dat2_mech_)(int tid, size_t i, int dsz_inst, int*& nodeindices,
+  double*& data, int*& pdata);
+
+int (*nrn2core_get_dat2_3_)(int tid, int nweight, int*& output_vindex, double*& output_threshold,
+  int*& netcon_pnttype, int*& netcon_pntindex, double*& weights, double*& delays);
+
+int (*nrn2core_get_dat2_corepointer_)(int tid, int& n);
+
+int (*nrn2core_get_dat2_corepointer_mech_)(int tid, int type,
+  int& icnt, int& dcnt, int*& iarray, double*& darray);
+
+int (*nrn2core_get_dat2_vecplay_)(int tid, int& n);
+
+int (*nrn2core_get_dat2_vecplay_inst_)(int tid, int i, int& vptype, int& mtype,
+  int& ix, int& sz, double*& yvec, double*& tvec);
 
 // file format defined in cooperation with nrncore/src/nrniv/nrnbbcore_write.cpp
 // single integers are ascii one per line. arrays are binary int or double
@@ -683,7 +707,7 @@ void nrn_setup(const char* filesdat,
     // read the rest of the gidgroup's data and complete the setup for each
     // thread.
     /* nrn_multithread_job supports serial, pthread, and openmp. */
-    coreneuron::phase_wrapper<(coreneuron::phase)2>();
+    coreneuron::phase_wrapper<(coreneuron::phase)2>(corenrn_embedded);
 
     if (is_mapping_needed)
         coreneuron::phase_wrapper<(coreneuron::phase)3>();
@@ -830,10 +854,21 @@ void nrn_inverse_i_layout(int i, int& icnt, int cnt, int& isz, int sz, int layou
 template <typename T>
 inline void mech_layout(FileHandler& F, T* data, int cnt, int sz, int layout) {
     if (layout == 1) { /* AoS */
+        if (corenrn_embedded) { return; }
         F.read_array<T>(data, cnt * sz);
     } else if (layout == 0) { /* SoA */
         int align_cnt = nrn_soa_padded_size(cnt, layout);
-        T* d = F.read_array<T>(cnt * sz);
+        T* d;
+        if (corenrn_embedded) {
+          d = new T[cnt * sz];
+          for (int i = 0; i < cnt; ++i) {
+              for (int j = 0; j < sz; ++j) {
+                  d[i * sz + j] = data[i * sz + j];
+              }
+          }
+        }else{
+          d = F.read_array<T>(cnt * sz);
+        }
         for (int i = 0; i < cnt; ++i) {
             for (int j = 0; j < sz; ++j) {
                 data[i + j * align_cnt] = d[i * sz + j];
@@ -1009,9 +1044,9 @@ void nrn_cleanup(bool clean_ion_global_map) {
 }
 
 void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
-    assert(!F.fail());
-    if (corenrn_embedded) {
-      F.checkpoint(2); // do not know why
+    bool direct = corenrn_embedded ? true : false;
+    if (!direct) {
+        assert(!F.fail()); // actually should assert that it is open
     }
     nrn_assert(imult >= 0);  // avoid imult unused warning
 #if 1 || CHKPNTDEBUG
@@ -1019,18 +1054,36 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
     ntc.file_id = gidgroups_w[nt.id];
 #endif
     NrnThreadMembList* tml;
-    int n_outputgid = F.read_int();
+
+    int n_outputgid, ndiam, nmech, *tml_index, *ml_nodecount;
+    if (direct) {
+      int  nidata, nvdata;
+      (*nrn2core_get_dat2_1_)(nt.id, n_outputgid, nt.ncell, nt.end, ndiam,
+        nmech, tml_index, ml_nodecount, nidata, nvdata, nt.n_weight);
+      nt._nidata = nidata;
+      nt._nvdata = nvdata;
+    }else{
+      n_outputgid = F.read_int();
+      nt.ncell = F.read_int();
+      nt.end = F.read_int();
+      ndiam = F.read_int();  // 0 if not needed, else nt.end
+      nmech = F.read_int();
+      tml_index = new int[nmech];
+      ml_nodecount = new int[nmech];
+      for (int i=0; i < nmech; ++i) {
+        tml_index[i] = F.read_int();
+        ml_nodecount[i] = F.read_int();
+      }
+      nt._nidata = F.read_int();
+      nt._nvdata = F.read_int();
+      nt.n_weight = F.read_int();
+    }
+
 #if CHKPNTDEBUG
     ntc.n_outputgids = n_outputgid;
-#endif
-    nrn_assert(n_outputgid > 0);  // avoid n_outputgid unused warning
-    nt.ncell = F.read_int();
-    nt.end = F.read_int();
-    int ndiam = F.read_int();  // 0 if not needed, else nt.end
-    int nmech = F.read_int();
-#if CHKPNTDEBUG
     ntc.nmech = nmech;
 #endif
+    nrn_assert(n_outputgid > 0);  // avoid n_outputgid unused warning
 
     /// Checkpoint in coreneuron is defined for both phase 1 and phase 2 since they are written
     /// together
@@ -1068,11 +1121,11 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
         tml->ml->_net_send_buffer = NULL;
         tml->ml->_permute = NULL;
         tml->next = NULL;
-        tml->index = F.read_int();
+        tml->index = tml_index[i];
         if (memb_func[tml->index].alloc == NULL) {
             hoc_execerror(memb_func[tml->index].sym, "mechanism does not exist");
         }
-        tml->ml->nodecount = F.read_int();
+        tml->ml->nodecount = ml_nodecount[i];
         if (!memb_func[tml->index].sym) {
             printf("%s (type %d) is not available\n", nrn_get_mechname(tml->index), tml->index);
             exit(1);
@@ -1100,6 +1153,8 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
         }
         tml_last = tml;
     }
+    delete [] tml_index;
+    delete [] ml_nodecount;
 
     if (shadow_rhs_cnt) {
         nt._shadow_rhs = (double*)ecalloc_align(nrn_soa_padded_size(shadow_rhs_cnt, 0),
@@ -1108,10 +1163,6 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
                                                           NRN_SOA_BYTE_ALIGN, sizeof(double));
         nt.shadow_rhs_cnt = shadow_rhs_cnt;
     }
-
-    nt._nidata = F.read_int();
-    nt._nvdata = F.read_int();
-    nt.n_weight = F.read_int();
 
     nt._data = NULL;    // allocated below after padding
     nt.mapping = NULL;  // section segment mapping
@@ -1178,22 +1229,25 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
 
     // matrix info
     nt._v_parent_index = (int*)ecalloc_align(nt.end, NRN_SOA_BYTE_ALIGN, sizeof(int));
+  if (direct) {
+    (*nrn2core_get_dat2_2_)(nt.id, nt._v_parent_index, nt._actual_a, nt._actual_b,
+      nt._actual_area, nt._actual_v, nt._actual_diam);
+  }else{
     F.read_array<int>(nt._v_parent_index, nt.end);
-#if CHKPNTDEBUG
-    ntc.parent = new int[nt.end];
-    memcpy(ntc.parent, nt._v_parent_index, nt.end * sizeof(int));
-#endif
     F.read_array<double>(nt._actual_a, nt.end);
     F.read_array<double>(nt._actual_b, nt.end);
     F.read_array<double>(nt._actual_area, nt.end);
-#if CHKPNTDEBUG
-    ntc.area = new double[nt.end];
-    memcpy(ntc.area, nt._actual_area, nt.end * sizeof(double));
-#endif
     F.read_array<double>(nt._actual_v, nt.end);
     if (ndiam) {
         F.read_array<double>(nt._actual_diam, nt.end);
     }
+  }
+#if CHKPNTDEBUG
+    ntc.parent = new int[nt.end];
+    memcpy(ntc.parent, nt._v_parent_index, nt.end * sizeof(int));
+    ntc.area = new double[nt.end];
+    memcpy(ntc.area, nt._actual_area, nt.end * sizeof(double));
+#endif
 
     int synoffset = 0;
     int* pnt_offset = new int[n_memb_func];
@@ -1201,28 +1255,41 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
     // All the mechanism data and pdata.
     // Also fill in the pnt_offset
     // Complete spec of Point_process except for the acell presyn_ field.
-    for (tml = nt.tml; tml; tml = tml->next) {
+    int itml = 0;
+    int dsz_inst = 0;
+    for (tml = nt.tml, itml = 0; tml; tml = tml->next, ++itml) {
         int type = tml->index;
         Memb_list* ml = tml->ml;
         int is_art = nrn_is_artificial_[type];
         int n = ml->nodecount;
         int szp = nrn_prop_param_size_[type];
         int szdp = nrn_prop_dparam_size_[type];
+        int layout = nrn_mech_data_layout_[type];
 
         if (!is_art) {
             ml->nodeindices =
                 (int*)ecalloc_align(ml->nodecount, NRN_SOA_BYTE_ALIGN, sizeof(int));
-            F.read_array<int>(ml->nodeindices, ml->nodecount);
         } else {
             ml->nodeindices = NULL;
         }
-
-        int layout = nrn_mech_data_layout_[type];
-        mech_layout<double>(F, ml->data, n, szp, layout);
-
         if (szdp) {
             ml->pdata = (int*)ecalloc_align(nrn_soa_padded_size(n, layout) * szdp,
                                                         NRN_SOA_BYTE_ALIGN, sizeof(int));
+        }
+
+        if (direct) {
+          (*nrn2core_get_dat2_mech_)(nt.id, itml, dsz_inst, ml->nodeindices,
+            ml->data, ml->pdata);
+        }else{
+            if (!is_art) {
+              F.read_array<int>(ml->nodeindices, ml->nodecount);
+            }
+        }
+        if (szdp) { ++dsz_inst; }
+
+        mech_layout<double>(F, ml->data, n, szp, layout);
+
+        if (szdp) {
             mech_layout<int>(F, ml->pdata, n, szdp, layout);
 #if CHKPNTDEBUG  // Not substantive. Only for debugging.
             Memb_list_ckpnt* mlc = ntc.mlmap[type];
@@ -1534,7 +1601,13 @@ for (int i=0; i < nt.end; ++i) {
     // Here we associate the real cells with voltage pointers and
     // acell PreSyn with the Point_process.
     // nt.presyns order same as output_vindex order
-    int* output_vindex = F.read_array<int>(nt.n_presyn);
+    int *output_vindex, *pnttype, *pntindex;
+    double *output_threshold, *weights, *delay;
+    if (direct) {
+      (*nrn2core_get_dat2_3_)(nt.id, nt.n_weight, output_vindex, output_threshold,
+        pnttype, pntindex, weights, delay);
+    }
+    if (!direct) {output_vindex = F.read_array<int>(nt.n_presyn);}
 #if CHKPNTDEBUG
     ntc.output_vindex = new int[nt.n_presyn];
     memcpy(ntc.output_vindex, output_vindex, nt.n_presyn * sizeof(int));
@@ -1543,7 +1616,7 @@ for (int i=0; i < nt.end; ++i) {
         // only indices >= 0 (i.e. _actual_v indices) will be changed.
         node_permute(output_vindex, nt.n_presyn, nt._permute);
     }
-    double* output_threshold = F.read_array<double>(nt.ncell);
+    if (!direct) { output_threshold = F.read_array<double>(nt.ncell);}
 #if CHKPNTDEBUG
     ntc.output_threshold = new double[nt.ncell];
     memcpy(ntc.output_threshold, output_threshold, nt.ncell * sizeof(double));
@@ -1596,8 +1669,8 @@ for (int i=0; i < nt.end; ++i) {
 
     // Make NetCon.target_ point to proper Point_process. Only the NetCon
     // with pnttype[i] > 0 have a target.
-    int* pnttype = F.read_array<int>(nnetcon);
-    int* pntindex = F.read_array<int>(nnetcon);
+    if (!direct) {pnttype = F.read_array<int>(nnetcon);}
+    if (!direct) {pntindex = F.read_array<int>(nnetcon);}
 #if CHKPNTDEBUG
     ntc.pnttype = new int[nnetcon];
     ntc.pntindex = new int[nnetcon];
@@ -1654,7 +1727,7 @@ for (int i=0; i < nt.end; ++i) {
     // weights in netcons order in groups defined by Point_process target type.
     nt.n_weight += nrn_setup_extracon * extracon_target_nweight;
     nt.weights = new double[nt.n_weight];
-    F.read_array<double>(nt.weights, nweight);
+    if (!direct) {F.read_array<double>(nt.weights, nweight);}
 
     int iw = 0;
     for (int i = 0; i < nnetcon; ++i) {
@@ -1670,7 +1743,7 @@ for (int i=0; i < nt.end; ++i) {
     delete[] pnttype;
 
     // delays in netcons order
-    double* delay = F.read_array<double>(nnetcon);
+    if (!direct) {delay = F.read_array<double>(nnetcon);}
 #if CHKPNTDEBUG
     ntc.delay = new double[nnetcon];
     memcpy(ntc.delay, delay, nnetcon * sizeof(double));
@@ -1692,18 +1765,37 @@ for (int i=0; i < nt.end; ++i) {
     }
 
     // BBCOREPOINTER information
-    npnt = F.read_int();
+    if (direct) {
+      (*nrn2core_get_dat2_corepointer_)(nt.id, npnt);
+    }else{
+      npnt = F.read_int();
+    }
 #if CHKPNTDEBUG
     ntc.nbcp = npnt;
     ntc.bcpicnt = new int[npnt];
     ntc.bcpdcnt = new int[npnt];
     ntc.bcptype = new int[npnt];
 #endif
-    for (int i = 0; i < npnt; ++i) {
+    for (NrnThreadMembList* tml = nt.tml; tml; tml = tml->next) {
+        int type = tml->index;
+        if (!nrn_bbcore_read_[type]) { continue; }
         int* iArray = NULL;
         double* dArray = NULL;
-        int type = F.read_int();
-        assert(nrn_bbcore_read_[type]);
+        int icnt, dcnt;
+        if (direct) {
+          (*nrn2core_get_dat2_corepointer_mech_)(nt.id, type,
+            icnt, dcnt, iArray, dArray);
+        }else{
+          type = F.read_int();
+          icnt = F.read_int();
+          dcnt = F.read_int();
+          if (icnt) {
+              iArray = F.read_array<int>(icnt);
+          }
+          if (dcnt) {
+              dArray = F.read_array<double>(dcnt);
+          }
+        }
         if (!nrn_bbcore_write_[type] && nrn_checkpoint_arg_exists) {
             fprintf(
                 stderr,
@@ -1711,19 +1803,11 @@ for (int i=0; i < nt.end; ++i) {
                 memb_func[type].sym);
             assert(nrn_bbcore_write_[type]);
         }
-        int icnt = F.read_int();
-        int dcnt = F.read_int();
 #if CHKPNTDEBUG
         ntc.bcptype[i] = type;
         ntc.bcpicnt[i] = icnt;
         ntc.bcpdcnt[i] = dcnt;
 #endif
-        if (icnt) {
-            iArray = F.read_array<int>(icnt);
-        }
-        if (dcnt) {
-            dArray = F.read_array<double>(dcnt);
-        }
         int ik = 0;
         int dk = 0;
         Memb_list* ml = nt._ml_list[type];
@@ -1756,7 +1840,12 @@ for (int i=0; i < nt.end; ++i) {
 
     // VecPlayContinuous instances
     // No attempt at memory efficiency
-    int n = F.read_int();
+    int n;
+    if (direct) {
+      (*nrn2core_get_dat2_vecplay_)(nt.id, n);
+    }else{
+      n = F.read_int();
+    }
     nt.n_vecplay = n;
     if (n) {
         nt._vecplay = new void*[n];
@@ -1769,32 +1858,50 @@ for (int i=0; i < nt.end; ++i) {
     ntc.mtype = new int[n];
 #endif
     for (int i = 0; i < n; ++i) {
-        int vtype = F.read_int();
+      int vtype, mtype, ix, sz;
+      double *yvec1, *tvec1;
+      if (direct) {
+        (*nrn2core_get_dat2_vecplay_inst_)(nt.id, i, vtype, mtype,
+          ix, sz, yvec1, tvec1);
+      }else{
+        vtype = F.read_int();
+        mtype = F.read_int();
+        ix = F.read_int();
+        sz = F.read_int();
+      }
         nrn_assert(vtype == VecPlayContinuousType);
 #if CHKPNTDEBUG
         ntc.vtype[i] = vtype;
 #endif
-        int mtype = F.read_int();
 #if CHKPNTDEBUG
         ntc.mtype[i] = mtype;
 #endif
         Memb_list* ml = nt._ml_list[mtype];
-        int ix = F.read_int();
-        int sz = F.read_int();
 #if CHKPNTDEBUG
         ntc.vecplay_ix[i] = ix;
 #endif
         IvocVect* yvec = vector_new(sz);
-        F.read_array<double>(vector_vec(yvec), sz);
         IvocVect* tvec = vector_new(sz);
-        F.read_array<double>(vector_vec(tvec), sz);
+        if (direct) {
+          double* py = vector_vec(yvec);
+          double* pt = vector_vec(tvec);
+          for (int j= 0; j < sz; ++j) {
+            py[j] = yvec1[j];
+            pt[j] = tvec1[j];
+          }
+          delete [] yvec1;
+          delete [] tvec1;
+        }else{
+          F.read_array<double>(vector_vec(yvec), sz);
+          F.read_array<double>(vector_vec(tvec), sz);
+        }
         ix = nrn_param_layout(ix, mtype, ml);
         if (ml->_permute) {
             ix = nrn_index_permute(ix, mtype, ml);
         }
         nt._vecplay[i] = new VecPlayContinuous(ml->data + ix, yvec, tvec, NULL, nt.id);
     }
-
+  if (!direct) {
     // store current checkpoint state to continue reading mapping
     F.record_checkpoint();
 
@@ -1802,7 +1909,7 @@ for (int i=0; i < nt.end; ++i) {
     if (!F.eof()) {
         checkpoint_restore_tqueue(nt, F);
     }
-
+  }
     // NetReceiveBuffering
     for (int i = 0; i < net_buf_receive_cnt_; ++i) {
         int type = net_buf_receive_type_[i];

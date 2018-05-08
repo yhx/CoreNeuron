@@ -1602,10 +1602,10 @@ for (int i=0; i < nt.end; ++i) {
     // acell PreSyn with the Point_process.
     // nt.presyns order same as output_vindex order
     int *output_vindex, *pnttype, *pntindex;
-    double *output_threshold, *weights, *delay;
+    double *output_threshold, *delay;
     if (direct) {
       (*nrn2core_get_dat2_3_)(nt.id, nt.n_weight, output_vindex, output_threshold,
-        pnttype, pntindex, weights, delay);
+        pnttype, pntindex, nt.weights, delay);
     }
     if (!direct) {output_vindex = F.read_array<int>(nt.n_presyn);}
 #if CHKPNTDEBUG
@@ -1726,8 +1726,10 @@ for (int i=0; i < nt.end; ++i) {
 
     // weights in netcons order in groups defined by Point_process target type.
     nt.n_weight += nrn_setup_extracon * extracon_target_nweight;
-    nt.weights = new double[nt.n_weight];
-    if (!direct) {F.read_array<double>(nt.weights, nweight);}
+    if (!direct) {
+        nt.weights = new double[nt.n_weight];
+        F.read_array<double>(nt.weights, nweight);
+    }
 
     int iw = 0;
     for (int i = 0; i < nnetcon; ++i) {

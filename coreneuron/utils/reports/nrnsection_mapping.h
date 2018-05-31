@@ -48,6 +48,23 @@ struct SecMapping {
     void add_segment(int sec, int seg) {
         secmap[sec].push_back(seg);
     }
+
+
+    void print() {
+        std::map<int, segvec_type>::iterator it = secmap.begin();
+        std::cout << "name : " << name;
+        while (it != secmap.end()) {
+            std::vector<int> v = it->second;
+            int id = it->first;
+            std::cout << "section id : " << id << std::endl;
+            for(int i=0; i<v.size(); i++) {
+                std::cout << " " << v[i];
+            }
+            ++it;
+        }
+        std::cout << std::endl;
+    }
+
 };
 
 /** @brief Compartment mapping information for a cell
@@ -104,6 +121,13 @@ struct CellMapping {
         std::cout << "Warning: Section mapping list " << name << " doesn't exist! \n";
         return NULL;
     }
+
+    void print() {
+        for (size_t i = 0; i < secmapvec.size(); i++) {
+                secmapvec[i]->print();
+        }
+    }
+
 
     /** @brief return segment count for specific section list with given name */
     size_t get_seclist_segment_count(std::string name) {

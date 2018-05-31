@@ -1825,6 +1825,25 @@ for (int i=0; i < nt.end; ++i) {
             nsb->_nsb_flag = (double*)ecalloc(nsb->_size, sizeof(double));
         }
     }
+    std::cout << "NodeId,MechName" << std::endl;
+    if (nt.ncell > 0 ) {
+        for (NrnThreadMembList* tml=nt.tml; tml ; tml = tml->next) {
+            int type = tml->index;
+            int is_art = nrn_is_artificial_[type];
+            if (is_art)
+                continue;
+            for (int i = 0; i < tml->ml->nodecount; i++) {
+                if(tml->ml->nodeindices[i] == 1)
+                    std::cout << nt.ncell << "," << memb_func[tml->index].sym << std::endl;
+            }
+        }
+    }
+//             if (tml->ml->nodeindices[i] == 0 ) { 
+//                std::cout << i << std::endl;
+//                    memb_func[m->index].sym << std::endl;
+//                break;
+//             }
+//    }
 
     delete[] pnt_offset;
 }
@@ -1863,6 +1882,7 @@ void read_phase3(FileHandler& F, int imult, NrnThread& nt) {
         }
 
         ntmapping->add_cell_mapping(cmap);
+        //cmap->print();
     }
 
     // make number #cells match with mapping size

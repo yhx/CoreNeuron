@@ -10,7 +10,7 @@ hoc_ac_ 1
 float_epsilon 9.999999999999999395e-12
 hoc_cross_x_ 0
 hoc_cross_y_ 0
-default_dll_loaded_ 1
+default_dll_loaded_ 0
 clamp_resist 0.0010000000000000000208
 celsius 6.2999999999999998224
 t 0

@@ -241,6 +241,7 @@ void register_soma_report(NrnThread& nt,
                            config.report_dt, sizemapping, (char*)config.type_str, extramapping,
                            (char*)config.unit);
 
+        records_set_report_max_buffer_size_hint ((char*)config.output_path, config.buffer_size);
         /** add extra mapping */
         records_extra_mapping(config.output_path, gid, 5, extra);
         for (int var_idx = 0; var_idx < vars.size(); ++var_idx) {
@@ -276,6 +277,7 @@ void register_compartment_report(NrnThread& nt,
         records_add_report((char*)config.output_path, gid, gid, gid, config.start, config.stop,
                            config.report_dt, sizemapping, (char*)config.type_str, extramapping,
                            (char*)config.unit);
+        records_set_report_max_buffer_size_hint ((char*)config.output_path, config.buffer_size);
         /** add extra mapping */
         records_extra_mapping(config.output_path, gid, 5, extra);
         for (int var_idx = 0; var_idx < vars.size(); ++var_idx) {
@@ -312,6 +314,7 @@ void register_custom_report(NrnThread& nt,
         records_add_report((char*)config.output_path, gid, gid, gid, config.start, config.stop,
                            config.report_dt, sizemapping, (char*)config.type_str, extramapping,
                            (char*)config.unit);
+        records_set_report_max_buffer_size_hint ((char*)config.output_path, config.buffer_size);
         /** add extra mapping : @todo api changes in reportinglib*/
         records_extra_mapping((char*)config.output_path, gid, 5, extra);
         for (int var_idx = 0; var_idx < vars.size(); ++var_idx) {
@@ -379,7 +382,7 @@ void setup_report_engine(double dt_report, double mindelay) {
     int timesteps_to_buffer = mindelay / dt_report + 2;
     timesteps_to_buffer *= num_min_delay_to_buffer;
 
-    records_set_steps_to_buffer(timesteps_to_buffer);
+//    records_set_steps_to_buffer(timesteps_to_buffer);
     /** reportinglib setup */
     records_setup_communicator();
     records_finish_and_share();
@@ -435,11 +438,15 @@ void register_report(double dt, double tstop, double delay, ReportConfiguration&
 
 void finalize_report() {
 #ifdef ENABLE_REPORTING
-    records_flush(nrn_threads[0]._t);
-    for (int i = 0; i < reports.size(); i++) {
-        delete reports[i];
+#pragma omp master
+    {
+        records_flush(nrn_threads[0]._t);
+        records_clear();
+        for (int i = 0; i < reports.size(); i++) {
+            delete reports[i];
+        }
+        reports.clear();
     }
-    reports.clear();
 #endif
 }
 }

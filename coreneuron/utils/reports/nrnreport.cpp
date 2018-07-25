@@ -42,11 +42,14 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <algorithm>
 #include <map>
 #include <set>
-#include <omp.h>
+
 namespace coreneuron {
 
 #ifdef ENABLE_REPORTING
 
+class ReportEvent;
+
+static std::vector<ReportEvent*> reports;
 struct VarWithMapping {
     int id;
     double* var_value;
@@ -56,6 +59,45 @@ struct VarWithMapping {
 
 // mapping the set of variables pointers to report to its gid
 typedef std::map<int, std::vector<VarWithMapping> > VarsToReport;
+
+class ReportEvent : public DiscreteEvent {
+  private:
+    double dt;
+    double step;
+    char report_name[MAX_REPORT_NAME_LEN];
+    std::vector<int> gids_to_report;
+    double tstart;
+
+  public:
+    ReportEvent(double dt, double tstart, VarsToReport& filtered_gids, const char* name)
+        : dt(dt), tstart(tstart) {
+        strcpy(report_name, name);
+        VarsToReport::iterator it;
+        nrn_assert(filtered_gids.size());
+        step = tstart / dt;
+        gids_to_report.reserve(filtered_gids.size());
+        for (it = filtered_gids.begin(); it != filtered_gids.end(); ++it) {
+            gids_to_report.push_back(it->first);
+        }
+        std::sort(gids_to_report.begin(), gids_to_report.end());
+    }
+
+    /** on deliver, call ReportingLib and setup next event */
+    virtual void deliver(double t, NetCvode* nc, NrnThread* nt) {
+/** @todo: reportinglib is not thread safe */
+#pragma omp critical
+        {
+            // each thread needs to know its own step
+            records_nrec(step, gids_to_report.size(), &gids_to_report[0], report_name);
+            send(t + dt, nc, nt);
+            step++;
+        }
+    }
+
+    virtual bool require_checkpoint() {
+        return false;
+    }
+};
 
 VarsToReport get_soma_vars_to_report(NrnThread& nt, std::set<int>& target) {
     VarsToReport vars_to_report;
@@ -319,7 +361,12 @@ static int num_min_delays_completed = 0;
 
 void nrn_flush_reports(double t) {
 #ifdef ENABLE_REPORTING
-    records_rec(t);
+    // flush before buffer is full
+    if (num_min_delays_completed >= (num_min_delay_to_buffer - 2)) {
+        records_flush(t);
+        num_min_delays_completed = 0;
+    }
+    num_min_delays_completed++;
 #endif
 }
 
@@ -346,12 +393,12 @@ void setup_report_engine(double dt_report, double mindelay) {
 // instead of one per cell group
 void register_report(double dt, double tstop, double delay, ReportConfiguration& report) {
 #ifdef ENABLE_REPORTING
-    
+
     if (report.start < t) {
         report.start = t;
     }
     report.stop = tstop;
-    std::cout << "register_report (" << omp_get_thread_num() << ")" << std::endl;
+
     records_set_atomic_step(dt);
     report.mech_id = nrn_get_mechtype(report.mech_name);
     if (report.type == SynapseReport && report.mech_id == -1) {
@@ -378,6 +425,10 @@ void register_report(double dt, double tstop, double delay, ReportConfiguration&
                 vars_to_report = get_custom_vars_to_report(nt, report, nodes_to_gid);
                 register_custom_report(nt, report, vars_to_report);
         }
+        if (vars_to_report.size()) {
+            reports.push_back(new ReportEvent(dt, t, vars_to_report, report.output_path));
+            reports[reports.size() - 1]->send(t, net_cvode_instance, &nt);
+        }
     }
 #else
     if (nrnmpi_myid == 0)
@@ -387,11 +438,11 @@ void register_report(double dt, double tstop, double delay, ReportConfiguration&
 
 void finalize_report() {
 #ifdef ENABLE_REPORTING
-#pragma omp master
-    {
-        records_flush(nrn_threads[0]._t);
-        records_clear();
+    records_flush(nrn_threads[0]._t);
+    for (int i = 0; i < reports.size(); i++) {
+        delete reports[i];
     }
+    reports.clear();
 #endif
 }
 }

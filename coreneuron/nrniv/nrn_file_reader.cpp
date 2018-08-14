@@ -27,51 +27,57 @@
    */
 
 #include "coreneuron/nrniv/nrn_file_reader.h"
+#include <sstream>
 namespace coreneuron {
-    FileReader::FileReader (const char* filename){
+    FileReader::FileReader (const char* path_w, const char* restore_path_w, int* gidgroups, bool reoder):
+        path_w (path_w), restore_path_w(restore_path_w), gidgroups_w(gidgroups), reorder(reorder) {
 
     }
-    virtual FileReader::~FileReader(){
+     FileReader::~FileReader(){
 
     }
 
-    virtual void 
+     void 
         FileReader::mkmech_info(std::ostream& ){
 
         }
 
-    virtual void*
+     void*
         FileReader::get_global_dbl_item(void*, const char*& name, int& size, double*& val){
 
         }
 
-    virtual int 
+     int 
         FileReader::get_global_int_item(const char* name){
 
         }
 
-    virtual void 
+     void 
         FileReader::get_partrans_setup_info(int tid, int& ntar, int& nsrc,
                 int& type, int& ix_vpre, int*& sid_target, int*& sid_src, int*& v_indices){
 
         }
-    virtual int 
+     int 
         FileReader::get_dat1_(int tid, int& n_presyn, int& n_netcon,
-                int*& output_gid, int*& netcon_srcgid){
-            //TODO open File
+                int*& output_gid, int*& netcon_srcgid, int nrn_setup_extracon){
+            std::ostringstream filename;
+            filename << path_w << "/" << gidgroups_w[tid] <<"_1.dat";
+            F.open (filename.str().c_str(), reorder);
             n_presyn  = F.read_int();
-            nt_netcon = F.read_int();
+            n_netcon = F.read_int();
             output_gid = F.read_array<int>(n_presyn);
-            netcon_srcgid[tid] = new int [n_netcon + nrn_setup_extracon];
-            F.read_array<int>(netcon_srcgid[tid], n_netcon);
+            netcon_srcgid = new int [n_netcon + nrn_setup_extracon]; // compare to initial implementation we already pass the correct pointer
+            F.read_array<int>(netcon_srcgid, n_netcon);
             F.close();
         }
 
-    virtual int 
+     int 
         FileReader::get_dat2_1(int tid, int& ngid, int& n_real_gid, int& nnode, int& ndiam,
                 int& nmech, int*& tml_index, int*& ml_nodecount, int& nidata, int& nvdata, int& nweight){
-            //TODO open File
-            n_outputgid = F.read_int();
+            std::ostringstream filename;
+            filename << restore_path_w << "/" << gidgroups_w[tid] <<"_2.dat";
+            F.open (filename.str().c_str(), reorder);
+            int n_outputgid = F.read_int();  // is it used ? shall we check it is == tid ?
             ngid        = F.read_int();
             n_real_gid  = F.read_int();
             ndiam       = F.read_int();  // 0 if not needed, else nt->end
@@ -87,9 +93,9 @@ namespace coreneuron {
             nweight = F.read_int();
         }
 
-    virtual int 
+     int 
         FileReader::get_dat2_2(int tid, int*& v_parent_index, double*& a, double*& b, //FIXME needs to pass ndiam and nt_end
-                double*& area, double*& v, double*& diamvec){
+                double*& area, double*& v, double*& diamvec, int ndiam, int nt_end){
             F.read_array<int>(v_parent_index, nt_end);
             F.read_array<double>(a, nt_end);
             F.read_array<double>(b, nt_end);
@@ -100,26 +106,26 @@ namespace coreneuron {
             }
         }
 
-    virtual int 
+     int 
         FileReader::get_dat2_mech(int tid, size_t i, int dsz_inst, int*& nodeindices, //FIXME needs to pass ml_nodecount & is_art
-                double*& data, int*& pdata){
+                double*& data, int*& pdata, int ml_nodecount, int is_art){
             if (is_art) {
                 F.read_array<int>(nodeindices, ml_nodecount);
             }
         }
 
-    virtual int 
+     int 
         FileReader::get_dat2_3(int tid, int nweight, int*& output_vindex, double*& output_threshold,
-                int*& netcon_pnttype, int*& netcon_pntindex, double*& weights, double*& delays){ //FIXME needs to pass nt_n_presyn
+                int*& netcon_pnttype, int*& netcon_pntindex, double*& weights, double*& delays, int nt_n_presyn){ //FIXME needs to pass nt_n_presyn
                 output_vindex = F.read_array<int>(nt_n_presyn);
         }
 
-    virtual int 
+     int 
         FileReader::get_dat2_corepointer(int tid, int& n){
-            n = F.read_int()
+            n = F.read_int();
         }
 
-    virtual int 
+     int 
         FileReader::get_dat2_corepointer_mech(int tid, int type,
                 int& icnt, int& dcnt, int*& iarray, double*& darray){
             type = F.read_int();
@@ -129,26 +135,24 @@ namespace coreneuron {
                 iarray = F.read_array<int>(iarray, icnt);
             }
             if (dcnt) {
-                darray = F.read_array<int>(darray, dcnt);
+                darray = F.read_array<double>(darray, dcnt);
             }
         }
 
-    virtual int 
+     int 
         FileReader::get_dat2_vecplay(int tid, int& n){
             n = F.read_int();
         }
 
-    virtual int 
+     int 
         FileReader::get_dat2_vecplay_inst(int tid, int i, int& vptype, int& mtype,
                 int& ix, int& sz, double*& yvec, double*& tvec){
-            vtype = F.read_int();
+            vptype = F.read_int();
             mtype = F.read_int();
             ix    = F.read_int();
             sz    = F.read_int();
-            //TODO Allocatiooooon
             F.read_array<double>(yvec, sz);
             F.read_array<double>(tvec, sz);
         }
-
 } //namespace coreneuron
 

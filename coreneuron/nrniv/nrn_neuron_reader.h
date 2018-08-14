@@ -43,7 +43,7 @@ namespace coreneuron {
     class NeuronReader {
         public:
             NeuronReader() {};
-            virtual ~NeuronReader() = 0;
+            virtual ~NeuronReader() {};
 
             virtual void 
                 mkmech_info(std::ostream& ) = 0;
@@ -59,7 +59,7 @@ namespace coreneuron {
                         int& type, int& ix_vpre, int*& sid_target, int*& sid_src, int*& v_indices) = 0;
             virtual int 
                 get_dat1_(int tid, int& n_presyn, int& n_netcon,
-                        int*& output_gid, int*& netcon_srcgid) = 0;
+                        int*& output_gid, int*& netcon_srcgid, int nrn_setup_extracon) = 0;
 
             virtual int get_dat2_1(int tid, int& ngid, int& n_real_gid, int& nnode, int& ndiam,
                     int& nmech, int*& tml_index, int*& ml_nodecount, int& nidata, int& nvdata, int& nweight) = 0;
@@ -67,15 +67,15 @@ namespace coreneuron {
 
             virtual int 
                 get_dat2_2(int tid, int*& v_parent_index, double*& a, double*& b,
-                        double*& area, double*& v, double*& diamvec)=0;
+                        double*& area, double*& v, double*& diamvec,  int ndiam, int nt_end)=0;
 
             virtual int 
                 get_dat2_mech(int tid, size_t i, int dsz_inst, int*& nodeindices,
-                        double*& data, int*& pdata)=0;
+                        double*& data, int*& pdata,  int ml_nodecount, int is_art)=0;
 
             virtual int 
                 get_dat2_3(int tid, int nweight, int*& output_vindex, double*& output_threshold,
-                        int*& netcon_pnttype, int*& netcon_pntindex, double*& weights, double*& delays)=0;
+                        int*& netcon_pnttype, int*& netcon_pntindex, double*& weights, double*& delays, int nt_n_presyn)=0;
 
             virtual int 
                 get_dat2_corepointer(int tid, int& n)=0;

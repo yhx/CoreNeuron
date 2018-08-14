@@ -31,13 +31,14 @@
 namespace coreneuron {
     class FileReader: public NeuronReader {
         private:
-           FileHandler neuron_file;
-
+           FileHandler F;                                           /// FileHandler to read binary values
+           std::string path_w, restore_path_w;                      /// paths to configuration files
+           int* gidgroups_w;
+           bool reorder;                                            /// reorder bytes
            FileReader (const FileReader&) {}
            FileReader& operator=(const FileReader&) {}
-           FileReader() {}
         public:
-            explicit FileReader (const char* filename);
+            explicit FileReader (const char* path_w, const char* restore_path_w, int* gidgroups, bool reorder);
             virtual ~FileReader();
 
             virtual void 
@@ -54,22 +55,22 @@ namespace coreneuron {
                         int& type, int& ix_vpre, int*& sid_target, int*& sid_src, int*& v_indices);
             virtual int 
                 get_dat1_(int tid, int& n_presyn, int& n_netcon,
-                        int*& output_gid, int*& netcon_srcgid);
+                        int*& output_gid, int*& netcon_srcgid, int nrn_setup_extracon);
 
             virtual int get_dat2_1(int tid, int& ngid, int& n_real_gid, int& nnode, int& ndiam,
                     int& nmech, int*& tml_index, int*& ml_nodecount, int& nidata, int& nvdata, int& nweight);
 
             virtual int 
                 get_dat2_2(int tid, int*& v_parent_index, double*& a, double*& b, //FIXME needs to pass ndiam and nt_end
-                        double*& area, double*& v, double*& diamvec);
+                        double*& area, double*& v, double*& diamvec, int ndiam, int nt_end);
 
             virtual int 
                 get_dat2_mech(int tid, size_t i, int dsz_inst, int*& nodeindices, //FIXME needs to pass ml_nodecount & is_art
-                        double*& data, int*& pdata);
+                        double*& data, int*& pdata, int ml_nodecount, int is_art);
 
             virtual int 
                 get_dat2_3(int tid, int nweight, int*& output_vindex, double*& output_threshold,
-                        int*& netcon_pnttype, int*& netcon_pntindex, double*& weights, double*& delays);
+                        int*& netcon_pnttype, int*& netcon_pntindex, double*& weights, double*& delays, int nt_n_presyn);
 
             virtual int 
                 get_dat2_corepointer(int tid, int& n);

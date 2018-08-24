@@ -77,7 +77,7 @@ namespace coreneuron {
                 }
             virtual int 
                 get_dat1_(int tid, int& n_presyn, int& n_netcon,
-                        int*& output_gid, int*& netcon_srcgid) { 
+                        int*& output_gid, int*& netcon_srcgid, int nrn_setup_extracon) { 
                     assert(0 && "NOT YET IMPLEMENTED");
                 }
 
@@ -88,31 +88,31 @@ namespace coreneuron {
 
             virtual int 
                 get_dat2_2(int tid, int*& v_parent_index, double*& a, double*& b,
-                        double*& area, double*& v, double*& diamvec) { 
+                        double*& area, double*& v, double*& diamvec, int ndiam, int nt_end) {
                     assert(0 && "NOT YET IMPLEMENTED");
                 }
 
             virtual int 
                 get_dat2_mech(int tid, size_t i, int dsz_inst, int*& nodeindices,
-                        double*& data, int*& pdata) { 
+                        double*& data, int*& pdata, int ml_nodecount, int is_art) {
                     assert(0 && "NOT YET IMPLEMENTED");
                 }
 
             virtual int 
                 get_dat2_3(int tid, int nweight, int*& output_vindex, double*& output_threshold,
-                        int*& netcon_pnttype, int*& netcon_pntindex, double*& weights, double*& delays) { 
+                        int*& netcon_pnttype, int*& netcon_pntindex, double*& weights, double*& delays, int nt_n_presyn) {
                     assert(0 && "NOT YET IMPLEMENTED");
                 }
 
             virtual int 
-                get_dat2_corepointer(int tid, int& n) { 
+                get_dat2_corepointer(int tid, int& n) {
                     assert(0 && "NOT YET IMPLEMENTED");
 
                 }
 
             virtual int 
                 get_dat2_corepointer_mech(int tid, int type,
-                        int& icnt, int& dcnt, int*& iarray, double*& darray) { 
+                        int& icnt, int& dcnt, int*& iarray, double*& darray) {
                     assert(0 && "NOT YET IMPLEMENTED");
 
                 }

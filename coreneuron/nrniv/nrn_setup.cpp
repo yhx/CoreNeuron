@@ -187,6 +187,8 @@ std::vector<int*> netcon_srcgid;
 // Wrap read_phase1 and read_phase2 calls to allow using  nrn_multithread_job.
 // Args marshaled by store_phase_args are used by phase1_wrapper
 // and phase2_wrapper.
+
+
 static void store_phase_args(int ngroup,
                              int* gidgroups,
                              int* imult,
@@ -258,14 +260,12 @@ void nrn_read_filesdat(int& ngrp, int*& grp, int multiple, int*& imult, const ch
     fclose(fp);
 }
 
+static void read_phase1(int* output_gid, int imult, NrnThread& nt);
+
 void read_phase1(FileHandler& F, int imult, NrnThread& nt) {
     assert(!F.fail());
-    int zz = imult * maxgid;     // offset for each gid
     nt.n_presyn = F.read_int();  /// Number of PreSyn-s in NrnThread nt
     nt.n_netcon = F.read_int();  /// Number of NetCon-s in NrnThread nt
-    nt.presyns = new PreSyn[nt.n_presyn];
-    nt.netcons = new NetCon[nt.n_netcon + nrn_setup_extracon];
-    nt.presyns_helper = (PreSynHelper*)ecalloc(nt.n_presyn, sizeof(PreSynHelper));
 
     int* output_gid = F.read_array<int>(nt.n_presyn);
     // the extra netcon_srcgid will be filled in later
@@ -273,22 +273,11 @@ void read_phase1(FileHandler& F, int imult, NrnThread& nt) {
     F.read_array<int>(netcon_srcgid[nt.id], nt.n_netcon);
     F.close();
 
-#if 0
-  // for checking whether negative gids fit into the gid space
-  // not used for now since negative gids no longer encode the thread id.
-  double dmaxint = 1073741824.; //2^30
-  for (;;) {
-    if (dmaxint*2. == double(int(dmaxint*2.))) {
-      dmaxint *= 2.;
-    }else{
-      if (dmaxint*2. - 1. == double(int(dmaxint*2. - 1.))) {
-        dmaxint = 2.*dmaxint - 1.;
-        break;
-      }
-    }
-  }
-#endif
+    read_phase1(output_gid, imult, nt);
+}
 
+static void read_phase1(int* output_gid, int imult, NrnThread& nt) {
+    int zz = imult * maxgid;     // offset for each gid
     // offset the (non-negative) gids according to multiple
     // make sure everything fits into gid space.
     for (int i = 0; i < nt.n_presyn; ++i) {
@@ -297,6 +286,9 @@ void read_phase1(FileHandler& F, int imult, NrnThread& nt) {
             output_gid[i] += zz;
         }
     }
+    nt.presyns = new PreSyn[nt.n_presyn];
+    nt.netcons = new NetCon[nt.n_netcon + nrn_setup_extracon];
+    nt.presyns_helper = (PreSynHelper*)ecalloc(nt.n_presyn, sizeof(PreSynHelper));
     int* nc_srcgid = netcon_srcgid[nt.id];
     for (int i = 0; i < nt.n_netcon; ++i) {
         if (nc_srcgid[i] >= 0) {

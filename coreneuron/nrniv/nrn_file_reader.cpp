@@ -65,8 +65,9 @@ namespace coreneuron {
             F.open (filename.str().c_str(), reorder);
             n_presyn  = F.read_int();
             n_netcon = F.read_int();
-            output_gid = F.read_array<int>(n_presyn);
-            netcon_srcgid = new int [n_netcon + nrn_setup_extracon]; // compare to initial implementation we already pass the correct pointer
+            output_gid    = new int [n_presyn];
+            netcon_srcgid = new int [n_netcon + nrn_setup_extracon];
+            F.read_array<int>(output_gid, n_presyn);
             F.read_array<int>(netcon_srcgid, n_netcon);
             F.close();
         }

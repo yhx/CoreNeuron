@@ -42,10 +42,10 @@ static const char* restore_path_w;
 static FileHandler* file_reader_w;
 static bool byte_swap_w;
 
-static void read_phase1(FileHandler& F, int imult, NrnThread& nt);
-static void read_phase2(FileHandler& F, int imult, NrnThread& nt);
-static void read_phase3(FileHandler& F, int imult, NrnThread& nt);
-static void read_phasegap(FileHandler& F, int imult, NrnThread& nt);
+static void read_phase1(FileHandler& F, char* path_w, char* restore_path_w, int gid,int imult, NrnThread& nt);
+static void read_phase2(FileHandler& F, char* path_w, char* restore_path_w, int gid,int imult, NrnThread& nt);
+static void read_phase3(FileHandler& F, char* path_w, char* restore_path_w, int gid,int imult, NrnThread& nt);
+static void read_phasegap(FileHandler& F, char* path_w, char* restore_path_w, int gid,int imult, NrnThread& nt);
 static void setup_ThreadData(NrnThread& nt);
 
 // Functions to load and clean data;
@@ -90,23 +90,43 @@ template <phase P>
 inline void read_phase_aux(FileHandler& F, int imult, NrnThread& nt);
 
 template <>
-inline void read_phase_aux<one>(FileHandler& F, int imult, NrnThread& nt) {
+inline void read_phase_aux<one>(FileHandler& F, char* path_w, char* restore_path_w, int gid, int imult, NrnThread& nt) {
+    sd_ptr fname = sdprintf(fnamebuf, sizeof(fnamebuf),
+                                std::string("%s/%d_" + "1.dat").c_str(),
+                                path_w, gidgroups_w[i]);
+    file_reader_w[i].open(fname, byte_swap_w);
     read_phase1(F, imult, nt);
+    file_reader_w[i].close();
 }
 
 template <>
-inline void read_phase_aux<two>(FileHandler& F, int imult, NrnThread& nt) {
+inline void read_phase_aux<two>(FileHandler& F, char* path_w, char* restore_path_w, int gid, int imult, NrnThread& nt) {
+    sd_ptr fname = sdprintf(fnamebuf, sizeof(fnamebuf),
+                                std::string("%s/%d_" + "2.dat").c_str(),
+                                restore_path_w, gidgroups_w[i]);
+    file_reader_w[i].open(fname, byte_swap_w);
     read_phase2(F, imult, nt);
+    file_reader_w[i].close();
 }
 
 template <>
-inline void read_phase_aux<three>(FileHandler& F, int imult, NrnThread& nt) {
+inline void read_phase_aux<three>(FileHandler& F, char* path_w, char* restore_path_w, int gid, int imult, NrnThread& nt) {
+    sd_ptr fname = sdprintf(fnamebuf, sizeof(fnamebuf),
+                                std::string("%s/%d_" + "3.dat").c_str(),
+                                path_w, gidgroups_w[i]);
+    F.open(fname, byte_swap_w);
     read_phase3(F, imult, nt);
+    file_reader_w[i].close();
 }
 
 template <>
-inline void read_phase_aux<gap>(FileHandler& F, int imult, NrnThread& nt) {
+inline void read_phase_aux<gap>(FileHandler& F, char* path_w, char* restore_path_w, int gid, int imult, NrnThread& nt) {
+    sd_ptr fname = sdprintf(fnamebuf, sizeof(fnamebuf),
+                                std::string("%s/%d_" + getPhaseName<P>() + ".dat").c_str(),
+                                path_w, gidgroups_w[i]);
+    F.open(fname, byte_swap_w);
     read_phasegap(F, imult, nt);
+    file_reader_w[i].close();
 }
 
 /// Reading phase wrapper for each neuron group.
@@ -129,10 +149,8 @@ inline void* phase_wrapper_w(NrnThread* nt) {
                                 data_dir, gidgroups_w[i]);
 
         // if no file failed to open or not opened at all
-        file_reader_w[i].open(fname, byte_swap_w);
 
-        read_phase_aux<P>(file_reader_w[i], imult_w[i], *nt);
-        file_reader_w[i].close();
+        read_phase_aux<P>(file_reader_w[i], path_w, restore_path_w, gidgroups_w[i], file_reader_w[i], imult_w[i], *nt);
         if (P == 2) {
             setup_ThreadData(*nt);
         }

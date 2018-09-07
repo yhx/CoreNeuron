@@ -272,14 +272,20 @@ set(link_reportinglib)
 
 #@TODO: CMake should have option for arch
 if(ENABLE_OPENACC AND ENABLE_CUDA_MODULES)
-    cuda_add_library("cudacoreneuron" ${coreneuron_cuda_files} OPTIONS -arch=sm_20)
+    cuda_add_library("cudacoreneuron" ${coreneuron_cuda_files} OPTIONS
+        -arch=sm_30
+        -gencode=arch=compute_30,code=sm_30
+        -gencode=arch=compute_50,code=sm_50
+        -gencode=arch=compute_52,code=sm_52
+        -gencode=arch=compute_52,code=compute_52
+    )
     set(link_cudacoreneuron cudacoreneuron)
 endif()
 
 if(ENABLE_REPORTINGLIB)
   set(link_reportinglib ${REPORTINGLIB_LIBRARIES})
 endif()
-target_link_libraries(coreneuron ${MPI_C_LIBRARIES}
+target_link_libraries(coreneuron ${MPI_CXX_LIBRARIES}
     ${link_reportinglib} ${link_cudacoreneuron} ${CUDA_LIBRARIES} )
 
 

@@ -48,7 +48,7 @@ extern std::vector<NetCon*> netcon_in_presyn_order_;
 extern std::vector<int*> netcon_srcgid;
 
 extern void mk_mech(const char* path);
-extern void set_globals(const char* path);
+extern void set_globals(const char* path, bool cli_global_seed, int cli_global_seed_value);
 extern void mk_netcvode(void);
 extern void nrn_p_construct(void);
 extern void nrn_setup(const char* filesdat,
@@ -75,7 +75,6 @@ extern void handle_forward_skip(double forwardskip, int prcellgid);
 extern int nrn_set_timeout(int);
 extern void nrn_fake_fire(int gid, double spiketime, int fake_out);
 
-
 extern void netpar_tid_gid2ps(int tid, int gid, PreSyn** ps, InputPreSyn** psi);
 extern double set_mindelay(double maxdelay);
 
@@ -83,5 +82,5 @@ extern int nrn_soa_padded_size(int cnt, int layout);
 
 extern int use_interleave_permute;
 extern int cellorder_nwarp;
-} //namespace coreneuron
+}  // namespace coreneuron
 #endif

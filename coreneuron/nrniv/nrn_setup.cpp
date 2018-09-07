@@ -1158,9 +1158,9 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
 
     if (shadow_rhs_cnt) {
         nt._shadow_rhs = (double*)ecalloc_align(nrn_soa_padded_size(shadow_rhs_cnt, 0),
-                                                            NRN_SOA_BYTE_ALIGN, sizeof(double));
+                                                NRN_SOA_BYTE_ALIGN, sizeof(double));
         nt._shadow_d = (double*)ecalloc_align(nrn_soa_padded_size(shadow_rhs_cnt, 0),
-                                                          NRN_SOA_BYTE_ALIGN, sizeof(double));
+                                              NRN_SOA_BYTE_ALIGN, sizeof(double));
         nt.shadow_rhs_cnt = shadow_rhs_cnt;
     }
 
@@ -1267,8 +1267,7 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
         int layout = nrn_mech_data_layout_[type];
 
         if (!is_art) {
-            ml->nodeindices =
-                (int*)ecalloc_align(ml->nodecount, NRN_SOA_BYTE_ALIGN, sizeof(int));
+            ml->nodeindices = (int*)ecalloc_align(ml->nodecount, NRN_SOA_BYTE_ALIGN, sizeof(int));
         } else {
             ml->nodeindices = NULL;
         }
@@ -2125,4 +2124,4 @@ size_t model_size(void) {
 
     return nbyte;
 }
-} //namespace coreneuron
+}  // namespace coreneuron

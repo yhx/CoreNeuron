@@ -62,8 +62,8 @@ CoreNEURON has support for GPUs using the OpenACC programming model when enabled
 
 ```bash
 module purge
-module load pgi/pgi64/16.5 pgi/mpich/16.5   #change pgi and cuda modules
-module load cuda/6.0
+module purge all
+module load pgi/18.4 cuda/9.0.176 cmake/3.5  #change pgi and cuda modules
 
 export CC=mpicc
 export CXX=mpicxx
@@ -71,10 +71,16 @@ export CXX=mpicxx
 cmake .. -DADDITIONAL_MECHPATH="/path/of/folder/with/mod_files" -DCMAKE_C_FLAGS:STRING="-O2" -DCMAKE_CXX_FLAGS:STRING="-O2" -DCOMPILE_LIBRARY_TYPE=STATIC -DCMAKE_INSTALL_PREFIX=$EXPER_DIR/install/ -DCUDA_HOST_COMPILER=`which gcc` -DCUDA_PROPAGATE_HOST_FLAGS=OFF -DENABLE_SELECTIVE_GPU_PROFILING=ON -DENABLE_OPENACC=ON
 ```
 
-Note that the CUDA Toolkit version should be compatible with PGI compiler installed on your system. Otherwise you have to add extra C/C++ flags. For example, if we are using CUDA Toolkit 7.5 installation but PGI default target is CUDA 7.0 then we have to add :
+Note that the CUDA Toolkit version should be compatible with PGI compiler installed on your system. Otherwise you have to add extra C/C++ flags. For example, if we are using CUDA Toolkit 9.0 installation but PGI default target is CUDA 8.0 then we have to add :
 
 ```bash
--DCMAKE_C_FLAGS:STRING="-O2 -ta=tesla:cuda7.5" -DCMAKE_CXX_FLAGS:STRING="-O2 -ta=tesla:cuda7.5"
+-DCMAKE_C_FLAGS:STRING="-O2 -ta=tesla:cuda9.0" -DCMAKE_CXX_FLAGS:STRING="-O2 -ta=tesla:cuda9.0"
+```
+
+If there are large functions / procedures in MOD file that are not inlined by compiler, one can pass additional c/c++ compiler flags:
+
+```bash
+-Minline=size:1000,levels:100,totalsize:40000,maxsize:4000
 ```
 
 CoreNEURON uses the Random123 library written in CUDA. If you are **not using `NrnRandom123`** in your model and have issues with CUDA compilation/linking (or CUDA Toolkit is not installed), you can disable the CUDA dependency using the CMake option `-DENABLE_CUDA_MODULES=OFF` :
@@ -239,7 +245,7 @@ If you have installed `clang-format`, you can reformat/reindent generated .c fil
 make formatbuild
 ```
 
-The `.clang-format` file in the source repository is compatible with version 3.9 and 4.0.
+The `.clang-format` file in the source repository is compatible with version 5.0.
 
 ## License
 * See LICENSE.txt
@@ -255,4 +261,4 @@ Contributors will however be gratefully acknowledged in the corresponding CREDIT
 
 ## Funding
 
-This work has been partially funded by the European Union Seventh Framework Program (FP7/2007­2013) under grant agreement no. 604102 (HBP).
+CoreNEURON is developed in a joint collaboration between the Blue Brain Project and Yale University. Financial support was provided by the ETH Board funding to the Blue Brain Project and by the following grants: European Union Seventh Framework Program (FP7/2007-2013) under grant agreement no. 604102 (HBP), European Union’s Horizon 2020 research and innovation programme under grant agreements no. 720270, 785907 (HBP SGA1, HBP SGA2) and NIH grant number R01NS11613.

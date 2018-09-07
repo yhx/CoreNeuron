@@ -185,7 +185,17 @@ if(CLANG_FORMAT_FOUND)
 
     # exclude ezoption header file
     list(REMOVE_ITEM SRC_FILES_FOR_CLANG_FORMAT
-        "${PROJECT_SOURCE_DIR}/coreneuron/utils/ezoption/ezOptionParser.hpp")
+        ${PROJECT_SOURCE_DIR}/coreneuron/utils/ezoption/ezOptionParser.hpp
+        ${PROJECT_SOURCE_DIR}/coreneuron/utils/endianness.h
+        ${PROJECT_SOURCE_DIR}/coreneuron/utils/swap_endian.h)
+
+    # exclude random123 files
+    file (GLOB_RECURSE RANDOM123_FILES
+        ${PROJECT_SOURCE_DIR}/coreneuron/utils/randoms/Random123/*.cpp
+        ${PROJECT_SOURCE_DIR}/coreneuron/utils/randoms/Random123/*.h)
+    foreach (R123_PATH ${RANDOM123_FILES})
+        list (REMOVE_ITEM SRC_FILES_FOR_CLANG_FORMAT ${R123_PATH})
+    endforeach(R123_PATH)
 
     add_custom_target(formatsource COMMAND ${CMAKE_COMMAND}
         -DSOURCE_FILES:STRING="${SRC_FILES_FOR_CLANG_FORMAT}"
@@ -220,13 +230,13 @@ if(ENABLE_OPENACC)
         if(CUDA_FOUND)
             if(ENABLE_SELECTIVE_GPU_PROFILING)
                 add_definitions( -DCUDA_PROFILING)
-                add_definitions( -DENABLE_SELECTIVE_PROFILING)
             endif(ENABLE_SELECTIVE_GPU_PROFILING)
         else(CUDA_FOUND)
             message( FATAL_ERROR "Error : Can't file CUDA, load module or set path!" )
         endif(CUDA_FOUND)
     else(ENABLE_CUDA_MODULES)
         message(INFO "Support for CUDA modules (e.g. Random123) is disabled!")
+        add_definitions(-DCUDA_MODULES_DISABLED)
     endif(ENABLE_CUDA_MODULES)
 
 ELSE(ENABLE_OPENACC)

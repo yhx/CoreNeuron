@@ -70,6 +70,7 @@ static param_int param_int_args[] = {
      "Model duplication factor. Model size is normal size * (int)."},
     {"--extracon -x", 0, 0, 10000000,
      "Number of extra random connections in each thread to other duplicate models (int)."},
+    {"--seed -s", -1,0, 100000000, "Initialization seed for random number generator (int)."},
     {NULL, 0, 0, 0, NULL}};
 
 static param_dbl param_dbl_args[] = {
@@ -369,4 +370,4 @@ static void graceful_exit(int err) {
 #endif
     exit(nrnmpi_myid == 0 ? err : 0);
 }
-} //namespace coreneuron
+}  // namespace coreneuron

@@ -29,8 +29,13 @@ set(COMMON_ARGS "--tstop 100. --celsius 6.3 -mpi")
 set(RING_DATASET_DIR "${CMAKE_CURRENT_SOURCE_DIR}/ring")
 set(RING_COMMON_ARGS "--datpath ${RING_DATASET_DIR} ${COMMON_ARGS}")
 set(RING_GAP_COMMON_ARGS "--datpath ${CMAKE_CURRENT_SOURCE_DIR}/ring_gap ${COMMON_ARGS}")
-set(PERMUTE1_ARGS "--cell-permute 1 --nwarp 8")
-set(PERMUTE2_ARGS "--cell-permute 2 --nwarp 16")
+if(ENABLE_OPENACC)
+    set(PERMUTE1_ARGS "--cell-permute 1 --nwarp 8 --gpu")
+    set(PERMUTE2_ARGS "--cell-permute 2 --nwarp 16 --gpu")
+else(ENABLE_OPENACC)
+    set(PERMUTE1_ARGS "--cell-permute 1 --nwarp 8")
+    set(PERMUTE2_ARGS "--cell-permute 2 --nwarp 16")
+endif()
 
 # List of tests with arguments
 set(TEST_CASE_ARGS
@@ -46,6 +51,8 @@ set(TEST_CASE_ARGS
     "ring_gap_multisend!${RING_GAP_COMMON_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_gap_multisend --multisend"
     "ring_gap_permute1!${RING_GAP_COMMON_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_gap_permute1 ${PERMUTE1_ARGS}"
     "ring_gap_permute2!${RING_GAP_COMMON_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_gap_permute2 ${PERMUTE2_ARGS}")
+
+set(NEGATIVE_TEST_CASE_ARGS "ring_different_seed!${RING_COMMON_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_different_seed --seed 123456")
 
 # There are no directories for permute and multisend related tests, create them and copy ref spikes
 foreach(data_dir "ring" "ring_gap")
@@ -73,6 +80,21 @@ foreach (args_line ${TEST_CASE_ARGS})
            WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/${TEST_NAME}")
 endforeach()
 
+foreach (args_line ${NEGATIVE_TEST_CASE_ARGS})
+  string(REPLACE "!" ";" string_line ${args_line})
+  if(MPI_FOUND)
+    string(REPLACE ";" " " SRUN_PREFIX  "${TEST_MPI_EXEC_BIN};-n;2")
+  endif()
+  list(GET string_line 0 TEST_NAME)
+  list(GET string_line 1 TEST_ARGS)
+  set(SIM_NAME ${TEST_NAME})
+  configure_file(negative_integration_test.sh.in ${TEST_NAME}/negative_integration_test.sh @ONLY)
+  add_test(NAME ${TEST_NAME}_TEST
+           COMMAND "/bin/sh" ${CMAKE_CURRENT_BINARY_DIR}/${TEST_NAME}/negative_integration_test.sh
+           WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/${TEST_NAME}")
+endforeach()
+
+
 # This test is for coreneuron having all the mechanisms integrated into the
 # library. Runs when the corresponding condition is utilized plus the
 # executable is built.
@@ -99,4 +121,17 @@ endif()
              WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/${SIM_NAME}")
   endfunction(exec_test)
 
+endif()
+
+if (ENABLE_REPORTINGLIB)
+    foreach(TEST_NAME "1")
+        set (SIM_NAME "reporting_${TEST_NAME}")
+        set (CONFIG_ARG "${TEST_NAME}")
+        configure_file(reportinglib/${TEST_NAME}.conf.in ${SIM_NAME}/${TEST_NAME}.conf @ONLY)
+        configure_file(reportinglib/reporting_test.sh.in ${SIM_NAME}/reporting_test.sh @ONLY)
+        configure_file(reportinglib/${TEST_NAME}.check.in ${SIM_NAME}/${TEST_NAME}.check @ONLY)
+        add_test(NAME ${SIM_NAME}
+            COMMAND "/bin/sh" ${CMAKE_CURRENT_BINARY_DIR}/${SIM_NAME}/reporting_test.sh
+             WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/${SIM_NAME}")
+    endforeach()
 endif()

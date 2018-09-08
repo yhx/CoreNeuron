@@ -59,13 +59,16 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <climits>
 
 extern "C" {
-int corenrn_embedded_run(int nthread) {
+int corenrn_embedded_run(int nthread, int have_gaps, int use_mpi) {
   corenrn_embedded = 1;
-  int argc = 3;
+  corenrn_embedded_nthread = nthread;
+  coreneuron::nrn_have_gaps = have_gaps;
+  int argc = use_mpi ? 4 : 3;
   char** argv = new char*[argc];
   argv[0] = strdup("corenrn");
   argv[1] = strdup("-d");
   argv[2] = strdup("coredat");
+  if (use_mpi) argv[3] = strdup("-mpi");
   solve_core(argc, argv);
   return corenrn_embedded;
 }

@@ -8,6 +8,9 @@ extern "C" {
 // data directly instead of via files.
 	
 extern int corenrn_embedded;
+extern int corenrn_embedded_nthread;
+
+extern void (*nrn2core_group_ids_)(int*);
 
 extern void (*nrn2core_mkmech_info_)(std::ostream&);
 

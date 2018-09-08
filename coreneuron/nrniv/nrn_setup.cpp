@@ -52,6 +52,8 @@ THE POSSIBILITY OF SUCH DAMAGE.
 // callbacks into nrn/src/nrniv/nrnbbcore_write.cpp
 #include "coreneuron/nrniv/nrn2core_direct.h"
 
+void (*nrn2core_group_ids_)(int*);
+
 int (*nrn2core_get_dat1_)(int tid, int& n_presyn, int& n_netcon,
   int*& output_gid, int*& netcon_srcgid);
 
@@ -214,6 +216,7 @@ std::vector<int*> netcon_srcgid;
 
 extern "C" {
 int corenrn_embedded;
+int corenrn_embedded_nthread;
 }
 
 /// when embedded, get the gap setup info from NEURON.
@@ -244,6 +247,18 @@ static void store_phase_args(int ngroup,
 /* read files.dat file and distribute cellgroups to all mpi ranks */
 void nrn_read_filesdat(int& ngrp, int*& grp, int multiple, int*& imult, const char* filesdat) {
     patstimtype = nrn_get_mechtype("PatternStim");
+    if (corenrn_embedded) {
+        ngrp = corenrn_embedded_nthread;
+        nrn_assert(multiple == 1);
+        grp = new int[ngrp+1];
+        imult = new int[ngrp+1];
+        (*nrn2core_group_ids_)(grp);
+        for (int i = 0; i <= ngrp; ++i) {
+            imult[i] = 0;
+        }
+        return;
+    }
+
     FILE* fp = fopen(filesdat, "r");
 
     if (!fp) {

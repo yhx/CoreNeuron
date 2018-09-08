@@ -41,7 +41,7 @@ void set_globals(const char* path, bool cli_global_seed, int cli_global_seed_val
     (*n2v)["dt"] = PSD(0, &dt);
     (*n2v)["t"] = PSD(0, &t);
 
-  if (path == NULL) { // CoreNEURON embedded, get info direct from NEURON
+  if (corenrn_embedded) { // CoreNEURON embedded, get info direct from NEURON
 
     const char* name;
     int size;

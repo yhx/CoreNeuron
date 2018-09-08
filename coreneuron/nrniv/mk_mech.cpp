@@ -75,7 +75,7 @@ static void mk_mech(std::istream&);
 /// Read meta data about the mechanisms and allocate corresponding mechanism management data
 /// structures
 void mk_mech(const char* datpath) {
-    if (datpath == NULL) {
+    if (corenrn_embedded) {
         // we are embedded in NEURON
         mk_mech();
         return;

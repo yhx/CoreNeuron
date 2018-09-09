@@ -59,20 +59,48 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <climits>
 
 extern "C" {
-int corenrn_embedded_run(int nthread, int have_gaps, int use_mpi, double tstop) {
+int corenrn_embedded_run(int nthread, int have_gaps, int use_mpi, const char* arg) {
   corenrn_embedded = 1;
   corenrn_embedded_nthread = nthread;
   coreneuron::nrn_have_gaps = have_gaps;
-  int argc = use_mpi ? 6 : 5;
+
+  // count arg
+  int argc = 0;
+  int inarg = 0;
+  for (int i = 0; arg[i]; ++i) {
+    int sp = isspace(arg[i]);
+    if (inarg && sp) { // start whitespace following previous arg
+      inarg = 0;
+    }else if (!inarg && !sp) { // first char of current arg
+      argc++;
+      inarg = 1;
+    }
+  }
+  argc += use_mpi ? 2 : 1; // corenrn -mpi or just corenrn
   char** argv = new char*[argc];
-  argv[0] = strdup("corenrn");
-  argv[1] = strdup("-d");
-  argv[2] = strdup("coredat");
-  argv[3] = strdup("-e");
-  char buf[50];
-  sprintf(buf, "%g", tstop);
-  argv[4] = strdup(buf);
-  if (use_mpi) argv[5] = strdup("-mpi");
+
+  // recount and fill argv
+  argc = 0;
+  argv[argc++] = strdup("corenrn");
+  if (use_mpi) { argv[argc++] = strdup("-mpi"); }
+  inarg = 0;
+  int first = 0;
+  int i = 0;
+  do {
+    char c = arg[i];
+    int sp = isspace(c) ? 1 : ((c == '\0') ? 1 : 0);
+    if (inarg && sp) { // start whitespace following previous arg
+      inarg = 0;
+      argv[argc++] = strndup(arg + first, i - first);
+    }else if (!inarg && !sp) { // first char of current arg
+      inarg = 1;
+      first = i;
+    }
+  } while (arg[i++]);
+
+  printf("arg: %s\n", arg);
+  for (i = 0; i < argc; ++i) { printf("%d %s\n", i, argv[i]); }
+
   solve_core(argc, argv);
   return corenrn_embedded;
 }

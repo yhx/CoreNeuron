@@ -41,6 +41,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/nrnoc/nrnoc_decl.h"
 #include "coreneuron/nrnmpi/nrnmpi.h"
 #include "coreneuron/nrniv/nrniv_decl.h"
+#include "coreneuron/nrniv/nrnmutdec.h"
 #include "coreneuron/nrniv/output_spikes.h"
 #include "coreneuron/nrniv/nrn_checkpoint.h"
 #include "coreneuron/utils/endianness.h"
@@ -63,6 +64,18 @@ int corenrn_embedded_run(int nthread, int have_gaps, int use_mpi, const char* ar
   corenrn_embedded = 1;
   corenrn_embedded_nthread = nthread;
   coreneuron::nrn_have_gaps = have_gaps;
+
+#if defined(_OPENMP)
+  // if "export OMP_NUM_THREADS=nnn" is not set then omp by default sets
+  // the number of threads equal to the number of cores on this node.
+  // If there are a number of mpi processes on this node as well, things
+  // can go very slowly as there are so many more threads than cores.
+  // Assume the NEURON users pc.nthread() is well chosen if
+  // OMP_NUM_THREADS is not set.
+  if (!getenv("OMP_NUM_THREADS")) {
+    omp_set_num_threads(nthread);
+  }
+#endif
 
   // count arg
   int argc = 0;
@@ -377,7 +390,7 @@ extern "C" int solve_core(int argc, char** argv) {
 
         // register all reports into reportinglib
         double min_report_dt = INT_MAX;
-        for (int i = 0; i < configs.size(); i++) {
+        for (size_t i = 0; i < configs.size(); i++) {
             register_report(dt, tstop, delay, configs[i]);
             if (configs[i].report_dt < min_report_dt) {
                 min_report_dt = configs[i].report_dt;

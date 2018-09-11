@@ -60,6 +60,10 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <climits>
 
 extern "C" {
+const char* corenrn_version() {
+  return coreneuron::bbcore_write_version;
+}
+
 int corenrn_embedded_run(int nthread, int have_gaps, int use_mpi, const char* arg) {
   corenrn_embedded = 1;
   corenrn_embedded_nthread = nthread;

@@ -61,65 +61,69 @@ THE POSSIBILITY OF SUCH DAMAGE.
 
 extern "C" {
 const char* corenrn_version() {
-  return coreneuron::bbcore_write_version;
+    return coreneuron::bbcore_write_version;
 }
 
 int corenrn_embedded_run(int nthread, int have_gaps, int use_mpi, const char* arg) {
-  corenrn_embedded = 1;
-  corenrn_embedded_nthread = nthread;
-  coreneuron::nrn_have_gaps = have_gaps;
+    corenrn_embedded = 1;
+    corenrn_embedded_nthread = nthread;
+    coreneuron::nrn_have_gaps = have_gaps;
 
 #if defined(_OPENMP)
-  // if "export OMP_NUM_THREADS=nnn" is not set then omp by default sets
-  // the number of threads equal to the number of cores on this node.
-  // If there are a number of mpi processes on this node as well, things
-  // can go very slowly as there are so many more threads than cores.
-  // Assume the NEURON users pc.nthread() is well chosen if
-  // OMP_NUM_THREADS is not set.
-  if (!getenv("OMP_NUM_THREADS")) {
-    omp_set_num_threads(nthread);
-  }
+    // if "export OMP_NUM_THREADS=nnn" is not set then omp by default sets
+    // the number of threads equal to the number of cores on this node.
+    // If there are a number of mpi processes on this node as well, things
+    // can go very slowly as there are so many more threads than cores.
+    // Assume the NEURON users pc.nthread() is well chosen if
+    // OMP_NUM_THREADS is not set.
+    if (!getenv("OMP_NUM_THREADS")) {
+        omp_set_num_threads(nthread);
+    }
 #endif
 
-  // count arg
-  int argc = 0;
-  int inarg = 0;
-  for (int i = 0; arg[i]; ++i) {
-    int sp = isspace(arg[i]);
-    if (inarg && sp) { // start whitespace following previous arg
-      inarg = 0;
-    }else if (!inarg && !sp) { // first char of current arg
-      argc++;
-      inarg = 1;
+    // count arg
+    int argc = 0;
+    int inarg = 0;
+    for (int i = 0; arg[i]; ++i) {
+        int sp = isspace(arg[i]);
+        if (inarg && sp) {  // start whitespace following previous arg
+            inarg = 0;
+        } else if (!inarg && !sp) {  // first char of current arg
+            argc++;
+            inarg = 1;
+        }
     }
-  }
-  argc += use_mpi ? 2 : 1; // corenrn -mpi or just corenrn
-  char** argv = new char*[argc];
+    argc += use_mpi ? 2 : 1;  // corenrn -mpi or just corenrn
+    char** argv = new char*[argc];
 
-  // recount and fill argv
-  argc = 0;
-  argv[argc++] = strdup("corenrn");
-  if (use_mpi) { argv[argc++] = strdup("-mpi"); }
-  inarg = 0;
-  int first = 0;
-  int i = 0;
-  do {
-    char c = arg[i];
-    int sp = isspace(c) ? 1 : ((c == '\0') ? 1 : 0);
-    if (inarg && sp) { // start whitespace following previous arg
-      inarg = 0;
-      argv[argc++] = strndup(arg + first, i - first);
-    }else if (!inarg && !sp) { // first char of current arg
-      inarg = 1;
-      first = i;
+    // recount and fill argv
+    argc = 0;
+    argv[argc++] = strdup("corenrn");
+    if (use_mpi) {
+        argv[argc++] = strdup("-mpi");
     }
-  } while (arg[i++]);
+    inarg = 0;
+    int first = 0;
+    int i = 0;
+    do {
+        char c = arg[i];
+        int sp = isspace(c) ? 1 : ((c == '\0') ? 1 : 0);
+        if (inarg && sp) {  // start whitespace following previous arg
+            inarg = 0;
+            argv[argc++] = strndup(arg + first, i - first);
+        } else if (!inarg && !sp) {  // first char of current arg
+            inarg = 1;
+            first = i;
+        }
+    } while (arg[i++]);
 
-  printf("arg: %s\n", arg);
-  for (i = 0; i < argc; ++i) { printf("%d %s\n", i, argv[i]); }
+    printf("arg: %s\n", arg);
+    for (i = 0; i < argc; ++i) {
+        printf("%d %s\n", i, argv[i]);
+    }
 
-  solve_core(argc, argv);
-  return corenrn_embedded;
+    solve_core(argc, argv);
+    return corenrn_embedded;
 }
 }
 
@@ -186,7 +190,8 @@ void nrn_init_and_load_data(int argc,
     mk_mech(nrnopt_get_str("--datpath").c_str());
 
     // read the global variable names and set their values from globals.dat
-    set_globals(nrnopt_get_str("--datpath").c_str(), nrnopt_get_flag("--seed"), nrnopt_get_int("--seed"));
+    set_globals(nrnopt_get_str("--datpath").c_str(), nrnopt_get_flag("--seed"),
+                nrnopt_get_int("--seed"));
 
     report_mem_usage("After mk_mech");
 

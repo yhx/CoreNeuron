@@ -57,33 +57,76 @@ int corenrn_embedded_nthread;
 
 void (*nrn2core_group_ids_)(int*);
 
-void (*nrn2core_get_partrans_setup_info_)(int tid, int& ntar, int& nsrc,
-  int& type, int& ix_vpre, int*& sid_target, int*& sid_src, int*& v_indices);
+void (*nrn2core_get_partrans_setup_info_)(int tid,
+                                          int& ntar,
+                                          int& nsrc,
+                                          int& type,
+                                          int& ix_vpre,
+                                          int*& sid_target,
+                                          int*& sid_src,
+                                          int*& v_indices);
 
-int (*nrn2core_get_dat1_)(int tid, int& n_presyn, int& n_netcon,
-  int*& output_gid, int*& netcon_srcgid);
+int (*nrn2core_get_dat1_)(int tid,
+                          int& n_presyn,
+                          int& n_netcon,
+                          int*& output_gid,
+                          int*& netcon_srcgid);
 
-int (*nrn2core_get_dat2_1_)(int tid, int& ngid, int& n_real_gid, int& nnode, int& ndiam,
-  int& nmech, int*& tml_index, int*& ml_nodecount, int& nidata, int& nvdata, int& nweight);
+int (*nrn2core_get_dat2_1_)(int tid,
+                            int& ngid,
+                            int& n_real_gid,
+                            int& nnode,
+                            int& ndiam,
+                            int& nmech,
+                            int*& tml_index,
+                            int*& ml_nodecount,
+                            int& nidata,
+                            int& nvdata,
+                            int& nweight);
 
-int (*nrn2core_get_dat2_2_)(int tid, int*& v_parent_index, double*& a, double*& b,
-  double*& area, double*& v, double*& diamvec);
+int (*nrn2core_get_dat2_2_)(int tid,
+                            int*& v_parent_index,
+                            double*& a,
+                            double*& b,
+                            double*& area,
+                            double*& v,
+                            double*& diamvec);
 
-int (*nrn2core_get_dat2_mech_)(int tid, size_t i, int dsz_inst, int*& nodeindices,
-  double*& data, int*& pdata);
+int (*nrn2core_get_dat2_mech_)(int tid,
+                               size_t i,
+                               int dsz_inst,
+                               int*& nodeindices,
+                               double*& data,
+                               int*& pdata);
 
-int (*nrn2core_get_dat2_3_)(int tid, int nweight, int*& output_vindex, double*& output_threshold,
-  int*& netcon_pnttype, int*& netcon_pntindex, double*& weights, double*& delays);
+int (*nrn2core_get_dat2_3_)(int tid,
+                            int nweight,
+                            int*& output_vindex,
+                            double*& output_threshold,
+                            int*& netcon_pnttype,
+                            int*& netcon_pntindex,
+                            double*& weights,
+                            double*& delays);
 
 int (*nrn2core_get_dat2_corepointer_)(int tid, int& n);
 
-int (*nrn2core_get_dat2_corepointer_mech_)(int tid, int type,
-  int& icnt, int& dcnt, int*& iarray, double*& darray);
+int (*nrn2core_get_dat2_corepointer_mech_)(int tid,
+                                           int type,
+                                           int& icnt,
+                                           int& dcnt,
+                                           int*& iarray,
+                                           double*& darray);
 
 int (*nrn2core_get_dat2_vecplay_)(int tid, int& n);
 
-int (*nrn2core_get_dat2_vecplay_inst_)(int tid, int i, int& vptype, int& mtype,
-  int& ix, int& sz, double*& yvec, double*& tvec);
+int (*nrn2core_get_dat2_vecplay_inst_)(int tid,
+                                       int i,
+                                       int& vptype,
+                                       int& mtype,
+                                       int& ix,
+                                       int& sz,
+                                       double*& yvec,
+                                       double*& tvec);
 
 // file format defined in cooperation with nrncore/src/nrniv/nrnbbcore_write.cpp
 // single integers are ascii one per line. arrays are binary int or double
@@ -245,8 +288,8 @@ void nrn_read_filesdat(int& ngrp, int*& grp, int multiple, int*& imult, const ch
     if (corenrn_embedded) {
         ngrp = corenrn_embedded_nthread;
         nrn_assert(multiple == 1);
-        grp = new int[ngrp+1];
-        imult = new int[ngrp+1];
+        grp = new int[ngrp + 1];
+        imult = new int[ngrp + 1];
         (*nrn2core_group_ids_)(grp);
         for (int i = 0; i <= ngrp; ++i) {
             imult[i] = 0;
@@ -312,9 +355,10 @@ static void read_phase1(int* output_gid, int imult, NrnThread& nt);
 static void* direct_phase1(NrnThread* n) {
     NrnThread& nt = *n;
     int* output_gid;
-    int valid = (*nrn2core_get_dat1_)(nt.id, nt.n_presyn, nt.n_netcon, output_gid, netcon_srcgid[nt.id]);
+    int valid =
+        (*nrn2core_get_dat1_)(nt.id, nt.n_presyn, nt.n_netcon, output_gid, netcon_srcgid[nt.id]);
     if (valid) {
-      read_phase1(output_gid, 0, nt);
+        read_phase1(output_gid, 0, nt);
     }
     return NULL;
 }
@@ -334,7 +378,7 @@ void read_phase1(FileHandler& F, int imult, NrnThread& nt) {
 }
 
 static void read_phase1(int* output_gid, int imult, NrnThread& nt) {
-    int zz = imult * maxgid;     // offset for each gid
+    int zz = imult * maxgid;  // offset for each gid
     // offset the (non-negative) gids according to multiple
     // make sure everything fits into gid space.
     for (int i = 0; i < nt.n_presyn; ++i) {
@@ -692,22 +736,22 @@ void nrn_setup(const char* filesdat,
         nrn_partrans::setup_info_ = new nrn_partrans::SetupInfo[ngroup];
         if (!corenrn_embedded) {
             coreneuron::phase_wrapper<coreneuron::gap>();
-        }else{
+        } else {
             nrn_assert(sizeof(nrn_partrans::sgid_t) == sizeof(int));
-            for (int i=0; i < ngroup; ++i) {
-              nrn_partrans::SetupInfo& si = nrn_partrans::setup_info_[i];
-              (*nrn2core_get_partrans_setup_info_)(i, si.ntar, si.nsrc, si.type,
-                si.ix_vpre, si.sid_target, si.sid_src, si.v_indices);
+            for (int i = 0; i < ngroup; ++i) {
+                nrn_partrans::SetupInfo& si = nrn_partrans::setup_info_[i];
+                (*nrn2core_get_partrans_setup_info_)(i, si.ntar, si.nsrc, si.type, si.ix_vpre,
+                                                     si.sid_target, si.sid_src, si.v_indices);
             }
         }
         nrn_partrans::gap_mpi_setup(ngroup);
     }
 
     if (!corenrn_embedded) {
-      coreneuron::phase_wrapper<(
-          coreneuron::phase)1>();  /// If not the xlc compiler, it should be coreneuron::phase::one
-    }else{
-      nrn_multithread_job(direct_phase1);
+        coreneuron::phase_wrapper<(coreneuron::phase)1>();  /// If not the xlc compiler, it should
+                                                            /// be coreneuron::phase::one
+    } else {
+        nrn_multithread_job(direct_phase1);
     }
 
     // from the gid2out map and the netcon_srcgid array,
@@ -865,20 +909,22 @@ void nrn_inverse_i_layout(int i, int& icnt, int cnt, int& isz, int sz, int layou
 template <typename T>
 inline void mech_layout(FileHandler& F, T* data, int cnt, int sz, int layout) {
     if (layout == 1) { /* AoS */
-        if (corenrn_embedded) { return; }
+        if (corenrn_embedded) {
+            return;
+        }
         F.read_array<T>(data, cnt * sz);
     } else if (layout == 0) { /* SoA */
         int align_cnt = nrn_soa_padded_size(cnt, layout);
         T* d;
         if (corenrn_embedded) {
-          d = new T[cnt * sz];
-          for (int i = 0; i < cnt; ++i) {
-              for (int j = 0; j < sz; ++j) {
-                  d[i * sz + j] = data[i * sz + j];
-              }
-          }
-        }else{
-          d = F.read_array<T>(cnt * sz);
+            d = new T[cnt * sz];
+            for (int i = 0; i < cnt; ++i) {
+                for (int j = 0; j < sz; ++j) {
+                    d[i * sz + j] = data[i * sz + j];
+                }
+            }
+        } else {
+            d = F.read_array<T>(cnt * sz);
         }
         for (int i = 0; i < cnt; ++i) {
             for (int j = 0; j < sz; ++j) {
@@ -1057,7 +1103,7 @@ void nrn_cleanup(bool clean_ion_global_map) {
 void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
     bool direct = corenrn_embedded ? true : false;
     if (!direct) {
-        assert(!F.fail()); // actually should assert that it is open
+        assert(!F.fail());  // actually should assert that it is open
     }
     nrn_assert(imult >= 0);  // avoid imult unused warning
 #if 1 || CHKPNTDEBUG
@@ -1068,26 +1114,26 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
 
     int n_outputgid, ndiam, nmech, *tml_index, *ml_nodecount;
     if (direct) {
-      int  nidata, nvdata;
-      (*nrn2core_get_dat2_1_)(nt.id, n_outputgid, nt.ncell, nt.end, ndiam,
-        nmech, tml_index, ml_nodecount, nidata, nvdata, nt.n_weight);
-      nt._nidata = nidata;
-      nt._nvdata = nvdata;
-    }else{
-      n_outputgid = F.read_int();
-      nt.ncell = F.read_int();
-      nt.end = F.read_int();
-      ndiam = F.read_int();  // 0 if not needed, else nt.end
-      nmech = F.read_int();
-      tml_index = new int[nmech];
-      ml_nodecount = new int[nmech];
-      for (int i=0; i < nmech; ++i) {
-        tml_index[i] = F.read_int();
-        ml_nodecount[i] = F.read_int();
-      }
-      nt._nidata = F.read_int();
-      nt._nvdata = F.read_int();
-      nt.n_weight = F.read_int();
+        int nidata, nvdata;
+        (*nrn2core_get_dat2_1_)(nt.id, n_outputgid, nt.ncell, nt.end, ndiam, nmech, tml_index,
+                                ml_nodecount, nidata, nvdata, nt.n_weight);
+        nt._nidata = nidata;
+        nt._nvdata = nvdata;
+    } else {
+        n_outputgid = F.read_int();
+        nt.ncell = F.read_int();
+        nt.end = F.read_int();
+        ndiam = F.read_int();  // 0 if not needed, else nt.end
+        nmech = F.read_int();
+        tml_index = new int[nmech];
+        ml_nodecount = new int[nmech];
+        for (int i = 0; i < nmech; ++i) {
+            tml_index[i] = F.read_int();
+            ml_nodecount[i] = F.read_int();
+        }
+        nt._nidata = F.read_int();
+        nt._nvdata = F.read_int();
+        nt.n_weight = F.read_int();
     }
 
 #if CHKPNTDEBUG
@@ -1164,8 +1210,8 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
         }
         tml_last = tml;
     }
-    delete [] tml_index;
-    delete [] ml_nodecount;
+    delete[] tml_index;
+    delete[] ml_nodecount;
 
     if (shadow_rhs_cnt) {
         nt._shadow_rhs = (double*)ecalloc_align(nrn_soa_padded_size(shadow_rhs_cnt, 0),
@@ -1240,19 +1286,19 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
 
     // matrix info
     nt._v_parent_index = (int*)ecalloc_align(nt.end, NRN_SOA_BYTE_ALIGN, sizeof(int));
-  if (direct) {
-    (*nrn2core_get_dat2_2_)(nt.id, nt._v_parent_index, nt._actual_a, nt._actual_b,
-      nt._actual_area, nt._actual_v, nt._actual_diam);
-  }else{
-    F.read_array<int>(nt._v_parent_index, nt.end);
-    F.read_array<double>(nt._actual_a, nt.end);
-    F.read_array<double>(nt._actual_b, nt.end);
-    F.read_array<double>(nt._actual_area, nt.end);
-    F.read_array<double>(nt._actual_v, nt.end);
-    if (ndiam) {
-        F.read_array<double>(nt._actual_diam, nt.end);
+    if (direct) {
+        (*nrn2core_get_dat2_2_)(nt.id, nt._v_parent_index, nt._actual_a, nt._actual_b,
+                                nt._actual_area, nt._actual_v, nt._actual_diam);
+    } else {
+        F.read_array<int>(nt._v_parent_index, nt.end);
+        F.read_array<double>(nt._actual_a, nt.end);
+        F.read_array<double>(nt._actual_b, nt.end);
+        F.read_array<double>(nt._actual_area, nt.end);
+        F.read_array<double>(nt._actual_v, nt.end);
+        if (ndiam) {
+            F.read_array<double>(nt._actual_diam, nt.end);
+        }
     }
-  }
 #if CHKPNTDEBUG
     ntc.parent = new int[nt.end];
     memcpy(ntc.parent, nt._v_parent_index, nt.end * sizeof(int));
@@ -1284,18 +1330,19 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
         }
         if (szdp) {
             ml->pdata = (int*)ecalloc_align(nrn_soa_padded_size(n, layout) * szdp,
-                                                        NRN_SOA_BYTE_ALIGN, sizeof(int));
+                                            NRN_SOA_BYTE_ALIGN, sizeof(int));
         }
 
         if (direct) {
-          (*nrn2core_get_dat2_mech_)(nt.id, itml, dsz_inst, ml->nodeindices,
-            ml->data, ml->pdata);
-        }else{
+            (*nrn2core_get_dat2_mech_)(nt.id, itml, dsz_inst, ml->nodeindices, ml->data, ml->pdata);
+        } else {
             if (!is_art) {
-              F.read_array<int>(ml->nodeindices, ml->nodecount);
+                F.read_array<int>(ml->nodeindices, ml->nodecount);
             }
         }
-        if (szdp) { ++dsz_inst; }
+        if (szdp) {
+            ++dsz_inst;
+        }
 
         mech_layout<double>(F, ml->data, n, szp, layout);
 
@@ -1614,10 +1661,12 @@ for (int i=0; i < nt.end; ++i) {
     int *output_vindex, *pnttype, *pntindex;
     double *output_threshold, *delay;
     if (direct) {
-      (*nrn2core_get_dat2_3_)(nt.id, nt.n_weight, output_vindex, output_threshold,
-        pnttype, pntindex, nt.weights, delay);
+        (*nrn2core_get_dat2_3_)(nt.id, nt.n_weight, output_vindex, output_threshold, pnttype,
+                                pntindex, nt.weights, delay);
     }
-    if (!direct) {output_vindex = F.read_array<int>(nt.n_presyn);}
+    if (!direct) {
+        output_vindex = F.read_array<int>(nt.n_presyn);
+    }
 #if CHKPNTDEBUG
     ntc.output_vindex = new int[nt.n_presyn];
     memcpy(ntc.output_vindex, output_vindex, nt.n_presyn * sizeof(int));
@@ -1626,7 +1675,9 @@ for (int i=0; i < nt.end; ++i) {
         // only indices >= 0 (i.e. _actual_v indices) will be changed.
         node_permute(output_vindex, nt.n_presyn, nt._permute);
     }
-    if (!direct) { output_threshold = F.read_array<double>(nt.ncell);}
+    if (!direct) {
+        output_threshold = F.read_array<double>(nt.ncell);
+    }
 #if CHKPNTDEBUG
     ntc.output_threshold = new double[nt.ncell];
     memcpy(ntc.output_threshold, output_threshold, nt.ncell * sizeof(double));
@@ -1679,8 +1730,12 @@ for (int i=0; i < nt.end; ++i) {
 
     // Make NetCon.target_ point to proper Point_process. Only the NetCon
     // with pnttype[i] > 0 have a target.
-    if (!direct) {pnttype = F.read_array<int>(nnetcon);}
-    if (!direct) {pntindex = F.read_array<int>(nnetcon);}
+    if (!direct) {
+        pnttype = F.read_array<int>(nnetcon);
+    }
+    if (!direct) {
+        pntindex = F.read_array<int>(nnetcon);
+    }
 #if CHKPNTDEBUG
     ntc.pnttype = new int[nnetcon];
     ntc.pntindex = new int[nnetcon];
@@ -1755,7 +1810,9 @@ for (int i=0; i < nt.end; ++i) {
     delete[] pnttype;
 
     // delays in netcons order
-    if (!direct) {delay = F.read_array<double>(nnetcon);}
+    if (!direct) {
+        delay = F.read_array<double>(nnetcon);
+    }
 #if CHKPNTDEBUG
     ntc.delay = new double[nnetcon];
     memcpy(ntc.delay, delay, nnetcon * sizeof(double));
@@ -1778,9 +1835,9 @@ for (int i=0; i < nt.end; ++i) {
 
     // BBCOREPOINTER information
     if (direct) {
-      (*nrn2core_get_dat2_corepointer_)(nt.id, npnt);
-    }else{
-      npnt = F.read_int();
+        (*nrn2core_get_dat2_corepointer_)(nt.id, npnt);
+    } else {
+        npnt = F.read_int();
     }
 #if CHKPNTDEBUG
     ntc.nbcp = npnt;
@@ -1790,23 +1847,24 @@ for (int i=0; i < nt.end; ++i) {
 #endif
     for (NrnThreadMembList* tml = nt.tml; tml; tml = tml->next) {
         int type = tml->index;
-        if (!nrn_bbcore_read_[type]) { continue; }
+        if (!nrn_bbcore_read_[type]) {
+            continue;
+        }
         int* iArray = NULL;
         double* dArray = NULL;
         int icnt, dcnt;
         if (direct) {
-          (*nrn2core_get_dat2_corepointer_mech_)(nt.id, type,
-            icnt, dcnt, iArray, dArray);
-        }else{
-          type = F.read_int();
-          icnt = F.read_int();
-          dcnt = F.read_int();
-          if (icnt) {
-              iArray = F.read_array<int>(icnt);
-          }
-          if (dcnt) {
-              dArray = F.read_array<double>(dcnt);
-          }
+            (*nrn2core_get_dat2_corepointer_mech_)(nt.id, type, icnt, dcnt, iArray, dArray);
+        } else {
+            type = F.read_int();
+            icnt = F.read_int();
+            dcnt = F.read_int();
+            if (icnt) {
+                iArray = F.read_array<int>(icnt);
+            }
+            if (dcnt) {
+                dArray = F.read_array<double>(dcnt);
+            }
         }
         if (!nrn_bbcore_write_[type] && nrn_checkpoint_arg_exists) {
             fprintf(
@@ -1854,9 +1912,9 @@ for (int i=0; i < nt.end; ++i) {
     // No attempt at memory efficiency
     int n;
     if (direct) {
-      (*nrn2core_get_dat2_vecplay_)(nt.id, n);
-    }else{
-      n = F.read_int();
+        (*nrn2core_get_dat2_vecplay_)(nt.id, n);
+    } else {
+        n = F.read_int();
     }
     nt.n_vecplay = n;
     if (n) {
@@ -1870,17 +1928,16 @@ for (int i=0; i < nt.end; ++i) {
     ntc.mtype = new int[n];
 #endif
     for (int i = 0; i < n; ++i) {
-      int vtype, mtype, ix, sz;
-      double *yvec1, *tvec1;
-      if (direct) {
-        (*nrn2core_get_dat2_vecplay_inst_)(nt.id, i, vtype, mtype,
-          ix, sz, yvec1, tvec1);
-      }else{
-        vtype = F.read_int();
-        mtype = F.read_int();
-        ix = F.read_int();
-        sz = F.read_int();
-      }
+        int vtype, mtype, ix, sz;
+        double *yvec1, *tvec1;
+        if (direct) {
+            (*nrn2core_get_dat2_vecplay_inst_)(nt.id, i, vtype, mtype, ix, sz, yvec1, tvec1);
+        } else {
+            vtype = F.read_int();
+            mtype = F.read_int();
+            ix = F.read_int();
+            sz = F.read_int();
+        }
         nrn_assert(vtype == VecPlayContinuousType);
 #if CHKPNTDEBUG
         ntc.vtype[i] = vtype;
@@ -1895,17 +1952,17 @@ for (int i=0; i < nt.end; ++i) {
         IvocVect* yvec = vector_new(sz);
         IvocVect* tvec = vector_new(sz);
         if (direct) {
-          double* py = vector_vec(yvec);
-          double* pt = vector_vec(tvec);
-          for (int j= 0; j < sz; ++j) {
-            py[j] = yvec1[j];
-            pt[j] = tvec1[j];
-          }
-          delete [] yvec1;
-          delete [] tvec1;
-        }else{
-          F.read_array<double>(vector_vec(yvec), sz);
-          F.read_array<double>(vector_vec(tvec), sz);
+            double* py = vector_vec(yvec);
+            double* pt = vector_vec(tvec);
+            for (int j = 0; j < sz; ++j) {
+                py[j] = yvec1[j];
+                pt[j] = tvec1[j];
+            }
+            delete[] yvec1;
+            delete[] tvec1;
+        } else {
+            F.read_array<double>(vector_vec(yvec), sz);
+            F.read_array<double>(vector_vec(tvec), sz);
         }
         ix = nrn_param_layout(ix, mtype, ml);
         if (ml->_permute) {
@@ -1913,15 +1970,15 @@ for (int i=0; i < nt.end; ++i) {
         }
         nt._vecplay[i] = new VecPlayContinuous(ml->data + ix, yvec, tvec, NULL, nt.id);
     }
-  if (!direct) {
-    // store current checkpoint state to continue reading mapping
-    F.record_checkpoint();
+    if (!direct) {
+        // store current checkpoint state to continue reading mapping
+        F.record_checkpoint();
 
-    // If not at end of file, then this must be a checkpoint and restore tqueue.
-    if (!F.eof()) {
-        checkpoint_restore_tqueue(nt, F);
+        // If not at end of file, then this must be a checkpoint and restore tqueue.
+        if (!F.eof()) {
+            checkpoint_restore_tqueue(nt, F);
+        }
     }
-  }
     // NetReceiveBuffering
     for (int i = 0; i < net_buf_receive_cnt_; ++i) {
         int type = net_buf_receive_type_[i];

@@ -118,11 +118,11 @@ void mk_mech(const char* datpath) {
 
 // we are embedded in NEURON, get info as stringstream from nrnbbcore_write.cpp
 static void mk_mech() {
-  nrn_need_byteswap = 0;
-  std::stringstream ss;
-  nrn_assert(nrn2core_mkmech_info_);
-  (*nrn2core_mkmech_info_)(ss);
-  mk_mech(ss);
+    nrn_need_byteswap = 0;
+    std::stringstream ss;
+    nrn_assert(nrn2core_mkmech_info_);
+    (*nrn2core_mkmech_info_)(ss);
+    mk_mech(ss);
 }
 
 static void mk_mech(std::istream& s) {
@@ -141,8 +141,7 @@ static void mk_mech(std::istream& s) {
     for (int i = 2; i < n; ++i) {
         char mname[100];
         int type = 0, pnttype = 0, is_art = 0, is_ion = 0, dsize = 0, pdsize = 0;
-        nrn_assert(s >> mname >> type >> pnttype >> is_art >> is_ion
-            >> dsize >> pdsize);
+        nrn_assert(s >> mname >> type >> pnttype >> is_art >> is_ion >> dsize >> pdsize);
         nrn_assert(i == type);
 #ifdef DEBUG
         printf("%s %d %d %d %d %d %d\n", mname, type, pnttype, is_art, is_ion, dsize, pdsize);

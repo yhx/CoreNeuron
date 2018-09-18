@@ -60,6 +60,7 @@ option(ENABLE_CUDA_MODULES "Enable modules like Random123 written in CUDA" ON)
 option(ENABLE_NET_RECEIVE_BUFFERING "Enable event buffering in net_receive function" ON)
 option(ENABLE_OMP_RUNTIME_SCHEDULE "Use runtime schedule for OpenMP" OFF)
 
+set(EXTRA_LINK_LIBRARIES "" CACHE STRING "Additonal link options/libraries needed to link against")
 
 set(FRONTEND_C_COMPILER gcc CACHE FILEPATH "C compiler for building mod2c [frontend executable]")
 set(FRONTEND_CXX_COMPILER g++ CACHE FILEPATH "C++ compiler for building mod2c [frontend executable]")

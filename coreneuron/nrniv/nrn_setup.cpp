@@ -1098,6 +1098,10 @@ void nrn_cleanup(bool clean_ion_global_map) {
     netcon_in_presyn_order_.clear();
 
     nrn_threads_free();
+
+    if (pnttype2presyn) {
+        free(pnttype2presyn);
+    }
 }
 
 void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
@@ -1323,7 +1327,7 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
         int szdp = nrn_prop_dparam_size_[type];
         int layout = nrn_mech_data_layout_[type];
 
-        if (!is_art) {
+        if (!is_art && !direct) {
             ml->nodeindices = (int*)ecalloc_align(ml->nodecount, NRN_SOA_BYTE_ALIGN, sizeof(int));
         } else {
             ml->nodeindices = NULL;
@@ -1637,7 +1641,9 @@ for (int i=0; i < nt.end; ++i) {
     }
 
     // from nrn_has_net_event create pnttype2presyn.
-    pnttype2presyn = (int*)ecalloc(n_memb_func, sizeof(int));
+    if (!pnttype2presyn) {
+        pnttype2presyn = (int*)ecalloc(n_memb_func, sizeof(int));
+    }
     for (int i = 0; i < n_memb_func; ++i) {
         pnttype2presyn[i] = -1;
     }

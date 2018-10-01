@@ -85,8 +85,6 @@ void set_openmp_threads(int nthread) {
  * coreneuron command line argument parser.
  */
 char* prepare_args(int& argc, char**& argv, int use_mpi, const char* arg) {
-
-    printf("==>%p::\n", arg);
     // first construct all arguments as string
     std::string args(arg);
     args.insert(0, " coreneuron ");
@@ -128,7 +126,6 @@ int corenrn_embedded_run(int nthread, int have_gaps, int use_mpi, const char* ar
     set_openmp_threads(nthread);
     int argc = 0;
     char** argv;
-    printf("==>%p::\n", arg);
     char* new_arg = prepare_args(argc, argv, use_mpi, arg);
     solve_core(argc, argv);
     free(new_arg);

@@ -64,65 +64,76 @@ const char* corenrn_version() {
     return coreneuron::bbcore_write_version;
 }
 
+/**
+ * If "export OMP_NUM_THREADS=n" is not set then omp by default sets
+ * the number of threads equal to the number of cores on this node.
+ * If there are a number of mpi processes on this node as well, things
+ * can go very slowly as there are so many more threads than cores.
+ * Assume the NEURON users pc.nthread() is well chosen if
+ * OMP_NUM_THREADS is not set.
+ */
+void set_openmp_threads(int nthread) {
+#if defined(_OPENMP)
+    if (!getenv("OMP_NUM_THREADS")) {
+        omp_set_num_threads(nthread);
+    }
+#endif
+}
+
+/**
+ * Convert char* containing arguments from neuron to char* argv[] for
+ * coreneuron command line argument parser.
+ */
+char* prepare_args(int& argc, char**& argv, int use_mpi, const char* arg) {
+
+    printf("==>%p::\n", arg);
+    // first construct all arguments as string
+    std::string args(arg);
+    args.insert(0, " coreneuron ");
+    if (use_mpi) {
+        args.append(" -mpi ");
+    }
+
+    // we can't modify string with strtok, make copy
+    char* first = strdup(args.c_str());
+    const char* sep = " ";
+
+    // first count the no of argument
+    char* token = strtok(first, sep);
+    argc = 0;
+    while (token) {
+        token = strtok(NULL, sep);
+        argc++;
+    }
+    free(first);
+
+    // now build char*argv
+    argv = new char*[argc];
+    first = strdup(args.c_str());
+    token = strtok(first, sep);
+    for (int i = 0; token; i++) {
+        argv[i] = token;
+        token = strtok(NULL, sep);
+    }
+
+    // return actual data to be freed
+    return first;
+}
+
 int corenrn_embedded_run(int nthread, int have_gaps, int use_mpi, const char* arg) {
     corenrn_embedded = 1;
     corenrn_embedded_nthread = nthread;
     coreneuron::nrn_have_gaps = have_gaps;
 
-#if defined(_OPENMP)
-    // if "export OMP_NUM_THREADS=nnn" is not set then omp by default sets
-    // the number of threads equal to the number of cores on this node.
-    // If there are a number of mpi processes on this node as well, things
-    // can go very slowly as there are so many more threads than cores.
-    // Assume the NEURON users pc.nthread() is well chosen if
-    // OMP_NUM_THREADS is not set.
-    if (!getenv("OMP_NUM_THREADS")) {
-        omp_set_num_threads(nthread);
-    }
-#endif
-
-    // count arg
+    set_openmp_threads(nthread);
     int argc = 0;
-    int inarg = 0;
-    for (int i = 0; arg[i]; ++i) {
-        int sp = isspace(arg[i]);
-        if (inarg && sp) {  // start whitespace following previous arg
-            inarg = 0;
-        } else if (!inarg && !sp) {  // first char of current arg
-            argc++;
-            inarg = 1;
-        }
-    }
-    argc += use_mpi ? 2 : 1;  // corenrn -mpi or just corenrn
-    char** argv = new char*[argc];
-
-    // recount and fill argv
-    argc = 0;
-    argv[argc++] = strdup("corenrn");
-    if (use_mpi) {
-        argv[argc++] = strdup("-mpi");
-    }
-    inarg = 0;
-    int first = 0;
-    int i = 0;
-    do {
-        char c = arg[i];
-        int sp = isspace(c) ? 1 : ((c == '\0') ? 1 : 0);
-        if (inarg && sp) {  // start whitespace following previous arg
-            inarg = 0;
-            argv[argc++] = strndup(arg + first, i - first);
-        } else if (!inarg && !sp) {  // first char of current arg
-            inarg = 1;
-            first = i;
-        }
-    } while (arg[i++]);
-
-    printf("arg: %s\n", arg);
-    for (i = 0; i < argc; ++i) {
-        printf("%d %s\n", i, argv[i]);
-    }
-
+    char** argv;
+    printf("==>%p::\n", arg);
+    char* new_arg = prepare_args(argc, argv, use_mpi, arg);
     solve_core(argc, argv);
+    free(new_arg);
+    delete[] argv;
+
     return corenrn_embedded;
 }
 }

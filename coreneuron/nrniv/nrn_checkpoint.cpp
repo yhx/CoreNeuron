@@ -760,8 +760,8 @@ static void checkpoint_restore_tqitem(int type, NrnThread& nt, FileHandler& fh) 
     }
 }
 
-extern int checkpoint_save_patternstim(_threadargsproto_);
-extern void checkpoint_restore_patternstim(int, double, _threadargsproto_);
+//extern int checkpoint_save_patternstim(_threadargsproto_);
+//extern void checkpoint_restore_patternstim(int, double, _threadargsproto_);
 
 static void write_tqueue(NrnThread& nt, FileHandlerWrap& fh) {
     // VecPlayContinuous
@@ -773,6 +773,7 @@ static void write_tqueue(NrnThread& nt, FileHandlerWrap& fh) {
         fh << vpc->ubound_index_ << "\n";
     }
 
+#if 0
     // PatternStim
     int patstim_index = -1;
     for (NrnThreadMembList* tml = nrn_threads[0].tml; tml; tml = tml->next) {
@@ -785,6 +786,7 @@ static void write_tqueue(NrnThread& nt, FileHandlerWrap& fh) {
         }
     }
     fh << patstim_index << " PatternStim\n";
+#endif
 
     // Avoid extra spikes due to some presyn voltages above threshold
     fh << -1 << " Presyn ConditionEvent flags\n";
@@ -824,12 +826,13 @@ void checkpoint_restore_tqueue(NrnThread& nt, FileHandler& fh) {
         vpc->discon_index_ = fh.read_int();
         vpc->ubound_index_ = fh.read_int();
     }
-
+# if 0
     // PatternStim
     patstim_index = fh.read_int();  // PatternStim
     if (nt.id == 0) {
         patstim_te = -1.0;  // changed if relevant SelfEvent;
     }
+#endif
 
     assert(fh.read_int() == -1);  // -1 PreSyn ConditionEvent flags
     for (int i = 0; i < nt.n_presyn; ++i) {
@@ -874,6 +877,7 @@ bool checkpoint_initialize() {
     }
     _nrn_skip_initmodel = 0;
 
+#if 0
     // if PatternStim exists, needs initialization
     for (NrnThreadMembList* tml = nrn_threads[0].tml; tml; tml = tml->next) {
         if (tml->index == patstimtype && patstim_index >= 0 && patstim_te > 0.0) {
@@ -885,6 +889,7 @@ bool checkpoint_initialize() {
             break;
         }
     }
+#endif
 
     return checkpoint_restored_;
 }

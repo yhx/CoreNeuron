@@ -49,6 +49,7 @@ void _pattern_reg(void);
 extern void pattern_stim_setup_helper(int size,
                                       double* tvec,
                                       int* gidvec,
+                                      double time,
                                       int icnt,
                                       int cnt,
                                       double* _p,
@@ -113,7 +114,7 @@ void nrn_mkPatternStim(const char* fname, double tstop) {
     } else {
         assert(0);
     }
-    pattern_stim_setup_helper(size, tvec, gidvec, _iml, _cntml, _p, _ppvar, NULL, nt, 0.0);
+    pattern_stim_setup_helper(size, tvec, gidvec, t, _iml, _cntml, _p, _ppvar, NULL, nt, 0.0);
 }
 
 // comparator to sort spikes based on time
@@ -136,7 +137,6 @@ size_t read_raster_file(const char* fname, double** tvec, int** gidvec, double t
 
     double stime;
     int gid;
-
     while (fscanf(f, "%lf %d\n", &stime, &gid) == 2) {
         if ( stime >= t && stime <= tstop) {
             spikes.push_back(std::make_pair(stime, gid));

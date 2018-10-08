@@ -54,6 +54,7 @@ Info* mkinfo(_threadargsproto_) {
 	info->index = 0;
 	return info;
 }
+#if 0
 /* for CoreNEURON checkpoint save and restore */
 namespace coreneuron {
 int checkpoint_save_patternstim(_threadargsproto_) {
@@ -66,6 +67,7 @@ void checkpoint_restore_patternstim(int _index, double _te, _threadargsproto_) {
     artcell_net_send(_tqitem, -1, (Point_process*)_nt->_vdata[_ppvar[1*_STRIDE]], _te, 1.0);
 }
 } //namespace coreneuron
+#endif
 ENDVERBATIM
 
 FUNCTION initps() {
@@ -109,14 +111,16 @@ VERBATIM
 static void bbcore_write(double* x, int* d, int* xx, int *offset, _threadargsproto_){}
 static void bbcore_read(double* x, int* d, int* xx, int* offset, _threadargsproto_){}
 namespace coreneuron {
-void pattern_stim_setup_helper(int size, double* tv, int* gv, _threadargsproto_) {
+void pattern_stim_setup_helper(int size, double* tv, int* gv, double time, _threadargsproto_) {
 	INFOCAST;
 	Info* info = mkinfo(_threadargs_);
 	*ip = info;
 	info->size = size;
 	info->tvec = tv;
 	info->gidvec = gv;
-	artcell_net_send ( _tqitem, -1, (Point_process*) _nt->_vdata[_ppvar[1*_STRIDE]], t +  0.0 , 1.0 ) ;
+    if (time) {
+	    artcell_net_send ( _tqitem, -1, (Point_process*) _nt->_vdata[_ppvar[1*_STRIDE]], time , 1.0 ) ;
+    }
 }
 } // namespace coreneuron
 ENDVERBATIM

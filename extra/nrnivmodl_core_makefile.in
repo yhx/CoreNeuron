@@ -105,10 +105,8 @@ $(dimplic_c): $(dimplic_src) | $(MODC_DIR)
 
 # == INIT ==
 $(MODC_DIR):
-	mkdir -p $(OUTPUT)
 	mkdir -p $(MODC_DIR)
 $(OBJS_DIR):
-	mkdir -p $(OUTPUT)
 	mkdir -p $(OBJS_DIR)
 
 .PHONY: build_always

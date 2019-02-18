@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # -----------------------------------------------------------------------------
 # nrnivmodl-core uses make to compile additonal mod files for coreneuron
 # Copyright 2019 Blue Brain Project

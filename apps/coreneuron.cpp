@@ -27,13 +27,19 @@ THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include <coreneuron/engine.h>
-extern "C" {extern void modl_reg(void);}
+
+#ifdef ADDITIONAL_MECHS
+namespace coreneuron{ extern void modl_reg(); }
+#endif
 
 int main(int argc, char** argv) {
-  return solve_core(argc, argv);
-}
 
-/// Declare an empty function if Neurodamus mechanisms are not used, otherwise register them in mechs/cfile/mod_func.c
-#ifndef ADDITIONAL_MECHS
-void modl_reg() {}
+    mk_mech_init(argc, argv);
+
+#ifdef ADDITIONAL_MECHS
+    /// Initializing additional Neurodamus mechanisms (in mod_func.c, built by mech/mod_func.c.pl)
+    coreneuron::modl_reg();
 #endif
+
+    return solve_core(argc, argv);
+}

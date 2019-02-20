@@ -10,11 +10,11 @@ MODS_PATH = .
 OUTPUT = @CMAKE_HOST_SYSTEM_PROCESSOR@
 OPTMODS = @CORENRN_OPTMODS@
 
-bindir = @CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_BINDIR@
-libdir = @CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@
-incdir = @CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_INCLUDEDIR@
-datadir= @CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_DATADIR@/coreneuron
-datadir_mod2c = @CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_DATADIR@/mod2c
+bindir := @CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_BINDIR@
+libdir := @CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@
+incdir := @CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_INCLUDEDIR@
+datadir:= @CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_DATADIR@/coreneuron
+datadir_mod2c := @CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_DATADIR@/mod2c
 
 # Additional variables set in CMAKE usable here
 # - @CORENRN_COMPILE_DEFS@
@@ -42,7 +42,7 @@ CXX_LINK_SHARED = $(CXX) $(CXXFLAGS) @CMAKE_SHARED_LIBRARY_CREATE_CXX_FLAGS@ @CM
 MODC_DIR = $(OUTPUT)/modc_core
 OBJS_DIR = $(OUTPUT)/build_core
 mod_files = $(sort $(notdir $(wildcard $(MODS_PATH)/*.mod)))
-mod_names = $(mod_files:.mod=)
+mod_names = $(mod_files:.mod=) $(OPTMODS:.mod=)
 modc_files = $(addprefix $(MODC_DIR)/,$(addsuffix .cpp,$(mod_names)))
 mod_objs   = $(addprefix $(OBJS_DIR)/,$(addsuffix .o,$(mod_names)))
 
@@ -64,14 +64,15 @@ coremech_lib = $(OUTPUT)/lib$(coremech_libname)@CMAKE_SHARED_LIBRARY_SUFFIX@
 # Take the main and link with nrnmech.
 # RPATH is set for ORIGIN and coreneuron lib
 $(special): $(coremech_lib)
-	$(CXX_LINK_EXE) $(libdir)/libcoreneuron_main.a -o $(special) -L $(OUTPUT) -l$(coremech_libname) \
-	  $(CORENRNLIB_FLAGS) -Wl,-rpath,'$$ORIGIN' -Wl,-rpath,$(libdir) $(LDFLAGS)
+	$(CXX_LINK_EXE) -I $(incdir) -DADDITIONAL_MECHS $(datadir)/coreneuron.cpp -o $(special) \
+	-L $(OUTPUT) -l$(coremech_libname)  \
+	$(CORENRNLIB_FLAGS) -Wl,-rpath,'$$ORIGIN' -Wl,-rpath,$(libdir) $(LDFLAGS)
 
 
 $(coremech_lib): $(mod_func_o) $(dimplic_o) $(mod_objs)
-	@echo "#BUILDING lib $(coremech_lib) from Mod files $(mod_files)"
-	$(CXX_LINK_SHARED) -o ${coremech_lib} \
-	  $(mod_func_o) $(dimplic_o) $(mod_objs) $(CORENRNLIB_FLAGS) $(LDFLAGS)
+	@echo "#BUILDING lib $(coremech_lib) from Mod files $(mod_files) (+ $(OPTMODS))"
+	$(CXX_LINK_SHARED) -o ${coremech_lib} $(datadir)/libscopmath.a \
+	  $(dimplic_o) $(mod_objs) $(CORENRNLIB_FLAGS) $(mod_func_o) $(LDFLAGS)
 
 
 # Generic build cpp->o. Need PIC for shared lib
@@ -79,9 +80,14 @@ $(OBJS_DIR)/%.o: $(MODC_DIR)/%.cpp $(kinderiv_h) | $(OBJS_DIR)
 	$(CXXCOMPILE) @CMAKE_CXX_COMPILE_OPTIONS_PIC@ -c $< -o $@
 
 
+# Build cpp files with mod2c
 $(MODC_DIR)/%.cpp: $(MODS_PATH)/%.mod | $(MODC_DIR)
 	MODLUNIT=$(datadir_mod2c)/nrnunits.lib \
 	  $(bindir)/mod2c_core $< -o $(MODC_DIR)/
+
+# If .mod doesnt exist attempt from previously built opt mods in shared/
+$(MODC_DIR)/%.cpp: $(datadir_mod2c)/%.cpp | $(MODC_DIR)
+	cp $< $@
 
 
 # Mod registration. Compiled by generic rule. Dont overwrite if not changed

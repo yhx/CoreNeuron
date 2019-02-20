@@ -4,6 +4,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+extern void mk_mech_init(int argc, char** argv);
 extern int solve_core(int argc, char** argv);
 #ifdef __cplusplus
 }

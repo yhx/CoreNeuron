@@ -284,6 +284,7 @@ set(link_reportinglib)
 
 #@TODO: CMake should have option for arch
 if(ENABLE_OPENACC AND ENABLE_CUDA_MODULES)
+    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS};-Xcompiler;-fPIC;" )
     cuda_add_library("cudacoreneuron" ${coreneuron_cuda_files} OPTIONS
         -arch=sm_30
         -gencode=arch=compute_30,code=sm_30
@@ -292,6 +293,9 @@ if(ENABLE_OPENACC AND ENABLE_CUDA_MODULES)
         -gencode=arch=compute_52,code=compute_52
     )
     set(link_cudacoreneuron cudacoreneuron)
+    install(TARGETS cudacoreneuron
+            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 endif()
 
 if(ENABLE_REPORTINGLIB)

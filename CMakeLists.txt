@@ -216,6 +216,7 @@ if(${CMAKE_C_COMPILER_ID} STREQUAL "PGI")
 endif()
 
 if(ENABLE_OPENACC)
+    set(COMPILE_LIBRARY_TYPE "STATIC")
     if(${CMAKE_C_COMPILER_ID} STREQUAL "PGI")
         add_definitions( -DPG_ACC_BUGS)
         set(ACC_FLAGS "-acc -Minline=size:200,levels:10")

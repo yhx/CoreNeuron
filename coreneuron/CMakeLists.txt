@@ -304,7 +304,9 @@ endif()
 # Target libs
 ############################################################
 
-# The coreneuron lib
+#
+# The coreneuron lib (only internal mechanisms)
+#
 add_library(coreneuron ${COMPILE_LIBRARY_TYPE} ${coreneuron_all_headers} ${coreneuron_all_templates}
                        ${coreneuron_all_c_files} ${MOD2C_STDMECH_OUTPUTS})
 
@@ -329,7 +331,9 @@ set(CORENRN_OPTMECH_MODS "${MOD2C_OPTMECH_MODS}" PARENT_SCOPE)
 # The scopmath lib - should not contain dimplic
 add_library(scopmath STATIC ${coreneuron_all_headers} ${scopmath_c_files})
 
+#
 # The "complete" lib (coreneuron + opt mechs)
+#
 set(ENGINEMECH_C "mech/enginemech.cpp")
 add_library(corenrnmech SHARED ${coreneuron_all_headers} ${ENGINEMECH_C} ${ADDITIONAL_MECH_C_FILES})
 add_dependencies(corenrnmech kinderiv)

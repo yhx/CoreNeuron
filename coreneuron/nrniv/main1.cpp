@@ -363,11 +363,14 @@ extern "C" void mk_mech_init(int argc, char** argv) {
 
 
 extern "C" int run_solve_core(int argc, char** argv) {
+
 #if NRNMPI
     nrnmpi_init(1, &argc, &argv);
 #endif
     std::vector<ReportConfiguration> configs;
     bool reports_needs_finalize = false;
+
+    report_mem_usage("After mk_mech ang global initialization");
 
     if (nrnopt_get_str("--report-conf").size()) {
         if (nrnopt_get_int("--multiple") > 1) {
@@ -381,9 +384,6 @@ extern "C" int run_solve_core(int argc, char** argv) {
     }
     // initializationa and loading functions moved to separate
     nrn_init_and_load_data(argc, argv, configs.size() > 0);
-
-    report_mem_usage("After mk_mech ang global initialization");
-
     std::string checkpoint_path = nrnopt_get_str("--checkpoint");
     if (strlen(checkpoint_path.c_str())) {
         nrn_checkpoint_arg_exists = true;

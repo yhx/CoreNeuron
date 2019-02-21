@@ -346,13 +346,11 @@ target_compile_definitions(corenrnmech PUBLIC -DADDITIONAL_MECHS)
 target_link_libraries(corenrnmech scopmath coreneuron)
 
 
-
-
 #########################################################
 # INSTALL
 #########################################################
 
-install(TARGETS coreneuron
+install(TARGETS coreneuron corenrnmech
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 

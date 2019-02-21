@@ -34,8 +34,8 @@ file(GLOB_RECURSE coreneuron_all_templates "*.ipp")
 file(GLOB_RECURSE coreneuron_cuda_files "*.cu")
 file(GLOB_RECURSE coreneuron_all_c_files "nrniv/*.c*" "nrnmpi/*.c*" "nrnoc/*.c*"
                                          "nrnomp/*.c*" "utils/*.c*")
+set(DIMPLIC_C "mech/dimplic.cpp")
 file(GLOB_RECURSE scopmath_c_files "scopmath_core/*.c*")
-list(REMOVE_ITEM scopmath_c_files "scopmath_core/dimplic.cpp")  # Depends kinderiv.h
 
 
 # Compile and include MOD files
@@ -232,6 +232,7 @@ add_custom_command(OUTPUT "${KINDERIV_H}"
     DEPENDS ${MOD2C_OPTMECH_OUTPUTS} ${MOD2C_STDMECH_OUTPUTS} "${KINDERIV_PY}"
     COMMAND python "${KINDERIV_PY}"
     WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
+add_custom_target(kinderiv DEPENDS "${KINDERIV_H}")
 
 if (EXPORT_MECHS_FUNCTIONS)
   # Create C file with all "get function pointers" methods
@@ -246,7 +247,7 @@ if (EXPORT_MECHS_FUNCTIONS)
 endif()
 
 # Add generated sources from MOD files
-set(ADDITIONAL_MECH_C_FILES ${MOD_FUNC_C} ${MOD_FUNC_PTRS_C} ${MOD2C_OPTMECH_OUTPUTS})
+set(ADDITIONAL_MECH_C_FILES ${MOD_FUNC_C} ${MOD_FUNC_PTRS_C} ${DIMPLIC_C} ${MOD2C_OPTMECH_OUTPUTS})
 set(GENERATED_MECH_C_FILES ${ADDITIONAL_MECH_C_FILES}  ${MOD2C_STDMECH_OUTPUTS})
 
 # artificial cells must be on cpu, defaul nrnran123.c is for cpu, nrn_setup.cpp uses nrnran123 for only memory calculation purpose which should use cpu version of nrnran123
@@ -328,8 +329,12 @@ set(CORENRN_OPTMECH_MODS "${MOD2C_OPTMECH_MODS}" PARENT_SCOPE)
 # The scopmath lib - should not contain dimplic
 add_library(scopmath STATIC ${coreneuron_all_headers} ${scopmath_c_files})
 
-# The external mechs (eventual dummy) lib (w dimplic)
-add_library(optmech STATIC ${coreneuron_all_headers} ${ADDITIONAL_MECH_C_FILES})
+
+# The "complete" lib (coreneuron + opt mechs)
+set(ENGINEMECH_C "mech/enginemech.cpp")
+add_library(corenrnmech SHARED ${coreneuron_all_headers} ${ENGINEMECH_C} ${ADDITIONAL_MECH_C_FILES})
+add_dependencies(corenrnmech kinderiv)
+target_link_libraries(corenrnmech scopmath coreneuron)
 
 
 
@@ -356,15 +361,8 @@ if(ENABLE_HEADER_INSTALL)
             DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/coreneuron
             FILES_MATCHING PATTERN "*.h*" PATTERN "*.ipp")
 
-    install(FILES ${KINDERIV_PY}
+    install(FILES ${KINDERIV_PY} ${MOD_FUNC_C_PL} ${DIMPLIC_C} ${ENGINEMECH_C}
             DESTINATION ${CMAKE_INSTALL_DATADIR}/coreneuron)
-
-    install(FILES ${MOD_FUNC_C_PL}
-            DESTINATION ${CMAKE_INSTALL_DATADIR}/coreneuron)
-
-    install(DIRECTORY "scopmath_core"
-            DESTINATION ${CMAKE_INSTALL_DATADIR}/coreneuron
-            FILES_MATCHING PATTERN "dimplic.cpp")
 
     install(TARGETS scopmath
             DESTINATION ${CMAKE_INSTALL_DATADIR}/coreneuron)

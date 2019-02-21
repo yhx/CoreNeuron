@@ -49,7 +49,7 @@ mod_objs   = $(addprefix $(OBJS_DIR)/,$(addsuffix .o,$(mod_names)))
 kinderiv_h = $(MODC_DIR)/_kinderiv.h
 mod_func_o = $(OBJS_DIR)/_mod_func.o
 mod_func_c = $(MODC_DIR)/_mod_func.cpp
-dimplic_src= $(datadir)/scopmath_core/dimplic.cpp
+dimplic_src= $(datadir)/dimplic.cpp
 dimplic_c  = $(MODC_DIR)/_dimplic.cpp
 dimplic_o  = $(OBJS_DIR)/_dimplic.o
 
@@ -64,15 +64,15 @@ coremech_lib = $(OUTPUT)/lib$(coremech_libname)@CMAKE_SHARED_LIBRARY_SUFFIX@
 # Take the main and link with nrnmech.
 # RPATH is set for ORIGIN and coreneuron lib
 $(special): $(coremech_lib)
-	$(CXX_LINK_EXE) -I $(incdir) -DADDITIONAL_MECHS $(datadir)/coreneuron.cpp -o $(special) \
+	$(CXX_LINK_EXE) -I $(incdir) $(datadir)/coreneuron.cpp -o $(special) \
 	-L $(OUTPUT) -l$(coremech_libname)  \
 	$(CORENRNLIB_FLAGS) -Wl,-rpath,'$$ORIGIN' -Wl,-rpath,$(libdir) $(LDFLAGS)
 
 
 $(coremech_lib): $(mod_func_o) $(dimplic_o) $(mod_objs)
 	@echo "#BUILDING lib $(coremech_lib) from Mod files $(mod_files) (+ $(OPTMODS))"
-	$(CXX_LINK_SHARED) -o ${coremech_lib} $(datadir)/libscopmath.a \
-	  $(dimplic_o) $(mod_objs) $(CORENRNLIB_FLAGS) $(mod_func_o) $(LDFLAGS)
+	$(CXX_LINK_SHARED) -DADDITIONAL_MECHS -I $(incdir) -o ${coremech_lib} $(datadir)/enginemech.cpp \
+	  $(datadir)/libscopmath.a $(dimplic_o) $(mod_objs) $(CORENRNLIB_FLAGS) $(mod_func_o) $(LDFLAGS)
 
 
 # Generic build cpp->o. Need PIC for shared lib

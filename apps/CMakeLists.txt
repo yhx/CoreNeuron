@@ -32,8 +32,7 @@ add_definitions(-DADDITIONAL_MECHS)
 
 add_executable(coreneuron_exec "${CMAKE_CURRENT_SOURCE_DIR}/coreneuron.cpp")
 
-target_link_libraries(coreneuron_exec 
-                      coreneuron optmech scopmath
+target_link_libraries(coreneuron_exec corenrnmech
                       ${MPI_C_LIBRARIES} ${MPI_CXX_LIBRARIES} ${reportinglib_LIBRARY})
 
 install(TARGETS coreneuron_exec

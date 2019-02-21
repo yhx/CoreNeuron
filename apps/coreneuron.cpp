@@ -26,20 +26,8 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include <coreneuron/engine.h>
-
-#ifdef ADDITIONAL_MECHS
-namespace coreneuron{ extern void modl_reg(); }
-#endif
+#include <coreneuron/enginemech.h>
 
 int main(int argc, char** argv) {
-
-    mk_mech_init(argc, argv);
-
-#ifdef ADDITIONAL_MECHS
-    /// Initializing additional Neurodamus mechanisms (in mod_func.c, built by mech/mod_func.c.pl)
-    coreneuron::modl_reg();
-#endif
-
     return solve_core(argc, argv);
 }

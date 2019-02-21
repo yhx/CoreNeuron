@@ -128,7 +128,8 @@ int corenrn_embedded_run(int nthread, int have_gaps, int use_mpi, const char* ar
     int argc = 0;
     char** argv;
     char* new_arg = prepare_args(argc, argv, use_mpi, arg);
-    solve_core(argc, argv);
+    mk_mech_init(argc, argv);
+    run_solve_core(argc, argv);
     free(new_arg);
     delete[] argv;
 
@@ -343,6 +344,13 @@ const char* nrn_version(int) {
 }  // namespace coreneuron
 
 
+
+/// The following high-level functions are marked as "extern C"
+/// for compat with C, namely Neuron mod files.
+/// They split the previous solve_core so that intermediate init of external mechanisms can occur.
+/// See mech/corenrnmech.cpp for the new all-in-one solve_core (not compiled into the coreneuron
+/// lib since with nrnivmodl-core we have 'future' external mechanisms)
+
 using namespace coreneuron;
 
 extern "C" void mk_mech_init(int argc, char** argv) {
@@ -354,7 +362,7 @@ extern "C" void mk_mech_init(int argc, char** argv) {
 }
 
 
-extern "C" int solve_core(int argc, char** argv) {
+extern "C" int run_solve_core(int argc, char** argv) {
 #if NRNMPI
     nrnmpi_init(1, &argc, &argv);
 #endif

@@ -309,6 +309,7 @@ endif()
 #
 add_library(coreneuron ${COMPILE_LIBRARY_TYPE} ${coreneuron_all_headers} ${coreneuron_all_templates}
                        ${coreneuron_all_c_files} ${MOD2C_STDMECH_OUTPUTS})
+add_dependencies(coreneuron kinderiv)
 
 target_link_libraries(coreneuron ${MPI_CXX_LIBRARIES}
                       ${link_reportinglib} ${link_cudacoreneuron} ${CUDA_LIBRARIES})

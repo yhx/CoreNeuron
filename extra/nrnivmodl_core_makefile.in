@@ -72,7 +72,7 @@ $(special): $(coremech_lib)
 $(coremech_lib): $(mod_func_o) $(dimplic_o) $(mod_objs)
 	@echo "#BUILDING lib $(coremech_lib) from Mod files $(mod_files) (+ $(OPTMODS))"
 	$(CXX_LINK_SHARED) -DADDITIONAL_MECHS -I $(incdir) -o ${coremech_lib} $(datadir)/enginemech.cpp \
-	  $(datadir)/libscopmath.a $(dimplic_o) $(mod_objs) $(CORENRNLIB_FLAGS) $(mod_func_o) $(LDFLAGS)
+	  $(mod_func_o) $(dimplic_o) $(mod_objs) $(datadir)/libscopmath.a $(CORENRNLIB_FLAGS) $(LDFLAGS)
 
 
 # Generic build cpp->o. Need PIC for shared lib

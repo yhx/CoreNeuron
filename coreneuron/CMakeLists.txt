@@ -331,6 +331,7 @@ set(CORENRN_OPTMECH_MODS "${MOD2C_OPTMECH_MODS}" PARENT_SCOPE)
 
 # The scopmath lib - should not contain dimplic
 add_library(scopmath STATIC ${coreneuron_all_headers} ${scopmath_c_files})
+set_target_properties(scopmath PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 #
 # The "complete" lib (coreneuron + opt mechs)

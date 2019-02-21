@@ -38,6 +38,16 @@ set(BUILD_TYPE_C_FLAGS "${CMAKE_C_FLAGS_${_BUILD_TYPE}}")
 set(BUILD_TYPE_CXX_FLAGS "${CMAKE_CXX_FLAGS_${_BUILD_TYPE}}")
 message("CXX Compile Flags from BUILD_TYPE: ${BUILD_TYPE_CXX_FLAGS}")
 
+############################################################
+# Disable new-dtags with newer linkers
+############################################################
+
+if (UNIX AND NOT APPLE)
+  execute_process(COMMAND ${CMAKE_C_COMPILER} -fuse-ld=gold -Wl,--version ERROR_QUIET OUTPUT_VARIABLE ld_version)
+  if ("${ld_version}" MATCHES "GNU gold")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--disable-new-dtags")
+  endif()
+endif()
 
 configure_file(${nmodl_makefile}.in ${nmodl_makefile} @ONLY)
 

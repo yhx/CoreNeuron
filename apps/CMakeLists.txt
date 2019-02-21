@@ -27,9 +27,6 @@
 
 include_directories(${PROJECT_SOURCE_DIR} ${PROJECT_SOURCE_DIR}/coreneuron ${CMAKE_CURRENT_SOURCE_DIR} ${PROJECT_BINARY_DIR}/coreneuron)
 
-# The mechanism registration function will be always defined (at least for halfgap)
-add_definitions(-DADDITIONAL_MECHS)
-
 add_executable(coreneuron_exec "${CMAKE_CURRENT_SOURCE_DIR}/coreneuron.cpp")
 
 target_link_libraries(coreneuron_exec corenrnmech

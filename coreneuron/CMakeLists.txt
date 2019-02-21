@@ -329,12 +329,16 @@ set(CORENRN_OPTMECH_MODS "${MOD2C_OPTMECH_MODS}" PARENT_SCOPE)
 # The scopmath lib - should not contain dimplic
 add_library(scopmath STATIC ${coreneuron_all_headers} ${scopmath_c_files})
 
-
 # The "complete" lib (coreneuron + opt mechs)
 set(ENGINEMECH_C "mech/enginemech.cpp")
 add_library(corenrnmech SHARED ${coreneuron_all_headers} ${ENGINEMECH_C} ${ADDITIONAL_MECH_C_FILES})
 add_dependencies(corenrnmech kinderiv)
+
+# The mechanism registration function will be always defined (at least for halfgap)
+target_compile_definitions(corenrnmech PUBLIC -DADDITIONAL_MECHS)
+
 target_link_libraries(corenrnmech scopmath coreneuron)
+
 
 
 

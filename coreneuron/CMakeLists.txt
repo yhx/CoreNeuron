@@ -302,6 +302,8 @@ if(ENABLE_REPORTINGLIB)
     set(link_reportinglib ${reportinglib_LIBRARY})
 endif()
 
+
+
 ############################################################
 # Target libs
 ############################################################
@@ -339,12 +341,13 @@ set_target_properties(scopmath PROPERTIES POSITION_INDEPENDENT_CODE ON)
 # The "complete" lib (coreneuron + opt mechs)
 #
 set(ENGINEMECH_C "mech/enginemech.cpp")
-add_library(corenrnmech SHARED ${coreneuron_all_headers} ${ENGINEMECH_C} ${ADDITIONAL_MECH_C_FILES})
+add_library(corenrnmech ${COMPILE_LIBRARY_TYPE} ${coreneuron_all_headers} ${ENGINEMECH_C} ${ADDITIONAL_MECH_C_FILES})
 add_dependencies(corenrnmech kinderiv)
 
 # The mechanism registration function will be always defined (at least for halfgap)
 target_compile_definitions(corenrnmech PUBLIC -DADDITIONAL_MECHS)
 
+# Public link interface (default), so that end binary links with all, even if they'r static
 target_link_libraries(corenrnmech scopmath coreneuron)
 
 
@@ -356,7 +359,7 @@ install(TARGETS coreneuron corenrnmech
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
-install(FILES "engine.h"
+install(FILES "engine.h" "enginemech.h"
         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/coreneuron)
 
 install(PROGRAMS ${MOD2C_BINARY}

@@ -71,7 +71,7 @@ macro(mod2c_target name input)
     add_custom_command(OUTPUT "${mod2c_output_}"
       DEPENDS ${input} mod2c ${MOD2C_BINARY}
       COMMAND ${CMAKE_COMMAND} -E copy "${mod2c_source_}" "${CMAKE_CURRENT_BINARY_DIR}"
-      COMMAND ${MOD2C} "${mod2c_modname_}"
+      COMMAND ${MOD2C} ${MOD2C_OPTIONS} "${mod2c_modname_}"
       WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
 endmacro()
 
@@ -298,7 +298,7 @@ endif()
 
 
 target_link_libraries(coreneuron ${MPI_CXX_LIBRARIES}
-                      ${link_reportinglib} ${link_cudacoreneuron} ${CUDA_LIBRARIES} )
+    ${link_reportinglib} ${link_cudacoreneuron} ${CUDA_LIBRARIES} ${CALIPER_LIB})
 
 set_target_properties(coreneuron PROPERTIES
                       VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}

@@ -17,8 +17,8 @@ datadir:= @CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_DATADIR@/coreneuron
 datadir_mod2c := @CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_DATADIR@/mod2c
 
 # Additional variables set in CMAKE usable here
-# - @CORENRN_COMPILE_DEFS@
-# - @CORENRN_LINK_DEFS@
+# - @CORENRN_COMPILE_DEFS
+# - @CORENRN_LINK_DEFS
 
 LDFLAGS = $(LINKFLAGS) @CORENRN_LINK_DEFS@
 CORENRNLIB_FLAGS = -L$(libdir) -lcoreneuron

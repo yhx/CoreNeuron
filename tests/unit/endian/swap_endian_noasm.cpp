@@ -30,6 +30,8 @@ THE POSSIBILITY OF SUCH DAMAGE.
 /* Run endian tests with assembly and intrinsics disabled.
  */
 
+#undef SWAP_ENDIAN_CONFIG
+#undef SWAP_ENDIAN_DISABLE_ASM
 #define SWAP_ENDIAN_CONFIG DisableAsm
 
 #ifndef SWAP_ENDIAN_DISABLE_ASM

@@ -237,11 +237,20 @@ void nrn_init_and_load_data(int argc,
     use_interleave_permute = nrnopt_get_int("--cell-permute");
     cellorder_nwarp = nrnopt_get_int("--nwarp");
     use_solve_interleave = nrnopt_get_int("--cell-permute");
+
 #if LAYOUT == 1
     // permuting not allowed for AoS
     use_interleave_permute = 0;
     use_solve_interleave = 0;
 #endif
+
+    if (nrnopt_get_flag("--gpu") && use_interleave_permute == 0) {
+        if (nrnmpi_myid == 0) {
+            printf(" WARNING : GPU execution requires --cell-permute type 1 or 2. Setting it to 1.\n");
+        }
+        use_interleave_permute = 1;
+        use_solve_interleave = 1;
+    }
 
     // pass by flag so existing tests do not need a changed nrn_setup prototype.
     nrn_setup_multiple = nrnopt_get_int("--multiple");
@@ -382,6 +391,7 @@ extern "C" int run_solve_core(int argc, char** argv) {
             reports_needs_finalize = configs.size();
         }
     }
+
     // initializationa and loading functions moved to separate
     nrn_init_and_load_data(argc, argv, configs.size() > 0);
     std::string checkpoint_path = nrnopt_get_str("--checkpoint");

@@ -284,18 +284,15 @@ set(link_reportinglib)
 
 #@TODO: CMake should have option for arch
 if(ENABLE_OPENACC AND ENABLE_CUDA_MODULES)
-    add_custom_target(cudacorenrn)
-    cuda_wrap_srcs(cudacorenrn OBJ cudacorenrn_objs ${coreneuron_cuda_files}
-                   OPTIONS
-                   -Xcompiler -fPIC
-                   -arch=sm_30
-                   -gencode=arch=compute_30,code=sm_30
-                   -gencode=arch=compute_50,code=sm_50
-                   -gencode=arch=compute_52,code=sm_52
-                   -gencode=arch=compute_52,code=compute_52
+    cuda_add_library("cudacoreneuron" ${coreneuron_cuda_files} OPTIONS
+        -arch=sm_30
+        -gencode=arch=compute_30,code=sm_30
+        -gencode=arch=compute_50,code=sm_50
+        -gencode=arch=compute_52,code=sm_52
+        -gencode=arch=compute_52,code=compute_52
+        -Xcompiler -fPIC
     )
-    # We disabled SEPARABLE_COMPILATION. If we ever need it, the next line is required
-    #CUDA_LINK_SEPARABLE_COMPILATION_OBJECTS(${CMAKE_CURRENT_BINARY_DIR}/cuda_linkfile cudacore ${cudacorenrn_objs})
+    set(link_cudacoreneuron cudacoreneuron)
 endif()
 
 if(ENABLE_REPORTINGLIB)
@@ -315,8 +312,8 @@ add_library(coreneuron ${COMPILE_LIBRARY_TYPE} ${coreneuron_all_headers} ${coren
                        ${coreneuron_all_c_files} ${cudacorenrn_objs} ${MOD2C_STDMECH_OUTPUTS})
 add_dependencies(coreneuron kinderiv)
 
-target_link_libraries(coreneuron ${MPI_CXX_LIBRARIES} 
-                      ${link_reportinglib} ${CUDA_LIBRARIES})
+target_link_libraries(coreneuron ${MPI_CXX_LIBRARIES}
+                      ${link_reportinglib} ${link_cudacoreneuron} ${CUDA_LIBRARIES})
 
 set_target_properties(coreneuron PROPERTIES
                       VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}
@@ -355,7 +352,7 @@ target_link_libraries(corenrnmech scopmath coreneuron)
 # INSTALL
 #########################################################
 
-install(TARGETS coreneuron corenrnmech
+install(TARGETS coreneuron corenrnmech ${link_cudacoreneuron}
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 

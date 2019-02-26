@@ -232,8 +232,7 @@ if(ENABLE_OPENACC)
 
     if(ENABLE_CUDA_MODULES)
         find_package(CUDA 5.0)
-        # SET(CUDA_SEPARABLE_COMPILATION ON)
-
+        SET(CUDA_SEPARABLE_COMPILATION ON)
         if(CUDA_FOUND)
             if(ENABLE_SELECTIVE_GPU_PROFILING)
                 add_definitions( -DCUDA_PROFILING)

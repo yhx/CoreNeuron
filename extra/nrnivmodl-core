@@ -31,7 +31,7 @@ while getopts "n:v:o:i:l:ch" OPT; do
         echo "  -o <output_dir> Set the output dir (default: <arch>-core)"
         echo "  -i <incl_flags> Definitions passed to the compiler, typically '-I dir..'"
         echo "  -l <link_flags> Definitions passed to the linker, typically '-Lx -lylib..'"
-        echo "  -c              (clean) Don't use any ADDITIONAL mod built-into coreneuron."
+        echo "  -c              Clean: Don't use any ADDITIONAL mod built-into coreneuron."
         echo "                  By default this only contains halfgap.mod"
         exit 0;;
     ?)
@@ -59,7 +59,18 @@ done
 
 # warn if no mod files provided
 ls "${params_MODS_PATH:-.}"/*.mod || echo "Warning: No mods found!"
+(
+    set -x
+    make -j4 -f "${ROOTDIR}/share/coreneuron/nrnivmodl_core_makefile" "${make_params[@]}"
+)
 
+# Create a little script to call make install (relinks w right RPATH)
+echo "#!/bin/bash
+set -e
+[ \$# -eq 1 ] || { echo 'Required install destination. Syntax: ' \$(basename \$0) '<directory>'; false; }
 set -x
+make -f \"${ROOTDIR}/share/coreneuron/nrnivmodl_core_makefile\" ${make_params[@]} DESTDIR=\$1 install
+" > nrnivmech_install.sh
+chmod 755 nrnivmech_install.sh
 
-make -j4 -f "${ROOTDIR}/share/coreneuron/nrnivmodl_core_makefile" "${make_params[@]}"
+echo "mods built successfully. Install script written to nrnivmech_install.sh"

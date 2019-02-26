@@ -8,8 +8,9 @@ set -e
 APP_NAME=$(basename $0)
 _PARENT="$(dirname $BASH_SOURCE)/.."
 ROOTDIR=$(perl -e "use Cwd 'abs_path'; print abs_path('$_PARENT')")
+ALL_OPTIONS="MECH_NAME MECH_VERSION OUTPUT INCFLAGS LINKFLAGS MODS_PATH OPTMODS VERBOSE"
 
-while getopts "n:v:o:i:l:ch" OPT; do
+while getopts "n:v:o:i:l:chV" OPT; do
     case "$OPT" in
     n)
         params_MECH_NAME="$OPTARG";;
@@ -23,6 +24,8 @@ while getopts "n:v:o:i:l:ch" OPT; do
         params_LINKFLAGS="$OPTARG";;
     c)
         params_OPTMODS="";;
+    V)
+        params_VERBOSE=1;;
     h)
         echo "$APP_NAME [options, ...] [mods_path]"
         echo "Options:"
@@ -52,7 +55,7 @@ params_MODS_PATH=$1
 
 make_params=()
 
-for param in MECH_NAME MECH_VERSION OUTPUT INCFLAGS LINKFLAGS MODS_PATH OPTMODS; do
+for param in $ALL_OPTIONS; do
     var="params_${param}"
     [ "${!var+x}" ] && make_params+=("$param=${!var}")
 done

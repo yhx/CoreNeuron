@@ -75,7 +75,7 @@ macro(mod2c_target name input)
     add_custom_command(OUTPUT "${mod2c_output_}"
       DEPENDS ${input} mod2c ${MOD2C_BINARY}
       COMMAND ${CMAKE_COMMAND} -E copy "${mod2c_source_}" "${CMAKE_CURRENT_BINARY_DIR}"
-      COMMAND ${MOD2C} "${mod2c_modname_}"
+      COMMAND ${MOD2C} "${mod2c_modname_}" ${MOD2C_OPTIONS}
       WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
 endmacro()
 

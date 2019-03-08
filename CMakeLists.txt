@@ -71,8 +71,10 @@ set(FRONTEND_CXX_COMPILER g++ CACHE FILEPATH "C++ compiler for building mod2c [f
 set(ADDITIONAL_MECHPATH "" CACHE PATH "Search path for optional additional mechanism MOD files")
 set(ADDITIONAL_MECHS "" CACHE FILEPATH "File containing list of additional mechanism MOD files")
 
-# mod2c path (if external)
+# mod2c path and options (if external)
 set(MOD2C "" CACHE FILEPATH "Path of MOD2C binary")
+set(MOD2C_OPTIONS "" CACHE STRING "Extra command line options to MOD2C")
+separate_arguments(MOD2C_OPTIONS)
 
 # test compilations
 option(UNIT_TESTS "Enable unit tests compilation and execution" ON)

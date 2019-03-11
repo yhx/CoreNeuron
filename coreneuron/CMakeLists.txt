@@ -113,14 +113,15 @@ macro(mod2c_target)
     set(mod2c_output_ "${CMAKE_CURRENT_BINARY_DIR}/${mod2c_outname_}")
     list(APPEND MOD2C_${mod2c_KEY}_OUTPUTS "${mod2c_output_}")
     if(DEFINED mod2c_wrapper_outname_)
-        set(mod2c_output_ "${CMAKE_CURRENT_BINARY_DIR}/${mod2c_wrapper_outname_}")
-        list(APPEND MOD2C_${mod2c_KEY}_OUTPUTS "${mod2c_output_}")
+        set(mod2c_wrapper_output_ "${CMAKE_CURRENT_BINARY_DIR}/${mod2c_wrapper_outname_}")
+        list(APPEND MOD2C_${mod2c_KEY}_OUTPUTS "${mod2c_wrapper_output_}")
         unset(mod2c_wrapper_outname_)
     endif()
     list(APPEND MOD2C_${mod2c_KEY}_MODS "${mod2c_modname_}")
     if(${NMODL_FOUND})
-        add_custom_command(OUTPUT "${mod2c_output_}"
+        add_custom_command(OUTPUT "${mod2c_output_}" "${mod2c_wrapper_output_}"
                 DEPENDS ${mod2c_MODFILE} ${MOD2C_BINARY}
+                COMMAND ${CMAKE_COMMAND} -E copy "${mod2c_source_}" "${CMAKE_CURRENT_BINARY_DIR}"
                 COMMAND ${MOD2C} "${mod2c_modname_}" -o "${CMAKE_CURRENT_BINARY_DIR}" host ${nmodl_modearg} ${NMODL_EXTRA_FLAGS}
                 WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
     else()
@@ -312,20 +313,19 @@ if (EXPORT_MECHS_FUNCTIONS)
 endif()
 
 
+set_source_files_properties(${MOD2C_STDMECH_OUTPUTS} PROPERTIES GENERATED TRUE)
+set_source_files_properties(${MOD2C_OPTMECH_OUTPUTS} PROPERTIES GENERATED TRUE)
+
+
 if(ENABLE_ISPC_TARGET)
     set(MOD2C_ISPC_STDMECH_OUTPUTS ${MOD2C_STDMECH_OUTPUTS})
     list(FILTER MOD2C_ISPC_STDMECH_OUTPUTS INCLUDE REGEX ".*\.ispc$")
     set(MOD2C_ISPC_OPTMECH_OUTPUTS ${MOD2C_OPTMECH_OUTPUTS})
     list(FILTER MOD2C_ISPC_OPTMECH_OUTPUTS INCLUDE REGEX ".*\.ispc$")
-    #list(FILTER MOD2C_STDMECH_OUTPUTS EXCLUDE REGEX ".*\.ispc$")
-    #list(FILTER MOD2C_OPTMECH_OUTPUTS EXCLUDE REGEX ".*\.ispc$")
     set_source_files_properties(${MOD2C_ISPC_STDMECH_OUTPUTS} PROPERTIES LANGUAGE ISPC)
     set_source_files_properties(${MOD2C_ISPC_STDMECH_OUTPUTS} PROPERTIES COMPILE_FLAGS "-I${nmodl_INCLUDE}")
     set_source_files_properties(${MOD2C_ISPC_OPTMECH_OUTPUTS} PROPERTIES LANGUAGE ISPC)
     set_source_files_properties(${MOD2C_ISPC_OPTMECH_OUTPUTS} PROPERTIES COMPILE_FLAGS "-I${nmodl_INCLUDE}")
-    foreach(ispc)
-        target_include_directories()
-    endforeach()
 endif()
 
 
@@ -376,10 +376,6 @@ if(ENABLE_OPENACC AND ENABLE_CUDA_MODULES)
         -Xcompiler -fPIC
     )
     set(link_cudacoreneuron cudacoreneuron)
-endif()
-
-if(ENABLE_ISPC_TARGET)
-
 endif()
 
 if(ENABLE_REPORTINGLIB)

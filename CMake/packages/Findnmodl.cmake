@@ -44,9 +44,9 @@
 #
 # ::
 #
-#   nmodl_FOUND - set to true if the library is found
-#   nmodl_INCLUDE_DIRS - list of required include directories
-#   nmodl_LIBRARIES - list of libraries to be linked
+#   nmodl_FOUND   - set to true if the library is found
+#   nmodl_INCLUDE - list of required include directories
+#   nmodl_BINARY  - the nmodl binary
 
 
 # UNIX paths are standard, no need to write.
@@ -60,5 +60,5 @@ include(FindPackageHandleStandardArgs)
 
 find_package_handle_standard_args(nmodl
   FOUND_VAR nmodl_FOUND
-  REQUIRED_VARS nmodl_BINARY nmodl_INCLUDE)
+  REQUIRED_VARS nmodl_BINARY)
   

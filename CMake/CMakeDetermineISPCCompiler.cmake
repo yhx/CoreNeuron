@@ -1,8 +1,8 @@
 # Find the compiler
 find_program(
-    CMAKE_FOO_COMPILER
-        NAMES "ispc"
-        HINTS "${CMAKE_SOURCE_DIR}"
+    CMAKE_ISPC_COMPILER
+        NAMES $ENV{ISPC} ispc
+        PATHS ENV PATH
         DOC "ISPC compiler"
 )
 mark_as_advanced(CMAKE_ISPC_COMPILER)

@@ -5,4 +5,6 @@
  * variables from ispc kernels, we declare them in global namespace and a C linkage file.
  */
 
-double ispc_celsius;
+extern "C" {
+    double ispc_celsius;
+}

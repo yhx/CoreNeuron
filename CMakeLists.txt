@@ -115,6 +115,7 @@ if (ENABLE_NMODL)
     set(MOD2C "${nmodl_BINARY}")
     set(NMODL_EXTRA_FLAGS "" CACHE STRING "Extra NMODL options such as passes")
     separate_arguments(NMODL_EXTRA_FLAGS UNIX_COMMAND "${NMODL_EXTRA_FLAGS}")
+    include_directories(${nmodl_INCLUDE})
 endif ()
 
 

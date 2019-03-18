@@ -60,5 +60,5 @@ include(FindPackageHandleStandardArgs)
 
 find_package_handle_standard_args(nmodl
   FOUND_VAR nmodl_FOUND
-  REQUIRED_VARS nmodl_BINARY)
+  REQUIRED_VARS nmodl_BINARY nmodl_INCLUDE)
   

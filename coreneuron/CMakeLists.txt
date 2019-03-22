@@ -421,7 +421,7 @@ add_dependencies(corenrnmech kinderiv)
 target_compile_definitions(corenrnmech PUBLIC -DADDITIONAL_MECHS)
 
 # Public link interface (default), so that end binary links with all, even if they'r static
-target_link_libraries(corenrnmech scopmath coreneuron)
+target_link_libraries(corenrnmech coreneuron scopmath)
 
 
 #########################################################

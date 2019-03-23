@@ -52,7 +52,7 @@ endif()
 set (MOD2C_BINARY ${MOD2C})
 get_filename_component(mod2c_install_prefix ${MOD2C} DIRECTORY)
 set (MOD2C_UNITS "${PROJECT_BINARY_DIR}/external/mod2c/share/nrnunits.lib")
-set(MOD2C env "MODLUNIT=${MOD2C_UNITS}" ${MOD2C})
+set(MOD2C env "MODLUNIT=${MOD2C_UNITS}" "PYTHONPATH=$ENV{PYTHONPATH}" ${MOD2C})
 
 message(STATUS "USING MOD2C ${MOD2C}")
 

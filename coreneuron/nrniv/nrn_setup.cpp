@@ -312,7 +312,7 @@ void nrn_read_filesdat(int& ngrp, int*& grp, int multiple, int*& imult, const ch
     }
 
     char version[256];
-    fscanf(fp, "%s\n", version);
+    nrn_assert(fscanf(fp, "%s\n", version) == 1);
     check_bbcore_write_version(version);
 
     int iNumFiles = 0;
@@ -350,8 +350,8 @@ void nrn_read_filesdat(int& ngrp, int*& grp, int multiple, int*& imult, const ch
         if ((iNum + 1) % iNumFiles == 0) {
             // re-read file for each multiple (skipping the two header lines)
             rewind(fp);
-            fscanf(fp, "%*s\n");
-            fscanf(fp, "%*d\n");
+            nrn_assert(fscanf(fp, "%*s\n") == 0);
+            nrn_assert(fscanf(fp, "%*d\n") == 0);
         }
     }
 
@@ -1178,7 +1178,9 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
     ntc.n_outputgids = n_outputgid;
     ntc.nmech = nmech;
 #endif
-    nrn_assert(n_outputgid > 0);  // avoid n_outputgid unused warning
+    if (!direct) {
+        nrn_assert(n_outputgid > 0);  // avoid n_outputgid unused warning
+    }
 
     /// Checkpoint in coreneuron is defined for both phase 1 and phase 2 since they are written
     /// together

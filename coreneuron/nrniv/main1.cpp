@@ -414,7 +414,7 @@ extern "C" int run_solve_core(int argc, char** argv) {
     bool compute_gpu = nrnopt_get_flag("-gpu");
     bool skip_mpi_finalize = nrnopt_get_flag("--skip-mpi-finalize");
 
-// clang-format off
+    // clang-format off
     #pragma acc data copyin(celsius, secondorder) if (compute_gpu)
     // clang-format on
     {
@@ -471,7 +471,6 @@ extern "C" int run_solve_core(int argc, char** argv) {
         Instrumentor::stop_profile();
         // Report global cell statistics
         report_cell_stats();
-
 
         // prcellstate after end of solver
         call_prcellstate_for_prcellgid(nrnopt_get_int("--prcellgid"), compute_gpu, 0);

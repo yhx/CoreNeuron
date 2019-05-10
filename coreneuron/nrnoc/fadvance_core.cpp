@@ -35,6 +35,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/utils/reports/nrnreport.h"
 #include "coreneuron/utils/progressbar/progressbar.h"
 #include "coreneuron/nrniv/profiler_interface.h"
+#include "coreneuron/nrniv/nrn2core_direct.h"
 
 namespace coreneuron {
 
@@ -229,6 +230,24 @@ void nrn_ba(NrnThread* nt, int bat) {
     }
 }
 
+void nrncore2nrn_send_values(NrnThread* nth) {
+  if (nrn2core_trajectory_values_) {
+    if (nth == NULL) {
+      // need to call nrn_record_init() in NEURON.
+      (*nrn2core_trajectory_values_)(-1, 0, NULL, 0.0, NULL);
+      return;
+    }
+    TrajectoryRequests* tr = nth->trajec_requests;
+    if (tr) {
+      for (int i=0; i < tr->cnt; ++i) {
+        tr->values[i] = *(tr->gather[i]);
+      }
+if (nth->_t == 0.0) { printf("nrncore2nrn_send_values t=0\n");}
+      (*nrn2core_trajectory_values_) (nth->id, tr->cnt, tr->vpr, nth->_t, tr->values);
+    }
+  }
+}
+
 static void* nrn_fixed_step_thread(NrnThread* nth) {
     /* check thresholds and deliver all (including binqueue)
        events up to t+dt/2 */
@@ -289,8 +308,11 @@ void* nrn_fixed_step_lastpart(NrnThread* nth) {
 
         fixed_play_continuous(nth);
         nonvint(nth);
+        nrncore2nrn_send_values(nth);
         nrn_ba(nth, AFTER_SOLVE);
         nrn_ba(nth, BEFORE_STEP);
+    }else{
+        nrncore2nrn_send_values(nth);
     }
 
     Instrumentor::phase_begin("deliver_events");

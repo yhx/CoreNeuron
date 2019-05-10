@@ -59,6 +59,13 @@ struct NrnThreadBAList {
     NrnThreadBAList* next;
 };
 
+struct TrajectoryRequests {
+    void** vpr; /* PlayRecord Objects known by NEURON */
+    double* values; /* buffer of values returned to NEURON each time step */
+    double** gather; /* pointers to values that get copied into valuse */
+    int cnt; /* request count */
+};
+
 /* for OpenACC, in order to avoid an error while update PreSyn, with virtual base
  * class, we are adding helper with flag variable which could be updated on GPU
  */
@@ -123,6 +130,7 @@ struct NrnThread {
 
     int* _watch_types; /* NULL or 0 terminated array of integers */
     void* mapping;     /* section to segment mapping information */
+    TrajectoryRequests* trajec_requests; /* per time step values returned to NEURON */
 };
 
 extern void nrn_threads_create(int n);

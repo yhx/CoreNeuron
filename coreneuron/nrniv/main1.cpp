@@ -358,6 +358,34 @@ void handle_forward_skip(double forwardskip, int prcellgid) {
 const char* nrn_version(int) {
     return "version id unimplemented";
 }
+
+void get_nrn_trajectory_requests() {
+  if (nrn2core_get_trajectory_requests_) {
+    for (int tid=0; tid < nrn_nthread; ++tid) {
+      int cnt;
+      int* types;
+      int* indices;
+      void** vpr;
+      (*nrn2core_get_trajectory_requests_)(tid, cnt, vpr, types, indices);
+      NrnThread& nt = nrn_threads[tid];
+      delete_trajectory_requests(nt);
+      if (cnt) {
+        TrajectoryRequests* tr = new TrajectoryRequests;
+        nt.trajec_requests = tr;
+        tr->cnt = cnt;
+        tr->vpr = vpr;
+        tr->values = new double[cnt];
+        tr->gather = new double*[cnt];
+        for (int i=0; i < cnt; ++i) {
+          tr->gather[i] = stdindex2ptr(types[i], indices[i], nt);
+        }
+        delete [] types;
+        delete [] indices;
+      }
+    }
+  }
+}
+
 }  // namespace coreneuron
 
 /// The following high-level functions are marked as "extern C"
@@ -402,6 +430,12 @@ extern "C" int run_solve_core(int argc, char** argv) {
     Instrumentor::phase_begin("load-model");
     nrn_init_and_load_data(argc, argv, !configs.empty());
     Instrumentor::phase_end("load-model");
+
+    // In direct mode there are likely trajectory record requests
+    // to allow processing in NEURON after simulation by CoreNEURON
+    if (corenrn_embedded) {
+        get_nrn_trajectory_requests();
+    }
 
     std::string checkpoint_path = nrnopt_get_str("--checkpoint");
     if (strlen(checkpoint_path.c_str())) {

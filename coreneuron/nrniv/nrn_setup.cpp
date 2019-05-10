@@ -128,6 +128,19 @@ int (*nrn2core_get_dat2_vecplay_inst_)(int tid,
                                        double*& yvec,
                                        double*& tvec);
 
+void (*nrn2core_get_trajectory_requests_)(int tid,
+                                                int& cnt,
+                                                void**& vpr,
+                                                int*& types,
+                                                int*& indices);
+
+void (*nrn2core_trajectory_values_)(int tid,
+                                          int cnt,
+                                          void** vpr,
+                                          double t,
+                                          double* values);
+
+
 // file format defined in cooperation with nrncore/src/nrniv/nrnbbcore_write.cpp
 // single integers are ascii one per line. arrays are binary int or double
 // Note that regardless of the gid contents of a group, since all gids are
@@ -900,6 +913,32 @@ int nrn_i_layout(int icnt, int cnt, int isz, int sz, int layout) {
     return 0;
 }
 
+// take into account alignment, layout, permutation
+// only voltage or mechanism data index allowed.
+double* stdindex2ptr(int mtype, int index, NrnThread& nt) {
+    if (mtype == -5) { // voltage
+        int v0 = nt._actual_v - nt._data;
+        int ix = index;  // relative to _actual_v
+        nrn_assert((ix >= 0) && (ix < nt.end));
+        if (nt._permute) {
+             node_permute(&ix, 1, nt._permute);
+        }
+        return nt._data + (v0 + ix);  // relative to nt._data
+    }else if (mtype  > 0 && mtype < n_memb_func) { // 
+        Memb_list* ml = nt._ml_list[mtype];
+        nrn_assert(ml);
+        int ix = nrn_param_layout(index, mtype, ml);
+        if (ml->_permute) {
+            ix = nrn_index_permute(ix, mtype, ml);
+        }
+        return ml->data + ix;
+    }else{
+        printf("stdindex2ptr does not handle mtype=%d\n", mtype);
+        nrn_assert(0);
+    }
+    return NULL;
+}
+
 // from i to (icnt, isz)
 void nrn_inverse_i_layout(int i, int& icnt, int cnt, int& isz, int sz, int layout) {
     if (layout == 1) {
@@ -967,6 +1006,7 @@ void nrn_cleanup(bool clean_ion_global_map) {
     for (int it = 0; it < nrn_nthread; ++it) {
         NrnThread* nt = nrn_threads + it;
         NrnThreadMembList* next_tml = NULL;
+	delete_trajectory_requests(*nt);
         for (NrnThreadMembList* tml = nt->tml; tml; tml = next_tml) {
             Memb_list* ml = tml->ml;
 
@@ -1115,6 +1155,19 @@ void nrn_cleanup(bool clean_ion_global_map) {
     if (pnttype2presyn) {
         free(pnttype2presyn);
     }
+}
+
+void delete_trajectory_requests(NrnThread& nt) {
+  if (nt.trajec_requests) {
+    TrajectoryRequests* tr = nt.trajec_requests;
+    if (tr->cnt) {
+      delete [] tr->vpr;
+      delete [] tr->values;
+      delete [] tr->gather;
+    }
+    delete nt.trajec_requests;
+    nt.trajec_requests = NULL;
+  }
 }
 
 void read_phase2(FileHandler& F, int imult, NrnThread& nt) {

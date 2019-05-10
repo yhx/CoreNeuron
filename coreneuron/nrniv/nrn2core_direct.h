@@ -87,6 +87,21 @@ extern int (*nrn2core_get_dat2_vecplay_inst_)(int tid,
                                               int& sz,
                                               double*& yvec,
                                               double*& tvec);
+
+/* what variables to send back to NEURON on each time step */
+extern void (*nrn2core_get_trajectory_requests_)(int tid,
+                                                int& cnt,
+                                                void**& vpr,
+                                                int*& types,
+                                                int*& indices);
+
+/* send values to NEURON on each time step */
+extern void (*nrn2core_trajectory_values_)(int tid,
+                                          int cnt,
+                                          void** vpr,
+                                          double t,
+                                          double* values);
+
 }
 
 #endif /* nrn2core_direct_h */

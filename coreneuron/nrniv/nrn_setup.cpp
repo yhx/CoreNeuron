@@ -1154,6 +1154,7 @@ void nrn_cleanup(bool clean_ion_global_map) {
 
     if (pnttype2presyn) {
         free(pnttype2presyn);
+        pnttype2presyn = NULL;
     }
 }
 

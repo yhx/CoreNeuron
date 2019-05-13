@@ -242,7 +242,6 @@ void nrncore2nrn_send_values(NrnThread* nth) {
       for (int i=0; i < tr->cnt; ++i) {
         tr->values[i] = *(tr->gather[i]);
       }
-if (nth->_t == 0.0) { printf("nrncore2nrn_send_values t=0\n");}
       (*nrn2core_trajectory_values_) (nth->id, tr->cnt, tr->vpr, nth->_t, tr->values);
     }
   }

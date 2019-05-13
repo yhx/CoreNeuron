@@ -694,7 +694,9 @@ void nrn_setup(const char* filesdat,
     maxgid = 0x7fffffff / nrn_setup_multiple;
     nrn_read_filesdat(ngroup, gidgroups, nrn_setup_multiple, imult, filesdat);
 
-    MUTCONSTRUCT(1)
+    if (!MUTCONSTRUCTED) {
+        MUTCONSTRUCT(1)
+    }
     // temporary bug work around. If any process has multiple threads, no
     // process can have a single thread. So, for now, if one thread, make two.
     // Fortunately, empty threads work fine.
@@ -808,7 +810,12 @@ void nrn_setup(const char* filesdat,
     delete[] file_reader;
 
     model_size();
-    delete[] gidgroups;
+    delete [] gidgroups;
+    delete [] imult;
+    if (nrnthread_chkpnt) {
+        delete [] nrnthread_chkpnt;
+        nrnthread_chkpnt = NULL;
+    }
 
     if (nrnmpi_myid == 0) {
         printf(" Setup Done   : %.2lf seconds \n", nrn_wtime() - time);

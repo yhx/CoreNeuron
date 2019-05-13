@@ -64,6 +64,8 @@ const char* corenrn_version() {
     return coreneuron::bbcore_write_version;
 }
 
+void (*nrn2core_part2_clean_)();
+
 #ifdef ISPC_INTEROP
 // cf. utils/ispc_globals.c
 extern double ispc_celsius;
@@ -435,6 +437,7 @@ extern "C" int run_solve_core(int argc, char** argv) {
     // to allow processing in NEURON after simulation by CoreNEURON
     if (corenrn_embedded) {
         get_nrn_trajectory_requests();
+        (*nrn2core_part2_clean_)();
     }
 
     std::string checkpoint_path = nrnopt_get_str("--checkpoint");

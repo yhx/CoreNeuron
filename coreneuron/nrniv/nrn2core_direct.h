@@ -88,6 +88,8 @@ extern int (*nrn2core_get_dat2_vecplay_inst_)(int tid,
                                               double*& yvec,
                                               double*& tvec);
 
+extern void (*nrn2core_part2_clean_)();
+
 /* what variables to send back to NEURON on each time step */
 extern void (*nrn2core_get_trajectory_requests_)(int tid,
                                                 int& cnt,

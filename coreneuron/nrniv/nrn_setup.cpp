@@ -994,6 +994,7 @@ inline void mech_layout(FileHandler& F, T* data, int cnt, int sz, int layout) {
  * things up first. */
 
 void nrn_cleanup(bool clean_ion_global_map) {
+    clear_event_queue(); // delete left-over TQItem
     gid2in.clear();
     gid2out.clear();
 

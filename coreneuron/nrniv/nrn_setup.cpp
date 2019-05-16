@@ -1208,6 +1208,7 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
 #if defined(_OPENMP)
     nt.stream_id = omp_get_thread_num();
 #endif
+    nt.stream_id = nrnmpi_myid;
 
     for (int i = 0; i < nmech; ++i) {
         tml = (NrnThreadMembList*)emalloc(sizeof(NrnThreadMembList));

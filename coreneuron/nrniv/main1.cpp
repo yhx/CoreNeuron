@@ -361,28 +361,52 @@ const char* nrn_version(int) {
     return "version id unimplemented";
 }
 
-void get_nrn_trajectory_requests() {
+// bsize = 0 then per step transfer
+// bsize > 1 then full trajectory save into arrays.
+void get_nrn_trajectory_requests(int bsize) {
   if (nrn2core_get_trajectory_requests_) {
     for (int tid=0; tid < nrn_nthread; ++tid) {
-      int cnt;
+      NrnThread& nt = nrn_threads[tid];
+      int ntrajec;
       int* types;
       int* indices;
       void** vpr;
-      (*nrn2core_get_trajectory_requests_)(tid, cnt, vpr, types, indices);
-      NrnThread& nt = nrn_threads[tid];
+      double** varrays;
+
+      (*nrn2core_get_trajectory_requests_)(tid, bsize, ntrajec, vpr, types, indices, varrays);
       delete_trajectory_requests(nt);
-      if (cnt) {
+      if (ntrajec) {
         TrajectoryRequests* tr = new TrajectoryRequests;
         nt.trajec_requests = tr;
-        tr->cnt = cnt;
+        tr->bsize = bsize;
+        tr->ntrajec = ntrajec;
+        tr->vsize = 0;
         tr->vpr = vpr;
-        tr->values = new double[cnt];
-        tr->gather = new double*[cnt];
-        for (int i=0; i < cnt; ++i) {
+        tr->gather = new double*[ntrajec];
+        tr->values = NULL;
+        tr->varrays = NULL;
+        if (bsize) {
+          tr->varrays = varrays;
+        }else{
+          tr->values = new double[ntrajec];
+        }
+        for (int i=0; i < ntrajec; ++i) {
           tr->gather[i] = stdindex2ptr(types[i], indices[i], nt);
         }
         delete [] types;
         delete [] indices;
+      }
+    }
+  }
+}
+
+static void trajectory_return() {
+  if (nrn2core_trajectory_return_) {
+    for (int tid=0; tid < nrn_nthread; ++tid) {
+      NrnThread& nt = nrn_threads[tid];
+      TrajectoryRequests* tr = nt.trajec_requests;
+      if (tr && tr->varrays) {
+        (*nrn2core_trajectory_return_)(tid, tr->ntrajec, tr->vsize, tr->vpr, nt._t);
       }
     }
   }
@@ -433,13 +457,6 @@ extern "C" int run_solve_core(int argc, char** argv) {
     nrn_init_and_load_data(argc, argv, !configs.empty());
     Instrumentor::phase_end("load-model");
 
-    // In direct mode there are likely trajectory record requests
-    // to allow processing in NEURON after simulation by CoreNEURON
-    if (corenrn_embedded) {
-        get_nrn_trajectory_requests();
-        (*nrn2core_part2_clean_)();
-    }
-
     std::string checkpoint_path = nrnopt_get_str("--checkpoint");
     if (strlen(checkpoint_path.c_str())) {
         nrn_checkpoint_arg_exists = true;
@@ -479,6 +496,13 @@ extern "C" int run_solve_core(int argc, char** argv) {
             abort();
         }
 
+        // In direct mode there are likely trajectory record requests
+        // to allow processing in NEURON after simulation by CoreNEURON
+        if (corenrn_embedded) {
+            get_nrn_trajectory_requests(int(tstop/dt) + 2);
+            (*nrn2core_part2_clean_)();
+        }
+
         // register all reports into reportinglib
         double min_report_dt = INT_MAX;
         int report_buffer_size = nrnopt_get_int("--report-buffer-size");
@@ -510,6 +534,10 @@ extern "C" int run_solve_core(int argc, char** argv) {
         BBS_netpar_solve(nrnopt_get_dbl("--tstop"));
         Instrumentor::phase_end("simulation");
         Instrumentor::stop_profile();
+        // direct mode and full trajectory gathering on CoreNEURON, send back.
+        if (corenrn_embedded) {
+            trajectory_return();
+        }
         // Report global cell statistics
         report_cell_stats();
 

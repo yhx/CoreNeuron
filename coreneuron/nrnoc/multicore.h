@@ -64,7 +64,8 @@ struct TrajectoryRequests {
     double* values; /* if bsize == 0, buffer of values returned to NEURON each time step */
     double** varrays; /* if bsize > 0, the Vector data pointers. */
     double** gather; /* pointers to values that get copied into values */
-    int ntrajec; /* number of trajectories requestedt */
+    int n_pr; /* number of PlayRecord instances */
+    int n_trajec; /* number of trajectories requested */
     int bsize; /* buffer size of the Vector data */
     int vsize; /* number of elements in varrays so far */
 };

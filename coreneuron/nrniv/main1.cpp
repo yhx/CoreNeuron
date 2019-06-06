@@ -367,30 +367,32 @@ void get_nrn_trajectory_requests(int bsize) {
   if (nrn2core_get_trajectory_requests_) {
     for (int tid=0; tid < nrn_nthread; ++tid) {
       NrnThread& nt = nrn_threads[tid];
-      int ntrajec;
+      int n_pr;
+      int n_trajec;
       int* types;
       int* indices;
       void** vpr;
       double** varrays;
 
-      (*nrn2core_get_trajectory_requests_)(tid, bsize, ntrajec, vpr, types, indices, varrays);
+      (*nrn2core_get_trajectory_requests_)(tid, bsize, n_pr, vpr, n_trajec, types, indices, varrays);
       delete_trajectory_requests(nt);
-      if (ntrajec) {
+      if (n_trajec) {
         TrajectoryRequests* tr = new TrajectoryRequests;
         nt.trajec_requests = tr;
         tr->bsize = bsize;
-        tr->ntrajec = ntrajec;
+        tr->n_pr = n_pr;
+        tr->n_trajec = n_trajec;
         tr->vsize = 0;
         tr->vpr = vpr;
-        tr->gather = new double*[ntrajec];
+        tr->gather = new double*[n_trajec];
         tr->values = NULL;
         tr->varrays = NULL;
         if (bsize) {
           tr->varrays = varrays;
         }else{
-          tr->values = new double[ntrajec];
+          tr->values = new double[n_trajec];
         }
-        for (int i=0; i < ntrajec; ++i) {
+        for (int i=0; i < n_trajec; ++i) {
           tr->gather[i] = stdindex2ptr(types[i], indices[i], nt);
         }
         delete [] types;
@@ -406,7 +408,7 @@ static void trajectory_return() {
       NrnThread& nt = nrn_threads[tid];
       TrajectoryRequests* tr = nt.trajec_requests;
       if (tr && tr->varrays) {
-        (*nrn2core_trajectory_return_)(tid, tr->ntrajec, tr->vsize, tr->vpr, nt._t);
+        (*nrn2core_trajectory_return_)(tid, tr->n_pr, tr->vsize, tr->vpr, nt._t);
       }
     }
   }

@@ -130,20 +130,22 @@ int (*nrn2core_get_dat2_vecplay_inst_)(int tid,
 
 void (*nrn2core_get_trajectory_requests_)(int tid,
                                                 int bsize,
-                                                int& ntrajec,
+                                                int& n_pr,
                                                 void**& vpr,
+                                                int& n_trajec,
                                                 int*& types,
                                                 int*& indices,
                                                 double**& varrays);
 
 void (*nrn2core_trajectory_values_)(int tid,
-                                          int ntrajec,
+                                          int n_pr,
                                           void** vpr,
                                           double t,
+                                          int n_trajec,
                                           double* values);
 
 void (*nrn2core_trajectory_return_)(int tid,
-                                          int ntrajec,
+                                          int n_pr,
                                           int vecsz,
                                           void** vpr,
                                           double t);
@@ -1177,7 +1179,7 @@ void nrn_cleanup(bool clean_ion_global_map) {
 void delete_trajectory_requests(NrnThread& nt) {
   if (nt.trajec_requests) {
     TrajectoryRequests* tr = nt.trajec_requests;
-    if (tr->ntrajec) {
+    if (tr->n_trajec) {
       delete [] tr->vpr;
       if (tr->values) {delete [] tr->values;}
       if (tr->varrays) {delete [] tr->varrays;}

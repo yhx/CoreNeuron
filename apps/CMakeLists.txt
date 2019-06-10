@@ -30,7 +30,7 @@ include_directories(${PROJECT_SOURCE_DIR} ${PROJECT_SOURCE_DIR}/coreneuron ${CMA
 add_executable(coreneuron_exec "${CMAKE_CURRENT_SOURCE_DIR}/coreneuron.cpp")
 
 target_link_libraries(coreneuron_exec corenrnmech
-                      ${MPI_C_LIBRARIES} ${MPI_CXX_LIBRARIES} ${reportinglib_LIBRARY})
+                      ${CALIPER_LIB} ${CALIPER_MPI_LIB} ${MPI_C_LIBRARIES} ${MPI_CXX_LIBRARIES} ${reportinglib_LIBRARY})
 
 install(TARGETS coreneuron_exec
         DESTINATION "${CMAKE_INSTALL_BINDIR}")

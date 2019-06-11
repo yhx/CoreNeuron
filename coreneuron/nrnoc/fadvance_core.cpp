@@ -247,10 +247,6 @@ void nrncore2nrn_send_values(NrnThread* nth) {
   TrajectoryRequests* tr = nth->trajec_requests;
   if (tr) {
     if (tr->varrays) { // full trajectories into Vector data
-      if (nth == NULL) { // initialize counter
-        tr->vsize = 0;
-        return;
-      }
       double** va = tr->varrays;
       int vs = tr->vsize++;
       assert(vs < tr->bsize);

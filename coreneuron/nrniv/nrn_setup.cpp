@@ -949,6 +949,8 @@ double* stdindex2ptr(int mtype, int index, NrnThread& nt) {
             ix = nrn_index_permute(ix, mtype, ml);
         }
         return ml->data + ix;
+    }else if (mtype == 0) { // time
+        return &nt._t;
     }else{
         printf("stdindex2ptr does not handle mtype=%d\n", mtype);
         nrn_assert(0);

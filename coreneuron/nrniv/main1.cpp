@@ -479,15 +479,6 @@ extern "C" int run_solve_core(int argc, char** argv) {
     // clang-format on
     {
         double v = nrnopt_get_dbl("--voltage");
-
-        // TODO : if some ranks are empty then restore will go in deadlock
-        // phase (as some ranks won't have restored anything and hence return
-        // false in checkpoint_initialize
-        if (!checkpoint_initialize()) {
-            nrn_finitialize(v != 1000., v);
-        }
-
-        report_mem_usage("After nrn_finitialize");
         double dt = nrnopt_get_dbl("--dt");
         double delay = nrnopt_get_dbl("--mindelay");
         double tstop = nrnopt_get_dbl("--tstop");
@@ -501,9 +492,22 @@ extern "C" int run_solve_core(int argc, char** argv) {
         // In direct mode there are likely trajectory record requests
         // to allow processing in NEURON after simulation by CoreNEURON
         if (corenrn_embedded) {
+#if 1
             get_nrn_trajectory_requests(int(tstop/dt) + 2);
+#else
+            get_nrn_trajectory_requests(0);
+#endif
             (*nrn2core_part2_clean_)();
         }
+
+        // TODO : if some ranks are empty then restore will go in deadlock
+        // phase (as some ranks won't have restored anything and hence return
+        // false in checkpoint_initialize
+        if (!checkpoint_initialize()) {
+            nrn_finitialize(v != 1000., v);
+        }
+
+        report_mem_usage("After nrn_finitialize");
 
         // register all reports into reportinglib
         double min_report_dt = INT_MAX;

@@ -129,7 +129,7 @@ int (*nrn2core_get_dat2_vecplay_inst_)(int tid,
                                        double*& tvec);
 
 void (*nrn2core_get_trajectory_requests_)(int tid,
-                                                int bsize,
+                                                int& bsize,
                                                 int& n_pr,
                                                 void**& vpr,
                                                 int& n_trajec,

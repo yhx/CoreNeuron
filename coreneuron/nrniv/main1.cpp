@@ -374,6 +374,8 @@ void get_nrn_trajectory_requests(int bsize) {
       void** vpr;
       double** varrays;
 
+      // bsize is passed by reference, the return value will determine if
+      // per step return or entire trajectory return.
       (*nrn2core_get_trajectory_requests_)(tid, bsize, n_pr, vpr, n_trajec, types, indices, varrays);
       delete_trajectory_requests(nt);
       if (n_trajec) {
@@ -492,11 +494,9 @@ extern "C" int run_solve_core(int argc, char** argv) {
         // In direct mode there are likely trajectory record requests
         // to allow processing in NEURON after simulation by CoreNEURON
         if (corenrn_embedded) {
-#if 1
+            // arg is vector size required but NEURON can instead
+            // specify that returns will be on a per time step basis.
             get_nrn_trajectory_requests(int(tstop/dt) + 2);
-#else
-            get_nrn_trajectory_requests(0);
-#endif
             (*nrn2core_part2_clean_)();
         }
 

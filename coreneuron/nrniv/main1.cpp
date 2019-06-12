@@ -373,10 +373,11 @@ void get_nrn_trajectory_requests(int bsize) {
       int* indices;
       void** vpr;
       double** varrays;
+      double** pvars;
 
       // bsize is passed by reference, the return value will determine if
       // per step return or entire trajectory return.
-      (*nrn2core_get_trajectory_requests_)(tid, bsize, n_pr, vpr, n_trajec, types, indices, varrays);
+      (*nrn2core_get_trajectory_requests_)(tid, bsize, n_pr, vpr, n_trajec, types, indices, pvars, varrays);
       delete_trajectory_requests(nt);
       if (n_trajec) {
         TrajectoryRequests* tr = new TrajectoryRequests;
@@ -387,13 +388,8 @@ void get_nrn_trajectory_requests(int bsize) {
         tr->vsize = 0;
         tr->vpr = vpr;
         tr->gather = new double*[n_trajec];
-        tr->values = NULL;
-        tr->varrays = NULL;
-        if (bsize) {
-          tr->varrays = varrays;
-        }else{
-          tr->values = new double[n_trajec];
-        }
+        tr->varrays = varrays;
+        tr->scatter = pvars;
         for (int i=0; i < n_trajec; ++i) {
           tr->gather[i] = stdindex2ptr(types[i], indices[i], nt);
         }

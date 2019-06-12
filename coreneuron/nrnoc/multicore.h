@@ -61,9 +61,9 @@ struct NrnThreadBAList {
 
 struct TrajectoryRequests {
     void** vpr; /* PlayRecord Objects known by NEURON */
-    double* values; /* if bsize == 0, buffer of values returned to NEURON each time step */
+    double** scatter; /* if bsize == 0, each time step */
     double** varrays; /* if bsize > 0, the Vector data pointers. */
-    double** gather; /* pointers to values that get copied into values */
+    double** gather; /* pointers to values that get scattered to NEURON */
     int n_pr; /* number of PlayRecord instances */
     int n_trajec; /* number of trajectories requested */
     int bsize; /* buffer size of the Vector data */

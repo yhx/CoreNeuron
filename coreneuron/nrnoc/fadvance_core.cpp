@@ -235,7 +235,7 @@ void nrncore2nrn_send_values(NrnThread* nth) {
     // if per time step transfer, need to call nrn_record_init() in NEURON.
     // if storing full trajectories in CoreNEURON, need to initialize
     // vsize for all the trajectory requests.
-    (*nrn2core_trajectory_values_)(-1, 0, NULL, 0.0, 0, NULL);
+    (*nrn2core_trajectory_values_)(-1, 0, NULL, 0.0);
     for (int tid = 0; tid < nrn_nthread; ++tid) {
       NrnThread& nt = nrn_threads[tid];
       if (nt.trajec_requests) {
@@ -253,12 +253,12 @@ void nrncore2nrn_send_values(NrnThread* nth) {
       for (int i=0; i < tr->n_trajec; ++i) {
         va[i][vs] = *(tr->gather[i]);
       }
-    }else if (tr->values){ // values for each step sent back to NEURON
+    }else if (tr->scatter){ // scatter to NEURON and notify each step.
       nrn_assert(nrn2core_trajectory_values_);
       for (int i=0; i < tr->n_trajec; ++i) {
-        tr->values[i] = *(tr->gather[i]);
+        *(tr->scatter[i]) = *(tr->gather[i]);
       }
-      (*nrn2core_trajectory_values_) (nth->id, tr->n_pr, tr->vpr, nth->_t, tr->n_trajec, tr->values);
+      (*nrn2core_trajectory_values_) (nth->id, tr->n_pr, tr->vpr, nth->_t);
     }
   }
 }

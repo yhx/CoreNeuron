@@ -135,14 +135,13 @@ void (*nrn2core_get_trajectory_requests_)(int tid,
                                                 int& n_trajec,
                                                 int*& types,
                                                 int*& indices,
+                                                double**& pvars,
                                                 double**& varrays);
 
 void (*nrn2core_trajectory_values_)(int tid,
                                           int n_pr,
                                           void** vpr,
-                                          double t,
-                                          int n_trajec,
-                                          double* values);
+                                          double t);
 
 void (*nrn2core_trajectory_return_)(int tid,
                                           int n_pr,
@@ -931,7 +930,7 @@ int nrn_i_layout(int icnt, int cnt, int isz, int sz, int layout) {
 }
 
 // take into account alignment, layout, permutation
-// only voltage or mechanism data index allowed.
+// only voltage or mechanism data index allowed. (mtype 0 means time)
 double* stdindex2ptr(int mtype, int index, NrnThread& nt) {
     if (mtype == -5) { // voltage
         int v0 = nt._actual_v - nt._data;
@@ -1183,7 +1182,7 @@ void delete_trajectory_requests(NrnThread& nt) {
     TrajectoryRequests* tr = nt.trajec_requests;
     if (tr->n_trajec) {
       delete [] tr->vpr;
-      if (tr->values) {delete [] tr->values;}
+      if (tr->scatter) {delete [] tr->scatter;}
       if (tr->varrays) {delete [] tr->varrays;}
       delete [] tr->gather;
     }

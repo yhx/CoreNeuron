@@ -231,6 +231,11 @@ void nrn_ba(NrnThread* nt, int bat) {
 }
 
 void nrncore2nrn_send_values(NrnThread* nth) {
+  if (nrn2core_trajectory_values_ == nullptr) {
+      // standalone execution : no callbacks
+      return;
+  }
+
   if (nth == NULL) {
     // if per time step transfer, need to call nrn_record_init() in NEURON.
     // if storing full trajectories in CoreNEURON, need to initialize

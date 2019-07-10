@@ -108,7 +108,7 @@ void nrn_finitialize(int setv, double v) {
 #if NRNMPI
     nrn_spike_exchange(nrn_threads);
 #endif
-    nrncore2nrn_send_values(NULL);
+    nrncore2nrn_send_init();
     for (i=0; i < nrn_nthread; ++i) {
         nrncore2nrn_send_values(nrn_threads + i);
     }

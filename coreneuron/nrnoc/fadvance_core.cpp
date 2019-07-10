@@ -230,13 +230,7 @@ void nrn_ba(NrnThread* nt, int bat) {
     }
 }
 
-void nrncore2nrn_send_values(NrnThread* nth) {
-  if (nrn2core_trajectory_values_ == nullptr) {
-      // standalone execution : no callbacks
-      return;
-  }
-
-  if (nth == NULL) {
+void nrncore2nrn_send_init() {
     // if per time step transfer, need to call nrn_record_init() in NEURON.
     // if storing full trajectories in CoreNEURON, need to initialize
     // vsize for all the trajectory requests.
@@ -247,8 +241,14 @@ void nrncore2nrn_send_values(NrnThread* nth) {
         nt.trajec_requests->vsize = 0;
       }
     }
-    return;
+}
+
+void nrncore2nrn_send_values(NrnThread* nth) {
+  if (nrn2core_trajectory_values_ == nullptr) {
+      // standalone execution : no callbacks
+      return;
   }
+
   TrajectoryRequests* tr = nth->trajec_requests;
   if (tr) {
     if (tr->varrays) { // full trajectories into Vector data

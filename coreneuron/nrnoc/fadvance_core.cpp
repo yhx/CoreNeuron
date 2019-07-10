@@ -231,16 +231,20 @@ void nrn_ba(NrnThread* nt, int bat) {
 }
 
 void nrncore2nrn_send_init() {
-    // if per time step transfer, need to call nrn_record_init() in NEURON.
-    // if storing full trajectories in CoreNEURON, need to initialize
-    // vsize for all the trajectory requests.
-    (*nrn2core_trajectory_values_)(-1, 0, NULL, 0.0);
-    for (int tid = 0; tid < nrn_nthread; ++tid) {
-      NrnThread& nt = nrn_threads[tid];
-      if (nt.trajec_requests) {
-        nt.trajec_requests->vsize = 0;
-      }
+  if (nrn2core_trajectory_values_ == nullptr) {
+      // standalone execution : no callbacks
+      return;
+  }
+  // if per time step transfer, need to call nrn_record_init() in NEURON.
+  // if storing full trajectories in CoreNEURON, need to initialize
+  // vsize for all the trajectory requests.
+  (*nrn2core_trajectory_values_)(-1, 0, NULL, 0.0);
+  for (int tid = 0; tid < nrn_nthread; ++tid) {
+    NrnThread& nt = nrn_threads[tid];
+    if (nt.trajec_requests) {
+      nt.trajec_requests->vsize = 0;
     }
+  }
 }
 
 void nrncore2nrn_send_values(NrnThread* nth) {

@@ -48,6 +48,8 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/nrniv/node_permute.h"
 #include "coreneuron/nrniv/cellorder.h"
 #include "coreneuron/utils/reports/nrnsection_mapping.h"
+#include <cuda_runtime_api.h>
+#include <cuda.h>
 
 // callbacks into nrn/src/nrniv/nrnbbcore_write.cpp
 #include "coreneuron/nrniv/nrn2core_direct.h"
@@ -1086,7 +1088,7 @@ void nrn_cleanup(bool clean_ion_global_map) {
         free(nt->_v_parent_index);
         nt->_v_parent_index = NULL;
 
-        free(nt->_data);
+        cudaFree(nt->_data);
         nt->_data = NULL;
 
         free(nt->_idata);
@@ -1385,7 +1387,8 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
 
     // now that we know the effect of padding, we can allocate data space,
     // fill matrix, and adjust Memb_list data pointers
-    nt._data = (double*)ecalloc_align(nt._ndata, NRN_SOA_BYTE_ALIGN, sizeof(double));
+    //nt._data = (double*)ecalloc_align(nt._ndata, NRN_SOA_BYTE_ALIGN, sizeof(double));
+    cudaMallocManaged((void**)&(nt._data), nt._ndata*sizeof(double));
     nt._actual_rhs = nt._data + 0 * ne;
     nt._actual_d = nt._data + 1 * ne;
     nt._actual_a = nt._data + 2 * ne;
@@ -1445,6 +1448,7 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
         if (szdp) {
             ml->pdata = (int*)ecalloc_align(nrn_soa_padded_size(n, layout) * szdp,
                                             NRN_SOA_BYTE_ALIGN, sizeof(int));
+            //cudaMallocManaged((void**)&(ml->pdata));
         }
 
         if (direct) {

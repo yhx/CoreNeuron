@@ -75,7 +75,8 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
         /* -- copy _data to device -- */
 
         /*copy all double data for thread */
-        d__data = (double*)acc_copyin(nt->_data, nt->_ndata * sizeof(double));
+        //d__data = (double*)acc_copyin(nt->_data, nt->_ndata * sizeof(double));
+        d__data = nt->_data;
 
         /* Here is the example of using OpenACC data enter/exit
          * Remember that we are not allowed to use nt->_data but we have to use:
@@ -180,7 +181,8 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
 
             if (szdp) {
                 int pcnt = nrn_soa_padded_size(n, layout) * szdp;
-                int* d_pdata = (int*)acc_copyin(tml->ml->pdata, sizeof(int) * pcnt);
+                //int* d_pdata = (int*)acc_copyin(tml->ml->pdata, sizeof(int) * pcnt);
+                int* d_pdata = ml->pdata;
                 acc_memcpy_to_device(&(d_ml->pdata), &d_pdata, sizeof(int*));
             }
 

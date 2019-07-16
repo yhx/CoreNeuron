@@ -292,7 +292,7 @@ static void* nrn_fixed_step_thread(NrnThread* nth) {
         #pragma acc wait(stream_id)
 // clang-format on
 #endif
-        fixed_play_continuous(nth);
+        //fixed_play_continuous(nth);
 
         {
             Instrumentor::phase p("setup_tree_matrix");
@@ -334,7 +334,7 @@ void* nrn_fixed_step_lastpart(NrnThread* nth) {
 // clang-format on
 #endif
 
-        fixed_play_continuous(nth);
+        //fixed_play_continuous(nth);
         nonvint(nth);
         nrncore2nrn_send_values(nth);
         nrn_ba(nth, AFTER_SOLVE);

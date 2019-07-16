@@ -1032,7 +1032,7 @@ void nrn_cleanup(bool clean_ion_global_map) {
             Memb_list* ml = tml->ml;
 
             ml->data = NULL;  // this was pointing into memory owned by nt
-            free(ml->pdata);
+            cudaFree(ml->pdata);
             ml->pdata = NULL;
             free(ml->nodeindices);
             ml->nodeindices = NULL;
@@ -1446,9 +1446,9 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
             ml->nodeindices = NULL;
         }
         if (szdp) {
-            ml->pdata = (int*)ecalloc_align(nrn_soa_padded_size(n, layout) * szdp,
-                                            NRN_SOA_BYTE_ALIGN, sizeof(int));
-            //cudaMallocManaged((void**)&(ml->pdata));
+            //ml->pdata = (int*)ecalloc_align(nrn_soa_padded_size(n, layout) * szdp,
+            //                                NRN_SOA_BYTE_ALIGN, sizeof(int));
+            cudaMallocManaged((void**)&(ml->pdata), nrn_soa_padded_size(n, layout) * szdp * sizeof(int));
         }
 
         if (direct) {

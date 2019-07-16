@@ -182,8 +182,8 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
             if (szdp) {
                 int pcnt = nrn_soa_padded_size(n, layout) * szdp;
                 //int* d_pdata = (int*)acc_copyin(tml->ml->pdata, sizeof(int) * pcnt);
-                int* d_pdata = ml->pdata;
-                acc_memcpy_to_device(&(d_ml->pdata), &d_pdata, sizeof(int*));
+                int* d_pdata = tml->ml->pdata;
+                //acc_memcpy_to_device(&(d_ml->pdata), &d_pdata, sizeof(int*));
             }
 
             int ts = memb_func[type].thread_size_;

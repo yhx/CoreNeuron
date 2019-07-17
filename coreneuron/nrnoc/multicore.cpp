@@ -68,7 +68,7 @@ the handling of v_structure_change as long as possible.
 
 namespace coreneuron {
 #define CACHELINE_ALLOC(name, type, size) \
-    name = (type*)emalloc_align(size * sizeof(type), NRN_SOA_BYTE_ALIGN)
+    name = (type*)emalloc_align_cpu(size * sizeof(type), NRN_SOA_BYTE_ALIGN)
 
 int nrn_nthread = 0;
 NrnThread* nrn_threads = NULL;

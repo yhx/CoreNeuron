@@ -1187,7 +1187,7 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
     // printf("ncell=%d end=%d nmech=%d\n", nt.ncell, nt.end, nmech);
     // printf("nart=%d\n", nart);
     NrnThreadMembList* tml_last = NULL;
-    nt._ml_list = (Memb_list**)ecalloc_align(n_memb_func, NRN_SOA_BYTE_ALIGN, sizeof(Memb_list*));
+    nt._ml_list = (Memb_list**)ecalloc_align_cpu(n_memb_func, NRN_SOA_BYTE_ALIGN, sizeof(Memb_list*));
 
 #if CHKPNTDEBUG
     ntc.mlmap = new Memb_list_chkpnt*[n_memb_func];
@@ -1212,8 +1212,8 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
 #endif
 
     for (int i = 0; i < nmech; ++i) {
-        tml = (NrnThreadMembList*)emalloc_align(sizeof(NrnThreadMembList), NRN_SOA_BYTE_ALIGN);
-        tml->ml = (Memb_list*)ecalloc_align(1, NRN_SOA_BYTE_ALIGN, sizeof(Memb_list));
+        tml = (NrnThreadMembList*)emalloc_align_cpu(sizeof(NrnThreadMembList), NRN_SOA_BYTE_ALIGN);
+        tml->ml = (Memb_list*)ecalloc_align_cpu(1, NRN_SOA_BYTE_ALIGN, sizeof(Memb_list));
         tml->ml->_net_receive_buffer = NULL;
         tml->ml->_net_send_buffer = NULL;
         tml->ml->_permute = NULL;

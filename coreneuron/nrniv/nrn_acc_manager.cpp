@@ -18,6 +18,10 @@
 #ifdef CRAYPAT
 #include <pat_api.h>
 #endif
+
+//#define _OPENACC
+//#define UNIFIED_MEMORY
+
 namespace coreneuron {
 extern InterleaveInfo* interleave_info;
 void copy_ivoc_vect_to_device(IvocVect*& iv, IvocVect*& div);
@@ -41,17 +45,12 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
     int i;
     NrnThread* d_threads;
 
-    /* @todo: why dt is not setup at this moment? */
-    for (i = 0; i < nthreads; i++) {
-        NrnThread* nt = threads + i;
-        /* this thread will be computed on GPU */
-        nt->compute_gpu = 1;
-        if (nt->end <= 0) {
-            // this is an empty thread and could be only artificial
-            // cells. In this case nothing is executed on gpu.
-            nt->compute_gpu = 0;
-        }
-    }
+    /* -- copy NrnThread to device. this needs to be contigious vector because offset is used to
+    * find
+    * corresponding NrnThread using Point_process in NET_RECEIVE block
+     */
+    d_threads = (NrnThread*)acc_copyin(threads, sizeof(NrnThread) * nthreads);
+
 
     if (nrn_ion_global_map_size) {
         double** d_data =
@@ -65,59 +64,225 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
         }
     }
 
-    //(NrnThread*)acc_copyin(threads, sizeof(NrnThread) * nthreads);
-    d_threads = threads;
 
     for (i = 0; i < nthreads; i++) {
-        NrnThread *nt = threads + i;      // NrnThread on host
-        NrnThread *d_nt = d_threads + i;  // NrnThread on device
-
-        if (nt->n_presyn) {
-           PreSyn* d_presyns = (PreSyn*)acc_copyin(nt->presyns, sizeof(PreSyn) * nt->n_presyn);
+       NrnThread* nt = threads + i;      // NrnThread on host
+        NrnThread* d_nt = d_threads + i;  // NrnThread on device
+        nt->compute_gpu = 1;
+        if (nt->end <= 0) {
+            // this is an empty thread and could be only artificial
+            // cells. In this case nothing is executed on gpu.
+            nt->compute_gpu = 0;
+            continue;
         }
 
-        if (nt->n_vecplay) {
-        /* copy VecPlayContinuous instances */
+        double* d__data;  // nrn_threads->_data on device
 
-            printf("\n Warning: VectorPlay used but NOT implemented on GPU! ");
+        /* -- copy _data to device -- */
 
-            /** just empty containers */
-            void** d_vecplay = (void**)acc_copyin(nt->_vecplay, sizeof(void*) * nt->n_vecplay);
-            // note: we are using unified memory for NrnThread. Once VecPlay is copied to gpu,
-            // we dont want to update nt->vecplay because it will also set gpu pointer of vecplay
-            // inside nt on cpu (due to unified memory).
+        /*copy all double data for thread */
+        d__data =  nt->_data;
 
-            //acc_memcpy_to_device(&(d_nt->_vecplay), &d_vecplay, sizeof(void**));
+        /* -- setup rhs, d, a, b, v, node_aread to point to device copy -- */
+        double* dptr;
 
-            for (int i = 0; i < nt->n_vecplay; i++) {
-                VecPlayContinuous* vecplay_instance = (VecPlayContinuous*)nt->_vecplay[i];
+        /* for padding, we have to recompute ne */
+        int ne = nrn_soa_padded_size(nt->end, 0);
 
-                /** just VecPlayContinuous object */
-                void* d_p = (void*)acc_copyin(vecplay_instance, sizeof(VecPlayContinuous));
-                acc_memcpy_to_device(&(d_vecplay[i]), &d_p, sizeof(void*));
+        /* nt._ml_list is used in NET_RECEIVE block and should have valid membrane list id*/
+        Memb_list** d_ml_list =
+            (Memb_list**)acc_copyin(nt->_ml_list, n_memb_func * sizeof(Memb_list*));
+        acc_memcpy_to_device(&(d_nt->_ml_list), &(d_ml_list), sizeof(Memb_list**));
 
-                VecPlayContinuous* d_vecplay_instance = (VecPlayContinuous*)d_p;
+        /* -- copy NrnThreadMembList list ml to device -- */
 
-                /** copy y_, t_ and discon_indices_ */
-                copy_ivoc_vect_to_device(vecplay_instance->y_, d_vecplay_instance->y_);
-                copy_ivoc_vect_to_device(vecplay_instance->t_, d_vecplay_instance->t_);
-                copy_ivoc_vect_to_device(vecplay_instance->discon_indices_,
-                                         d_vecplay_instance->discon_indices_);
+        NrnThreadMembList* tml;
+        NrnThreadMembList* d_tml;
+        NrnThreadMembList* d_last_tml;
 
-                /** copy PlayRecordEvent : todo: verify this */
-                PlayRecordEvent* d_e_ =
-                    (PlayRecordEvent*)acc_copyin(vecplay_instance->e_, sizeof(PlayRecordEvent));
-                acc_memcpy_to_device(&(d_e_->plr_), &d_vecplay_instance,
-                                     sizeof(VecPlayContinuous*));
-                acc_memcpy_to_device(&(d_vecplay_instance->e_), &d_e_, sizeof(PlayRecordEvent*));
+        Memb_list* d_ml;
+        int first_tml = 1;
+        size_t offset = 6 * ne;
 
-                /** copy pd_ : note that it's pointer inside ml->data and hence data itself is
-                 * already on GPU */
-                double* d_pd_ = (double*)acc_deviceptr(vecplay_instance->pd_);
-                acc_memcpy_to_device(&(d_vecplay_instance->pd_), &d_pd_, sizeof(double*));
+        for (tml = nt->tml; tml; tml = tml->next) {
+            /*copy tml to device*/
+            /*QUESTIONS: does tml will point to NULL as in host ? : I assume so!*/
+            d_tml = (NrnThreadMembList*)acc_copyin(tml, sizeof(NrnThreadMembList));
+
+            /*first tml is pointed by nt */
+            if (first_tml) {
+                acc_memcpy_to_device(&(d_nt->tml), &d_tml, sizeof(NrnThreadMembList*));
+                first_tml = 0;
+            } else {
+                /*rest of tml forms linked list */
+                acc_memcpy_to_device(&(d_last_tml->next), &d_tml, sizeof(NrnThreadMembList*));
+            }
+
+            // book keeping for linked-list
+            d_last_tml = d_tml;
+
+            /* now for every tml, there is a ml. copy that and setup pointer */
+            d_ml = (Memb_list*)acc_copyin(tml->ml, sizeof(Memb_list));
+            acc_memcpy_to_device(&(d_tml->ml), &d_ml, sizeof(Memb_list*));
+
+            /* setup nt._ml_list */
+            acc_memcpy_to_device(&(d_ml_list[tml->index]), &d_ml, sizeof(Memb_list*));
+
+            int type = tml->index;
+            int n = tml->ml->nodecount;
+            int szp = nrn_prop_param_size_[type];
+            int szdp = nrn_prop_dparam_size_[type];
+            int is_art = nrn_is_artificial_[type];
+            int layout = nrn_mech_data_layout_[type];
+
+            offset = nrn_soa_padded_size(offset, layout);
+
+            dptr = d__data + offset;
+
+            acc_memcpy_to_device(&(d_ml->data), &(dptr), sizeof(double*));
+
+            offset += nrn_soa_padded_size(n, layout) * szp;
+
+            if (!is_art) {
+                int* d_nodeindices = tml->ml->nodeindices;
+                acc_memcpy_to_device(&(d_ml->nodeindices), &d_nodeindices, sizeof(int*));
+            }
+
+            if (szdp) {
+                int pcnt = nrn_soa_padded_size(n, layout) * szdp;
+                int* d_pdata = tml->ml->pdata;
+                acc_memcpy_to_device(&(d_ml->pdata), &d_pdata, sizeof(int*));
+            }
+
+            int ts = memb_func[type].thread_size_;
+            if (ts) {
+                ThreadDatum* td = tml->ml->_thread;
+                acc_memcpy_to_device(&(d_ml->_thread), &td, sizeof(ThreadDatum*));
+            }
+
+            NetReceiveBuffer_t *nrb, *d_nrb;
+            int *d_weight_index, *d_pnt_index, *d_displ, *d_nrb_index;
+            double *d_nrb_t, *d_nrb_flag;
+
+            // net_receive buffer associated with mechanism
+            nrb = tml->ml->_net_receive_buffer;
+
+            // if net receive buffer exist for mechanism
+            if (nrb) {
+                d_nrb = nrb;
+                acc_memcpy_to_device(&(d_ml->_net_receive_buffer), &d_nrb,
+                                     sizeof(NetReceiveBuffer_t*));
+            }
+
+            /* copy NetSendBuffer_t on to GPU */
+            NetSendBuffer_t* nsb;
+            nsb = tml->ml->_net_send_buffer;
+
+            if (nsb) {
+                NetSendBuffer_t* d_nsb;
+                int* d_iptr;
+                double* d_dptr;
+
+                d_nsb = nsb;
+                acc_memcpy_to_device(&(d_ml->_net_send_buffer), &d_nsb, sizeof(NetSendBuffer_t*));
             }
         }
+
+        if (nt->shadow_rhs_cnt) {
+            double* d_shadow_ptr;
+
+            int pcnt = nrn_soa_padded_size(nt->shadow_rhs_cnt, 0);
+
+            /* copy shadow_rhs to device and fix-up the pointer */
+            d_shadow_ptr = nt->_shadow_rhs;
+            acc_memcpy_to_device(&(d_nt->_shadow_rhs), &d_shadow_ptr, sizeof(double*));
+
+            /* copy shadow_d to device and fix-up the pointer */
+            d_shadow_ptr = nt->_shadow_d;
+            acc_memcpy_to_device(&(d_nt->_shadow_d), &d_shadow_ptr, sizeof(double*));
+        }
+
+        if (nt->n_pntproc) {
+            /* copy Point_processes array and fix the pointer to execute net_receive blocks on GPU
+             */
+            Point_process* pntptr = nt->pntprocs;
+            acc_memcpy_to_device(&(d_nt->pntprocs), &pntptr, sizeof(Point_process*));
+        }
+
+        if (nt->n_weight) {
+            /* copy weight vector used in NET_RECEIVE which is pointed by netcon.weight */
+            double* d_weights = nt->weights;
+            acc_memcpy_to_device(&(d_nt->weights), &d_weights, sizeof(double*));
+        }
+
+        if (nt->_nvdata) {
+            /* copy vdata which is setup in bbcore_read. This contains cuda allocated
+             * nrnran123_State * */
+            void** d_vdata = nt->_vdata;
+            acc_memcpy_to_device(&(d_nt->_vdata), &d_vdata, sizeof(void**));
+        }
+
+        if (nt->n_presyn) {
+            /* copy presyn vector used for spike exchange, note we have added new PreSynHelper due
+             * to issue
+             * while updating PreSyn objects which has virtual base class. May be this is issue due
+             * to
+             * VTable and alignment */
+            PreSynHelper* d_presyns_helper =
+            (PreSynHelper*)acc_copyin(nt->presyns_helper, sizeof(PreSynHelper) * nt->n_presyn);
+            acc_memcpy_to_device(&(d_nt->presyns_helper), &d_presyns_helper, sizeof(PreSynHelper*));
+            PreSyn* d_presyns = (PreSyn*)acc_copyin(nt->presyns, sizeof(PreSyn) * nt->n_presyn);
+            acc_memcpy_to_device(&(d_nt->presyns), &d_presyns, sizeof(PreSyn*));
+        }
+
+        if (nt->_net_send_buffer_size) {
+            /* copy send_receive buffer */
+            int* d_net_send_buffer = nt->_net_send_buffer;
+            acc_memcpy_to_device(&(d_nt->_net_send_buffer), &d_net_send_buffer, sizeof(int*));
+        }
+
+    if (nt->n_vecplay) {
+    /* copy VecPlayContinuous instances */
+
+        printf("\n Warning: VectorPlay used but NOT implemented on GPU! ");
+
+        /** just empty containers */
+        void** d_vecplay = (void**)acc_copyin(nt->_vecplay, sizeof(void*) * nt->n_vecplay);
+        // note: we are using unified memory for NrnThread. Once VecPlay is copied to gpu,
+        // we dont want to update nt->vecplay because it will also set gpu pointer of vecplay
+        // inside nt on cpu (due to unified memory).
+
+        //acc_memcpy_to_device(&(d_nt->_vecplay), &d_vecplay, sizeof(void**));
+
+        for (int i = 0; i < nt->n_vecplay; i++) {
+            VecPlayContinuous* vecplay_instance = (VecPlayContinuous*)nt->_vecplay[i];
+
+            /** just VecPlayContinuous object */
+            void* d_p = (void*)acc_copyin(vecplay_instance, sizeof(VecPlayContinuous));
+            acc_memcpy_to_device(&(d_vecplay[i]), &d_p, sizeof(void*));
+
+            VecPlayContinuous* d_vecplay_instance = (VecPlayContinuous*)d_p;
+
+            /** copy y_, t_ and discon_indices_ */
+            copy_ivoc_vect_to_device(vecplay_instance->y_, d_vecplay_instance->y_);
+            copy_ivoc_vect_to_device(vecplay_instance->t_, d_vecplay_instance->t_);
+            copy_ivoc_vect_to_device(vecplay_instance->discon_indices_,
+                                     d_vecplay_instance->discon_indices_);
+
+            /** copy PlayRecordEvent : todo: verify this */
+            PlayRecordEvent* d_e_ =
+                (PlayRecordEvent*)acc_copyin(vecplay_instance->e_, sizeof(PlayRecordEvent));
+            acc_memcpy_to_device(&(d_e_->plr_), &d_vecplay_instance,
+                                 sizeof(VecPlayContinuous*));
+            acc_memcpy_to_device(&(d_vecplay_instance->e_), &d_e_, sizeof(PlayRecordEvent*));
+
+            /** copy pd_ : note that it's pointer inside ml->data and hence data itself is
+             * already on GPU */
+            double* d_pd_ = (double*)acc_deviceptr(vecplay_instance->pd_);
+            acc_memcpy_to_device(&(d_vecplay_instance->pd_), &d_pd_, sizeof(double*));
+        }
     }
+}
 
 #else
         if (nthreads <= 0) {

@@ -122,6 +122,41 @@ inline void* ecalloc_align(size_t n, size_t alignment, size_t size) {
     nrn_assert(is_aligned(p, alignment));
     return p;
 }
+
+inline void alloc_memory_cpu(void*& pointer, size_t num_bytes, size_t alignment) {
+    nrn_assert(posix_memalign(&pointer, alignment, num_bytes) == 0);
+}
+
+inline void calloc_memory_cpu(void*& pointer, size_t num_bytes, size_t alignment) {
+    alloc_memory(pointer, num_bytes, alignment);
+    memset(pointer, 0, num_bytes);
+}
+
+inline void free_memory_cpu(void* pointer) {
+    free(pointer);
+}
+
+/** Allocate the aligned memory.
+ */
+inline void* emalloc_align_cpu(size_t size, size_t alignment) {
+    void* memptr;
+    alloc_memory_cpu(memptr, size, alignment);
+    nrn_assert(is_aligned(memptr, alignment));
+    return memptr;
+}
+
+/** Allocate the aligned memory and set it to 1.
+ */
+inline void* ecalloc_align_cpu(size_t n, size_t alignment, size_t size) {
+    void* p;
+    if (n == 0) {
+        return (void*)0;
+    }
+    calloc_memory_cpu(p, n*size, alignment);
+    nrn_assert(is_aligned(p, alignment));
+    return p;
+}
+
 }  // namespace coreneuron
 
 #endif

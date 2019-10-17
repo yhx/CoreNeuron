@@ -380,7 +380,7 @@ static void* direct_phase1(NrnThread* n) {
     if (valid) {
         read_phase1(output_gid, 0, nt);
     }
-    return NULL;
+    return nullptr;
 }
 
 void read_phase1(FileHandler& F, int imult, NrnThread& nt) {
@@ -511,8 +511,8 @@ static void read_phase1(int* output_gid, int imult, NrnThread& nt) {
 
 void netpar_tid_gid2ps(int tid, int gid, PreSyn** ps, InputPreSyn** psi) {
     /// for gid < 0 returns the PreSyn* in the thread (tid) specific map.
-    *ps = NULL;
-    *psi = NULL;
+    *ps = nullptr;
+    *psi = nullptr;
     std::map<int, PreSyn*>::iterator gid2out_it;
     if (gid >= 0) {
         gid2out_it = gid2out.find(gid);
@@ -682,11 +682,11 @@ void nrn_setup(const char* filesdat,
     int ngroup = 0;
 
     /// Array of cell group numbers (indices)
-    int* gidgroups = NULL;
+    int* gidgroups = nullptr;
 
     /// Array of duplicate indices. Normally, with nrn_setup_multiple=1,
     //   they are ngroup values of 0.
-    int* imult = NULL;
+    int* imult = nullptr;
 
     double time = nrn_wtime();
 
@@ -734,7 +734,7 @@ void nrn_setup(const char* filesdat,
 
     netcon_srcgid.resize(nrn_nthread);
     for (int i = 0; i < nrn_nthread; ++i)
-        netcon_srcgid[i] = NULL;
+        netcon_srcgid[i] = nullptr;
 
     FileHandler* file_reader = new FileHandler[ngroup];
 
@@ -831,7 +831,7 @@ void setup_ThreadData(NrnThread& nt) {
                 MUTUNLOCK
             }
         } else {
-            ml->_thread = NULL;
+            ml->_thread = nullptr;
         }
     }
 }
@@ -954,7 +954,7 @@ double* stdindex2ptr(int mtype, int index, NrnThread& nt) {
         printf("stdindex2ptr does not handle mtype=%d\n", mtype);
         nrn_assert(0);
     }
-    return NULL;
+    return nullptr;
 }
 
 // from i to (icnt, isz)
@@ -1023,31 +1023,31 @@ void nrn_cleanup(bool clean_ion_global_map) {
         for (int i = 0; i < nrn_ion_global_map_size; i++)
             free_memory(nrn_ion_global_map[i]);
         free_memory(nrn_ion_global_map);
-        nrn_ion_global_map = NULL;
+        nrn_ion_global_map = nullptr;
         nrn_ion_global_map_size = 0;
     }
 
     // clean NrnThreads
     for (int it = 0; it < nrn_nthread; ++it) {
         NrnThread* nt = nrn_threads + it;
-        NrnThreadMembList* next_tml = NULL;
+        NrnThreadMembList* next_tml = nullptr;
         delete_trajectory_requests(*nt);
         for (NrnThreadMembList* tml = nt->tml; tml; tml = next_tml) {
             Memb_list* ml = tml->ml;
 
-            ml->data = NULL;  // this was pointing into memory owned by nt
+            ml->data = nullptr;  // this was pointing into memory owned by nt
             free_memory(ml->pdata);
-            ml->pdata = NULL;
+            ml->pdata = nullptr;
             free_memory(ml->nodeindices);
-            ml->nodeindices = NULL;
+            ml->nodeindices = nullptr;
             if (ml->_permute) {
                 delete[] ml->_permute;
-                ml->_permute = NULL;
+                ml->_permute = nullptr;
             }
 
             if (ml->_thread) {
                 free_memory(ml->_thread);
-                ml->_thread = NULL;
+                ml->_thread = nullptr;
             }
 
             NetReceiveBuffer_t* nrb = ml->_net_receive_buffer;
@@ -1084,41 +1084,41 @@ void nrn_cleanup(bool clean_ion_global_map) {
             free_memory(tml);
         }
 
-        nt->_actual_rhs = NULL;
-        nt->_actual_d = NULL;
-        nt->_actual_a = NULL;
-        nt->_actual_b = NULL;
+        nt->_actual_rhs = nullptr;
+        nt->_actual_d = nullptr;
+        nt->_actual_a = nullptr;
+        nt->_actual_b = nullptr;
 
         free_memory(nt->_v_parent_index);
-        nt->_v_parent_index = NULL;
+        nt->_v_parent_index = nullptr;
 
         free_memory(nt->_data);
-        nt->_data = NULL;
+        nt->_data = nullptr;
 
         free(nt->_idata);
-        nt->_idata = NULL;
+        nt->_idata = nullptr;
 
         free_memory(nt->_vdata);
-        nt->_vdata = NULL;
+        nt->_vdata = nullptr;
 
         if (nt->_permute) {
             delete[] nt->_permute;
-            nt->_permute = NULL;
+            nt->_permute = nullptr;
         }
 
         if (nt->presyns_helper) {
             free_memory(nt->presyns_helper);
-            nt->presyns_helper = NULL;
+            nt->presyns_helper = nullptr;
         }
 
         if (nt->pntprocs) {
             free_memory(nt->pntprocs);
-            nt->pntprocs = NULL;
+            nt->pntprocs = nullptr;
         }
 
         if (nt->presyns) {
             delete[] nt->presyns;
-            nt->presyns = NULL;
+            nt->presyns = nullptr;
         }
 
         if (nt->pnt2presyn_ix) {
@@ -1132,33 +1132,33 @@ void nrn_cleanup(bool clean_ion_global_map) {
 
         if (nt->netcons) {
             delete[] nt->netcons;
-            nt->netcons = NULL;
+            nt->netcons = nullptr;
         }
 
         if (nt->weights) {
             free_memory(nt->weights);
-            nt->weights = NULL;
+            nt->weights = nullptr;
         }
 
         if (nt->_shadow_rhs) {
             free_memory(nt->_shadow_rhs);
-            nt->_shadow_rhs = NULL;
+            nt->_shadow_rhs = nullptr;
         }
 
         if (nt->_shadow_d) {
             free_memory(nt->_shadow_d);
-            nt->_shadow_d = NULL;
+            nt->_shadow_d = nullptr;
         }
 
         if (nt->_net_send_buffer_size) {
             free_memory(nt->_net_send_buffer);
-            nt->_net_send_buffer = NULL;
+            nt->_net_send_buffer = nullptr;
             nt->_net_send_buffer_size = 0;
         }
 
         if (nt->_watch_types) {
             free(nt->_watch_types);
-            nt->_watch_types = NULL;
+            nt->_watch_types = nullptr;
         }
 
         // mapping information is available only for non-empty NrnThread
@@ -1183,7 +1183,7 @@ void nrn_cleanup(bool clean_ion_global_map) {
 
     if (pnttype2presyn) {
         free(pnttype2presyn);
-        pnttype2presyn = NULL;
+        pnttype2presyn = nullptr;
     }
 }
 
@@ -1201,7 +1201,7 @@ void delete_trajectory_requests(NrnThread& nt) {
             delete[] tr->gather;
         }
         delete nt.trajec_requests;
-        nt.trajec_requests = NULL;
+        nt.trajec_requests = nullptr;
     }
 }
 
@@ -1274,13 +1274,13 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
     /// together
     // printf("ncell=%d end=%d nmech=%d\n", nt.ncell, nt.end, nmech);
     // printf("nart=%d\n", nart);
-    NrnThreadMembList* tml_last = NULL;
+    NrnThreadMembList* tml_last = nullptr;
     nt._ml_list = (Memb_list**)ecalloc_align(n_memb_func, sizeof(Memb_list*));
 
 #if CHKPNTDEBUG
     ntc.mlmap = new Memb_list_chkpnt*[n_memb_func];
     for (int i = 0; i < n_memb_func; ++i) {
-        ntc.mlmap[i] = NULL;
+        ntc.mlmap[i] = nullptr;
     }
 #endif
 
@@ -1302,12 +1302,12 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
     for (int i = 0; i < nmech; ++i) {
         tml = (NrnThreadMembList*)emalloc_align(sizeof(NrnThreadMembList));
         tml->ml = (Memb_list*)ecalloc_align(1, sizeof(Memb_list));
-        tml->ml->_net_receive_buffer = NULL;
-        tml->ml->_net_send_buffer = NULL;
-        tml->ml->_permute = NULL;
-        tml->next = NULL;
+        tml->ml->_net_receive_buffer = nullptr;
+        tml->ml->_net_send_buffer = nullptr;
+        tml->ml->_permute = nullptr;
+        tml->next = nullptr;
         tml->index = tml_index[i];
-        if (memb_func[tml->index].alloc == NULL) {
+        if (memb_func[tml->index].alloc == nullptr) {
             hoc_execerror(memb_func[tml->index].sym, "mechanism does not exist");
         }
         tml->ml->nodecount = ml_nodecount[i];
@@ -1349,19 +1349,19 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
         nt.shadow_rhs_cnt = shadow_rhs_cnt;
     }
 
-    nt._data = NULL;    // allocated below after padding
-    nt.mapping = NULL;  // section segment mapping
+    nt._data = nullptr;    // allocated below after padding
+    nt.mapping = nullptr;  // section segment mapping
 
     if (nt._nidata)
         nt._idata = (int*)ecalloc(nt._nidata, sizeof(int));
     else
-        nt._idata = NULL;
+        nt._idata = nullptr;
     // see patternstim.cpp
     int extra_nv = (&nt == nrn_threads) ? nrn_extra_thread0_vdata : 0;
     if (nt._nvdata + extra_nv)
         nt._vdata = (void**)ecalloc_align(nt._nvdata + extra_nv, sizeof(void*));
     else
-        nt._vdata = NULL;
+        nt._vdata = nullptr;
     // printf("_nidata=%d _nvdata=%d\n", nt._nidata, nt._nvdata);
 
     // The data format begins with the matrix data
@@ -1407,7 +1407,7 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
     nt._actual_b = nt._data + 3 * ne;
     nt._actual_v = nt._data + 4 * ne;
     nt._actual_area = nt._data + 5 * ne;
-    nt._actual_diam = ndiam ? nt._data + 6 * ne : NULL;
+    nt._actual_diam = ndiam ? nt._data + 6 * ne : nullptr;
     for (tml = nt.tml; tml; tml = tml->next) {
         Memb_list* ml = tml->ml;
         ml->data = nt._data + (ml->data - (double*)0);
@@ -1455,7 +1455,7 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
         if (!is_art && !direct) {
             ml->nodeindices = (int*)ecalloc_align(ml->nodecount, sizeof(int));
         } else {
-            ml->nodeindices = NULL;
+            ml->nodeindices = nullptr;
         }
         if (szdp) {
             ml->pdata = (int*)ecalloc_align(nrn_soa_padded_size(n, layout) * szdp, sizeof(int));
@@ -1495,11 +1495,11 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
             }
 #endif
         } else {
-            ml->pdata = NULL;
+            ml->pdata = nullptr;
         }
         if (pnt_map[type] > 0) {  // POINT_PROCESS mechanism including acell
             int cnt = ml->nodecount;
-            Point_process* pnt = NULL;
+            Point_process* pnt = nullptr;
             pnt = nt.pntprocs + synoffset;
             pnt_offset[type] = synoffset;
             synoffset += cnt;
@@ -1650,7 +1650,7 @@ for (int i=0; i < nt.end; ++i) {
     }
 
     /* here we setup the mechanism dependencies. if there is a mechanism dependency
-     * then we allocate an array for tml->dependencies otherwise set it to NULL.
+     * then we allocate an array for tml->dependencies otherwise set it to nullptr.
      * In order to find out the "real" dependencies i.e. dependent mechanism
      * exist at the same compartment, we compare the nodeindices of mechanisms
      * returned by nrn_mech_depend.
@@ -1661,7 +1661,7 @@ for (int i=0; i < nt.end; ++i) {
 
     for (tml = nt.tml; tml; tml = tml->next) {
         /* initialize to null */
-        tml->dependencies = NULL;
+        tml->dependencies = nullptr;
         tml->ndependencies = 0;
 
         /* get dependencies from the models */
@@ -1753,7 +1753,7 @@ for (int i=0; i < nt.end; ++i) {
             }
         }
         if (sz) {
-            nt._watch_types = (int*)ecalloc(sz + 1, sizeof(int));  // NULL terminated
+            nt._watch_types = (int*)ecalloc(sz + 1, sizeof(int));  // nullptr terminated
             sz = 0;
             for (NrnThreadMembList* tml = nt.tml; tml; tml = tml->next) {
                 if (nrn_watch_check[tml->index]) {
@@ -1890,7 +1890,7 @@ for (int i=0; i < nt.end; ++i) {
         // Simplistic.
         // Rotate through the pntindex and use only pnttype for ProbAMPANMDA_EMS
         // (which happens to have a weight vector length of 5.)
-        // Edge case: if there is no such synapse, let the target_ be NULL
+        // Edge case: if there is no such synapse, let the target_ be nullptr
         //   and the netcon be inactive.
         // Same pattern as algorithm for extracon netcon_srcgid above in phase1.
         extracon_target_type = nrn_get_mechtype("ProbAMPANMDA_EMS");
@@ -1911,7 +1911,7 @@ for (int i=0; i < nt.end; ++i) {
             if (active) {
                 nc.target_ = nt.pntprocs + (pnt_offset[extracon_target_type] + pntindex[j]);
             } else {
-                nc.target_ = NULL;
+                nc.target_ = nullptr;
             }
         }
     }
@@ -1979,8 +1979,8 @@ for (int i=0; i < nt.end; ++i) {
         if (!nrn_bbcore_read_[type]) {
             continue;
         }
-        int* iArray = NULL;
-        double* dArray = NULL;
+        int* iArray = nullptr;
+        double* dArray = nullptr;
         int icnt, dcnt;
         if (direct) {
             (*nrn2core_get_dat2_corepointer_mech_)(nt.id, type, icnt, dcnt, iArray, dArray);
@@ -2049,7 +2049,7 @@ for (int i=0; i < nt.end; ++i) {
     if (n) {
         nt._vecplay = new void*[n];
     } else {
-        nt._vecplay = NULL;
+        nt._vecplay = nullptr;
     }
 #if CHKPNTDEBUG
     ntc.vecplay_ix = new int[n];
@@ -2097,7 +2097,7 @@ for (int i=0; i < nt.end; ++i) {
         if (ml->_permute) {
             ix = nrn_index_permute(ix, mtype, ml);
         }
-        nt._vecplay[i] = new VecPlayContinuous(ml->data + ix, yvec, tvec, NULL, nt.id);
+        nt._vecplay[i] = new VecPlayContinuous(ml->data + ix, yvec, tvec, nullptr, nt.id);
     }
     if (!direct) {
         // store current checkpoint state to continue reading mapping

@@ -203,6 +203,6 @@ const char* nrn_get_mechname(int type) {
             return i->first.c_str();
         }
     }
-    return NULL;
+    return nullptr;
 }
 }  // namespace coreneuron

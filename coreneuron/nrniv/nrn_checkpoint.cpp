@@ -207,7 +207,7 @@ static void write_phase2(NrnThread& nt, FileHandlerWrap& fh) {
 
     fh << nt.ncell << " n_real_gid\n";
     fh << nt.end << " nnode\n";
-    fh << ((nt._actual_diam == NULL) ? 0 : nt.end) << " ndiam\n";
+    fh << ((nt._actual_diam == nullptr) ? 0 : nt.end) << " ndiam\n";
     int nmech = 0;
     for (NrnThreadMembList* tml = nt.tml; tml; tml = tml->next) {
         if (tml->index != patstimtype) {  // skip PatternStim
@@ -233,7 +233,7 @@ static void write_phase2(NrnThread& nt, FileHandlerWrap& fh) {
     fh << nt.n_weight << " nweight\n";
 
     // see comment about parent in node_permute.cpp
-    int* pinv_nt = NULL;
+    int* pinv_nt = nullptr;
     if (nt._permute) {
         int* d = new int[nt.end];
         pinv_nt = inverse_permute(nt._permute, nt.end);
@@ -380,7 +380,7 @@ static void write_phase2(NrnThread& nt, FileHandlerWrap& fh) {
             // if any assert fails in this loop then we have faulty understanding
             // of the for (int i = 0; i < nt.n_presyn; ++i) loop in nrn_setup.cpp
             assert(ps->thvar_index_ < nt.end);
-            assert(ps->pntsrc_ == NULL);
+            assert(ps->pntsrc_ == nullptr);
             output_threshold[i] = ps->threshold_;
             output_vindex[i] = pinv_nt[ps->thvar_index_];
         } else if (i < nt.ncell) {      // real cell without a presyn
@@ -423,7 +423,7 @@ static void write_phase2(NrnThread& nt, FileHandlerWrap& fh) {
     for (int i = 0; i < nnetcon; ++i) {
         NetCon& nc = nt.netcons[i];
         Point_process* pnt = nc.target_;
-        assert(pnt);  // nrn_setup.cpp allows type <=0 which generates NULL target.
+        assert(pnt);  // nrn_setup.cpp allows type <=0 which generates nullptr target.
         pnttype[i] = pnt->_type;
 
 #if 0
@@ -475,8 +475,8 @@ static void write_phase2(NrnThread& nt, FileHandlerWrap& fh) {
             int type = tml->index;
             assert(nrn_bbcore_write_[type]);
             Memb_list* ml = tml->ml;
-            double* d = NULL;
-            Datum* pd = NULL;
+            double* d = nullptr;
+            Datum* pd = nullptr;
             int layout = nrn_mech_data_layout_[type];
             int dsz = nrn_prop_param_size_[type];
             int pdsz = nrn_prop_dparam_size_[type];
@@ -492,7 +492,7 @@ static void write_phase2(NrnThread& nt, FileHandlerWrap& fh) {
                 }
                 d = ml->data + nrn_i_layout(jp, ml->nodecount, 0, dsz, layout);
                 pd = ml->pdata + nrn_i_layout(jp, ml->nodecount, 0, pdsz, layout);
-                (*nrn_bbcore_write_[type])(NULL, NULL, &dcnt, &icnt, 0, aln_cntml, d, pd,
+                (*nrn_bbcore_write_[type])(nullptr, nullptr, &dcnt, &icnt, 0, aln_cntml, d, pd,
                                            ml->_thread, &nt, 0.0);
             }
             fh << icnt << "\n";
@@ -502,8 +502,8 @@ static void write_phase2(NrnThread& nt, FileHandlerWrap& fh) {
             assert(ntc.bcpicnt[i] == icnt);
             assert(ntc.bcpdcnt[i] == dcnt);
 #endif
-            int* iArray = NULL;
-            double* dArray = NULL;
+            int* iArray = nullptr;
+            double* dArray = nullptr;
             if (icnt) {
                 iArray = new int[icnt];
             }
@@ -546,7 +546,7 @@ static void write_phase2(NrnThread& nt, FileHandlerWrap& fh) {
         int ix = -1;
 
         // not as efficient as possible but there should not be too many
-        Memb_list* ml = NULL;
+        Memb_list* ml = nullptr;
         for (NrnThreadMembList* tml = nt.tml; tml; tml = tml->next) {
             ml = tml->ml;
             int nn = nrn_prop_param_size_[tml->index] * ml->nodecount;
@@ -799,7 +799,7 @@ static void write_tqueue(NrnThread& nt, FileHandlerWrap& fh) {
     TQItem* q;
 
     fh << -1 << " TQItems from atomic_dq\n";
-    while ((q = tqe->atomic_dq(1e20)) != NULL) {
+    while ((q = tqe->atomic_dq(1e20)) != nullptr) {
         write_tqueue(q, nt, fh);
     }
     fh << 0 << "\n";

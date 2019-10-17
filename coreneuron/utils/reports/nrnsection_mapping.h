@@ -105,7 +105,7 @@ struct CellMapping {
         }
 
         std::cout << "Warning: Section mapping list " << name << " doesn't exist! \n";
-        return NULL;
+        return nullptr;
     }
 
     /** @brief return segment count for specific section list with given name */
@@ -156,7 +156,7 @@ struct NrnThreadMappingInfo {
     }
 
     /** @brief get cell mapping information for given gid
-     *	if exist otherwise return NULL.
+     *	if exist otherwise return nullptr.
      */
     CellMapping* get_cell_mapping(int gid) {
         for (size_t i = 0; i < mappingvec.size(); i++) {
@@ -164,7 +164,7 @@ struct NrnThreadMappingInfo {
                 return mappingvec[i];
             }
         }
-        return NULL;
+        return nullptr;
     }
 
     /** @brief add mapping information of new cell */

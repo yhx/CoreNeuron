@@ -43,7 +43,7 @@ TNode::TNode(int ix) {
     treesize = 1;
     nodevec_index = 0;
     treenode_order = 0;
-    parent = NULL;
+    parent = nullptr;
     children.reserve(2);
 }
 
@@ -117,7 +117,7 @@ static void quality(VecTNode& nodevec, size_t max = 32) {
 
     // first ncell nodes are by definition in contiguous order
     for (size_t i = 0; i < nodevec.size(); ++i) {
-        if (nodevec[i]->parent != NULL) {
+        if (nodevec[i]->parent != nullptr) {
             break;
         }
         qcnt += 1;
@@ -424,12 +424,12 @@ void check(VecTNode& nodevec) {
     size_t ncell = 0;
     for (size_t i = 0; i < nnode; ++i) {
         nodevec[i]->nodevec_index = i;
-        if (nodevec[i]->parent == NULL) {
+        if (nodevec[i]->parent == nullptr) {
             ncell++;
         }
     }
     for (size_t i = 0; i < ncell; ++i) {
-        nrn_assert(nodevec[i]->parent == NULL);
+        nrn_assert(nodevec[i]->parent == nullptr);
     }
     for (size_t i = ncell; i < nnode; ++i) {
         TNode& nd = *nodevec[i];

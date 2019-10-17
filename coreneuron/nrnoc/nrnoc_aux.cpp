@@ -81,7 +81,7 @@ double** makematrix(size_t nrows, size_t ncols) {
 }
 
 void freematrix(double** matrix) {
-    if (matrix != NULL) {
+    if (matrix != nullptr) {
         free(*matrix);
         free(matrix);
     }

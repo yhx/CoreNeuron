@@ -20,18 +20,18 @@ InterleaveInfo* interleave_info;  // nrn_nthread array
 InterleaveInfo::InterleaveInfo() {
     nwarp = 0;
     nstride = 0;
-    stridedispl = NULL;
-    stride = NULL;
-    firstnode = NULL;
-    lastnode = NULL;
-    cellsize = NULL;
+    stridedispl = nullptr;
+    stride = nullptr;
+    firstnode = nullptr;
+    lastnode = nullptr;
+    cellsize = nullptr;
 
     // for print statistics
-    nnode = NULL;
-    ncycle = NULL;
-    idle = NULL;
-    cache_access = NULL;
-    child_race = NULL;
+    nnode = nullptr;
+    ncycle = nullptr;
+    idle = nullptr;
+    cache_access = nullptr;
+    child_race = nullptr;
 }
 
 void InterleaveInfo::swap(InterleaveInfo& info) {
@@ -106,7 +106,7 @@ void create_interleave_info() {
 void destroy_interleave_info() {
     if (interleave_info) {
         delete[] interleave_info;
-        interleave_info = NULL;
+        interleave_info = nullptr;
     }
 }
 
@@ -289,7 +289,7 @@ static void warp_balance(int ith, InterleaveInfo& ii) {
 int* interleave_order(int ith, int ncell, int nnode, int* parent) {
     // return if there are no nodes to permute
     if (nnode <= 0)
-        return NULL;
+        return nullptr;
 
     // ensure parent of root = -1
     for (int i = 0; i < ncell; ++i) {
@@ -415,7 +415,7 @@ void mk_cell_indices() {
         if (nt.ncell) {
             cell_indices_threads[i] = cell_indices_debug(nt, interleave_info[i]);
         } else {
-            cell_indices_threads[i] = NULL;
+            cell_indices_threads[i] = nullptr;
         }
     }
 }

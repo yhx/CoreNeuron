@@ -31,13 +31,13 @@ class SidData {
 namespace coreneuron {
 using namespace coreneuron::nrn_partrans;
 nrn_partrans::TransferThreadData::TransferThreadData() {
-    halfgap_ml = NULL;
+    halfgap_ml = nullptr;
     nsrc = 0;
     ntar = 0;
-    insrc_indices = NULL;
-    v_indices = NULL;
-    outbuf_indices = NULL;
-    v_gather = NULL;
+    insrc_indices = nullptr;
+    v_indices = nullptr;
+    outbuf_indices = nullptr;
+    v_gather = nullptr;
 }
 
 nrn_partrans::TransferThreadData::~TransferThreadData() {
@@ -62,7 +62,7 @@ void nrn_partrans::gap_mpi_setup(int ngroup) {
     // one thread then all processes must have more than one thread
     if (ngroup < nrn_nthread) {
         transfer_thread_data_[ngroup].nsrc = 0;
-        transfer_thread_data_[ngroup].halfgap_ml = NULL;
+        transfer_thread_data_[ngroup].halfgap_ml = nullptr;
     }
 
     // create and fill halfgap_info using first available...

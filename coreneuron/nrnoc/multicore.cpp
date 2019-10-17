@@ -69,7 +69,7 @@ the handling of v_structure_change as long as possible.
 namespace coreneuron {
 
 int nrn_nthread = 0;
-NrnThread* nrn_threads = NULL;
+NrnThread* nrn_threads = nullptr;
 void (*nrn_mk_transfer_thread_data_)();
 
 static int table_check_cnt_;
@@ -96,12 +96,12 @@ void nrn_threads_create(int n) {
                 nt->id = i;
                 nt->_stop_stepping = 0;
                 nt->n_vecplay = 0;
-                nt->_vecplay = NULL;
+                nt->_vecplay = nullptr;
                 nt->tml = (NrnThreadMembList*)0;
                 nt->_ml_list = (Memb_list**)0;
                 nt->pntprocs = (Point_process*)0;
                 nt->presyns = (PreSyn*)0;
-                nt->presyns_helper = NULL;
+                nt->presyns_helper = nullptr;
                 nt->pnt2presyn_ix = (int**)0;
                 nt->netcons = (NetCon*)0;
                 nt->weights = (double*)0;
@@ -134,9 +134,9 @@ void nrn_threads_create(int n) {
                 nt->_net_send_buffer_size = 0;
                 nt->_net_send_buffer = (int*)0;
                 nt->_net_send_buffer_cnt = 0;
-                nt->_watch_types = NULL;
-                nt->mapping = NULL;
-                nt->trajec_requests = NULL;
+                nt->_watch_types = nullptr;
+                nt->mapping = nullptr;
+                nt->trajec_requests = nullptr;
 
                 nt->nrn_fast_imem = nullptr;
             }

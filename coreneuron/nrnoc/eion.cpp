@@ -84,7 +84,7 @@ int nrn_is_ion(int type) {
     // Old: commented to remove dependency on memb_func and alloc function
     // return (memb_func[type].alloc == ion_alloc);
     return (type < nrn_ion_global_map_size         // type smaller than largest ion's
-            && nrn_ion_global_map[type] != NULL);  // allocated ion charge variables
+            && nrn_ion_global_map[type] != nullptr);  // allocated ion charge variables
 }
 
 int nrn_ion_global_map_size;
@@ -115,7 +115,7 @@ void ion_reg(const char* name, double valence) {
     mechanism[5] = (char*)0; /* buf[4] not used above */
     mechtype = nrn_get_mechtype(buf[0]);
     if (mechtype >= nrn_ion_global_map_size ||
-        nrn_ion_global_map[mechtype] == NULL) {  // if hasn't yet been allocated
+        nrn_ion_global_map[mechtype] == nullptr) {  // if hasn't yet been allocated
 
         // allocates mem for ion in ion_map and sets null all non-ion types
         if (nrn_ion_global_map_size <= mechtype) {
@@ -123,7 +123,7 @@ void ion_reg(const char* name, double valence) {
             nrn_ion_global_map = (double**)erealloc(nrn_ion_global_map, sizeof(double*) * size);
 
             for (i = nrn_ion_global_map_size; i < mechtype; i++) {
-                nrn_ion_global_map[i] = NULL;
+                nrn_ion_global_map[i] = nullptr;
             }
             nrn_ion_global_map_size = mechtype + 1;
         }

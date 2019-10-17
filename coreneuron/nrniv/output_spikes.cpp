@@ -173,7 +173,7 @@ void output_spikes_parallel(const char* outpath) {
     unsigned num_bytes = (sizeof(char) * num_spikes * SPIKE_RECORD_LEN);
     char* spike_data = (char*)malloc(num_bytes);
 
-    if (spike_data == NULL) {
+    if (spike_data == nullptr) {
         printf("Error while writing spikes due to memory allocation\n");
         return;
     }

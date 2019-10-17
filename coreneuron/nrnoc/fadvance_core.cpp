@@ -241,7 +241,7 @@ void nrncore2nrn_send_init() {
     // if per time step transfer, need to call nrn_record_init() in NEURON.
     // if storing full trajectories in CoreNEURON, need to initialize
     // vsize for all the trajectory requests.
-    (*nrn2core_trajectory_values_)(-1, 0, NULL, 0.0);
+    (*nrn2core_trajectory_values_)(-1, 0, nullptr, 0.0);
     for (int tid = 0; tid < nrn_nthread; ++tid) {
         NrnThread& nt = nrn_threads[tid];
         if (nt.trajec_requests) {

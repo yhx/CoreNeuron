@@ -183,7 +183,7 @@ NetCvode::NetCvode(void) {
     eps_ = 100. * DBL_EPSILON;
     print_event_ = 0;
     pcnt_ = 0;
-    p = nil;
+    p = nullptr;
     p_construct(1);
     // eventually these should not have to be thread safe
     // for parallel network simulations hardly any presyns have
@@ -194,7 +194,7 @@ NetCvode::NetCvode(void) {
 
 NetCvode::~NetCvode() {
     if (net_cvode_instance == (NetCvode*)this)
-        net_cvode_instance = nil;
+        net_cvode_instance = nullptr;
 
     p_construct(0);
 }
@@ -209,13 +209,13 @@ void NetCvode::p_construct(int n) {
     if (pcnt_ != n) {
         if (p) {
             delete[] p;
-            p = nil;
+            p = nullptr;
         }
 
         if (n > 0)
             p = new NetCvodeThreadData[n];
         else
-            p = nil;
+            p = nullptr;
 
         pcnt_ = n;
     }
@@ -369,7 +369,7 @@ DiscreteEvent::~DiscreteEvent() {
 NetCon::NetCon() {
     active_ = false;
     u.weight_index_ = 0;
-    target_ = NULL;
+    target_ = nullptr;
     delay_ = 1.0;
 }
 
@@ -381,7 +381,7 @@ PreSyn::PreSyn() {
     nc_cnt_ = 0;
     flag_ = false;
     thvar_index_ = -1;
-    pntsrc_ = NULL;
+    pntsrc_ = nullptr;
     threshold_ = 10.;
     gid_ = -1;
 #if NRNMPI
@@ -404,7 +404,7 @@ InputPreSyn::InputPreSyn() {
 PreSyn::~PreSyn() {
     //	printf("~PreSyn %p\n", this);
     if (pntsrc_) {
-        pntsrc_ = nil;
+        pntsrc_ = nullptr;
     }
 }
 
@@ -725,7 +725,7 @@ void NetCvode::check_thresh(NrnThread* nt) {  // for default method
 // both PreSyn and WatchCondition were subclasses of ConditionEvent. When
 // a WatchCondition fired in the fixed step method, it was placed on the queue
 // with a delivery time of t+teps. WatchCondition::deliver called the NET_RECEIVE
-// block with proper flag ( but NULL weight vector). WatchConditions
+// block with proper flag ( but nullptr weight vector). WatchConditions
 // were created,added/removed,destroyed from a list as necessary.
 // Perhaps the most commonly used WATCH statement is in the context of a
 // ThresholdDetect Point_process which watches voltage and compares to

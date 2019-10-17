@@ -26,8 +26,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef multicore_h
-#define multicore_h
+#pragma once
 
 #include "coreneuron/nrnconf.h"
 #include "coreneuron/nrnoc/membfunc.h"
@@ -116,7 +115,7 @@ struct NrnThread {
     double* _actual_b;
     double* _actual_v;
     double* _actual_area;
-    double* _actual_diam; /* NULL if no mechanism has dparam with diam semantics */
+    double* _actual_diam; /* nullptr if no mechanism has dparam with diam semantics */
     double* _shadow_rhs;  /* Not pointer into _data. Avoid race for multiple POINT_PROCESS in same
                              compartment */
     double* _shadow_d;    /* Not pointer into _data. Avoid race for multiple POINT_PROCESS in same
@@ -128,7 +127,7 @@ struct NrnThread {
     int* _v_parent_index;
     int* _permute;
     char* _sp13mat;              /* handle to general sparse matrix */
-    Memb_list* _ecell_memb_list; /* normally nil */
+    Memb_list* _ecell_memb_list; /* normally nullptr */
 
     double _ctime; /* computation time in seconds (using nrnmpi_wtime) */
 
@@ -141,7 +140,7 @@ struct NrnThread {
     int _net_send_buffer_cnt;
     int* _net_send_buffer;
 
-    int* _watch_types;                   /* NULL or 0 terminated array of integers */
+    int* _watch_types;                   /* nullptr or 0 terminated array of integers */
     void* mapping;                       /* section to segment mapping information */
     TrajectoryRequests* trajec_requests; /* per time step values returned to NEURON */
 };
@@ -157,5 +156,3 @@ extern void nrn_threads_free(void);
 extern int _nrn_skip_initmodel;
 
 }  // namespace coreneuron
-
-#endif

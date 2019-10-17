@@ -121,7 +121,7 @@ static void pr_netcon(NrnThread& nt, FILE* f) {
         std::map<Point_process*, int>::iterator it = pnt2index.find(pp);
         if (it != pnt2index.end()) {
             nclist[it->second].push_back(nc);
-            map_nc2src[nc] = NULL;
+            map_nc2src[nc] = nullptr;
             ++nc_cnt;
         }
     }
@@ -266,7 +266,7 @@ static void pr_realcell(PreSyn& ps, NrnThread& nt, FILE* f) {
     pnt2index.clear();
     if (inv_permute_) {
         delete inv_permute_;
-        inv_permute_ = NULL;
+        inv_permute_ = nullptr;
     }
 }
 

@@ -221,11 +221,11 @@ int register_mech(const char** m,
 #if VECTORIZE
     memb_func[type].vectorized = vectorized ? 1 : 0;
     memb_func[type].thread_size_ = vectorized ? (vectorized - 1) : 0;
-    memb_func[type].thread_mem_init_ = NULL;
-    memb_func[type].thread_cleanup_ = NULL;
-    memb_func[type].thread_table_check_ = NULL;
+    memb_func[type].thread_mem_init_ = nullptr;
+    memb_func[type].thread_cleanup_ = nullptr;
+    memb_func[type].thread_table_check_ = nullptr;
     memb_func[type].is_point = 0;
-    memb_func[type].setdata_ = NULL;
+    memb_func[type].setdata_ = nullptr;
     memb_func[type].dparam_semantics = (int*)0;
     memb_list[type].nodecount = 0;
     memb_list[type]._thread = (ThreadDatum*)0;
@@ -334,7 +334,7 @@ void hoc_register_dparam_semantics(int type, int ix, const char* name) {
 #endif
 }
 
-/* only ion type ion_write_depend_ are non-NULL */
+/* only ion type ion_write_depend_ are non-nullptr */
 /* and those are array of integers with first integer being array size */
 /* and remaining size-1 integers containing the mechanism types that write concentrations to that
  * ion */
@@ -343,7 +343,7 @@ static void ion_write_depend(int type, int etype) {
     if (ion_write_depend_size_ < n_memb_func) {
         ion_write_depend_ = (int**)erealloc(ion_write_depend_, n_memb_func * sizeof(int*));
         for (i = ion_write_depend_size_; i < n_memb_func; ++i) {
-            ion_write_depend_[i] = NULL;
+            ion_write_depend_[i] = nullptr;
         }
         ion_write_depend_size_ = n_memb_func;
     }

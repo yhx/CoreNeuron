@@ -84,7 +84,7 @@ void nrn_mkPatternStim(const char* fname) {
     }
 
     // if there is empty thread then return, don't need patternstim
-    if (nrn_threads == NULL || nrn_threads->ncell == 0) {
+    if (nrn_threads == nullptr || nrn_threads->ncell == 0) {
         return;
     }
 
@@ -113,7 +113,7 @@ void nrn_mkPatternStim(const char* fname) {
     } else {
         assert(0);
     }
-    pattern_stim_setup_helper(size, tvec, gidvec, _iml, _cntml, _p, _ppvar, NULL, nt, 0.0);
+    pattern_stim_setup_helper(size, tvec, gidvec, _iml, _cntml, _p, _ppvar, nullptr, nt, 0.0);
 }
 
 // comparator to sort spikes based on time
@@ -174,14 +174,14 @@ Point_process* nrn_artcell_instantiate(const char* mechname) {
 
     // see nrn_setup.cpp:read_phase2 for how it creates NrnThreadMembList instances.
     // create and append to nt.tml
-    assert(nt->_ml_list[type] == NULL);  // FIXME
+    assert(nt->_ml_list[type] == nullptr);  // FIXME
     NrnThreadMembList* tml = (NrnThreadMembList*)emalloc(sizeof(NrnThreadMembList));
     tml->ml = (Memb_list*)emalloc(sizeof(Memb_list));
-    tml->dependencies = NULL;
+    tml->dependencies = nullptr;
     tml->ndependencies = 0;
     nt->_ml_list[type] = tml->ml;
     tml->index = type;
-    tml->next = NULL;
+    tml->next = nullptr;
     if (!nt->tml) {
         nt->tml = tml;
     } else {
@@ -201,13 +201,13 @@ Point_process* nrn_artcell_instantiate(const char* mechname) {
     Memb_list* ml = tml->ml;
     ml->nodecount = 1;
     ml->_nodecount_padded = ml->nodecount;
-    ml->nodeindices = NULL;
+    ml->nodeindices = nullptr;
     ml->data = (double*)ecalloc(ml->nodecount * psize, sizeof(double));
     ml->pdata = (Datum*)ecalloc(ml->nodecount * dsize, sizeof(Datum));
-    ml->_thread = NULL;
-    ml->_net_receive_buffer = NULL;
-    ml->_net_send_buffer = NULL;
-    ml->_permute = NULL;
+    ml->_thread = nullptr;
+    ml->_net_receive_buffer = nullptr;
+    ml->_net_send_buffer = nullptr;
+    ml->_permute = nullptr;
 
     // Here we have a problem with no easy general solution. ml->pdata are
     // integer indexes into the nt->_data nt->_idata and nt->_vdata array

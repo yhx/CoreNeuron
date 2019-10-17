@@ -71,7 +71,7 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
      */
     NrnThread* d_threads = (NrnThread*)acc_copyin(threads, sizeof(NrnThread) * nthreads);
 
-    if (interleave_info == NULL) {
+    if (interleave_info == nullptr) {
         printf("\n Warning: No permutation data? Required for linear algebra!");
     }
 
@@ -149,7 +149,7 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
 
         for (tml = nt->tml; tml; tml = tml->next) {
             /*copy tml to device*/
-            /*QUESTIONS: does tml will point to NULL as in host ? : I assume so!*/
+            /*QUESTIONS: does tml will point to nullptr as in host ? : I assume so!*/
             d_tml = (NrnThreadMembList*)acc_copyin(tml, sizeof(NrnThreadMembList));
 
             /*first tml is pointed by nt */
@@ -340,7 +340,7 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
                 /* todo: not necessary to setup pointers, just copy it */
                 InterleaveInfo* info = interleave_info + i;
                 InterleaveInfo* d_info = (InterleaveInfo*)acc_copyin(info, sizeof(InterleaveInfo));
-                int* d_ptr = NULL;
+                int* d_ptr = nullptr;
 
                 d_ptr = (int*)acc_copyin(info->stride, sizeof(int) * (info->nstride + 1));
                 acc_memcpy_to_device(&(d_info->stride), &d_ptr, sizeof(int*));
@@ -358,7 +358,7 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
                 /* todo: not necessary to setup pointers, just copy it */
                 InterleaveInfo* info = interleave_info + i;
                 InterleaveInfo* d_info = (InterleaveInfo*)acc_copyin(info, sizeof(InterleaveInfo));
-                int* d_ptr = NULL;
+                int* d_ptr = nullptr;
 
                 d_ptr = (int*)acc_copyin(info->stride, sizeof(int) * info->nstride);
                 acc_memcpy_to_device(&(d_info->stride), &d_ptr, sizeof(int*));

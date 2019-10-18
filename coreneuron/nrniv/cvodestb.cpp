@@ -59,8 +59,8 @@ void nrn_deliver_events(NrnThread* nt) {
     /*before executing on gpu, we have to update the NetReceiveBuffer_t on GPU */
     update_net_receive_buffer(nt);
 
-    for (int i = 0; i < net_buf_receive_cnt_; ++i) {
-        (*net_buf_receive_[i])(nt);
+    for (auto& net_buf_receive : net_buf_receive_) {
+        (*net_buf_receive)(nt);
     }
 }
 

@@ -27,15 +27,14 @@ THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include <string.h>
-#include <stdlib.h>
+#include <vector>
+
 #include "coreneuron/nrnconf.h"
 #include "coreneuron/nrnoc/multicore.h"
 #include "coreneuron/nrnoc/membdef.h"
 #include "coreneuron/nrnoc/nrnoc_decl.h"
-#include "coreneuron/nrnmpi/nrnmpi.h"
 #include "coreneuron/nrnoc/mech_mapping.hpp"
 #include "coreneuron/nrnoc/membfunc.h"
-#include <vector>
 
 namespace coreneuron {
 int secondorder = 0;
@@ -48,12 +47,10 @@ double t, dt, celsius;
 #endif
 int rev_dt;
 
-int net_buf_receive_cnt_;
-int* net_buf_receive_type_;
-NetBufReceive_t* net_buf_receive_;
+std::vector<int> net_buf_receive_type_;
+std::vector<NetBufReceive_t> net_buf_receive_;
 
-int net_buf_send_cnt_;
-int* net_buf_send_type_;
+std::vector<int> net_buf_send_type_;
 
 static int memb_func_size_;
 static int pointtype = 1; /* starts at 1 since 0 means not point in pnt_map*/
@@ -253,19 +250,12 @@ void _nrn_layout_reg(int type, int layout) {
 }
 
 void hoc_register_net_receive_buffering(NetBufReceive_t f, int type) {
-    int i = net_buf_receive_cnt_++;
-    net_buf_receive_type_ =
-        (int*)erealloc(net_buf_receive_type_, net_buf_receive_cnt_ * sizeof(int));
-    net_buf_receive_ = (NetBufReceive_t*)erealloc(net_buf_receive_,
-                                                  net_buf_receive_cnt_ * sizeof(NetBufReceive_t));
-    net_buf_receive_type_[i] = type;
-    net_buf_receive_[i] = f;
+    net_buf_receive_type_.push_back(type);
+    net_buf_receive_.push_back(f);
 }
 
 void hoc_register_net_send_buffering(int type) {
-    int i = net_buf_send_cnt_++;
-    net_buf_send_type_ = (int*)erealloc(net_buf_send_type_, net_buf_send_cnt_ * sizeof(int));
-    net_buf_send_type_[i] = type;
+    net_buf_send_type_.push_back(type);
 }
 
 void hoc_register_watch_check(nrn_watch_check_t nwc, int type) {

@@ -2110,7 +2110,7 @@ for (int i=0; i < nt.end; ++i) {
     }
 
     // NetReceiveBuffering
-    for (int i = 0; i < net_buf_receive_cnt_; ++i) {
+    for (int i = 0; i < net_buf_receive_type_.size(); ++i) {
         int type = net_buf_receive_type_[i];
         // Does this thread have this type.
         Memb_list* ml = nt._ml_list[type];
@@ -2141,7 +2141,7 @@ for (int i=0; i < nt.end; ++i) {
     }
 
     // NetSendBuffering
-    for (int i = 0; i < net_buf_send_cnt_; ++i) {
+    for (int i = 0; i < net_buf_send_type_.size(); ++i) {
         int type = net_buf_send_type_[i];
         // Does this thread have this type.
         Memb_list* ml = nt._ml_list[type];

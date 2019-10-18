@@ -26,8 +26,9 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef nrn_memb_func_h
-#define nrn_memb_func_h
+#pragma once
+
+#include <vector>
 
 #include "coreneuron/nrnoc/nrnoc_ml.h"
 namespace coreneuron {
@@ -126,13 +127,11 @@ extern int point_register_mech(const char**,
                                int vectorized);
 typedef void (*NetBufReceive_t)(NrnThread*);
 extern void hoc_register_net_receive_buffering(NetBufReceive_t, int);
-extern int net_buf_receive_cnt_;
-extern int* net_buf_receive_type_;
-extern NetBufReceive_t* net_buf_receive_;
+extern std::vector<int> net_buf_receive_type_;
+extern std::vector<NetBufReceive_t> net_buf_receive_;
 
 extern void hoc_register_net_send_buffering(int);
-extern int net_buf_send_cnt_;
-extern int* net_buf_send_type_;
+extern std::vector<int> net_buf_send_type_;
 
 typedef void (*nrn_watch_check_t)(NrnThread*, Memb_list*);
 extern void hoc_register_watch_check(nrn_watch_check_t, int);
@@ -217,5 +216,3 @@ extern void hoc_malchk(void); /* just a stub */
 extern void* hoc_Emalloc(size_t);
 
 }  // namespace coreneuron
-
-#endif /* nrn_memb_func_h */

@@ -52,30 +52,28 @@ std::vector<NetBufReceive_t> net_buf_receive_;
 
 std::vector<int> net_buf_send_type_;
 
-static int memb_func_size_;
 static int pointtype = 1; /* starts at 1 since 0 means not point in pnt_map*/
-int n_memb_func;
 
-Memb_func* memb_func;
-Memb_list* memb_list;
-Point_process** point_process;
-char* pnt_map; /* so prop_free can know its a point mech*/
+std::vector<Memb_func> memb_func;
+std::vector<Memb_list> memb_list;
+std::vector<Point_process*> point_process;
+std::vector<char> pnt_map; /* so prop_free can know its a point mech*/
 typedef void (*Pfrv)();
 BAMech** bamech_;
 
-pnt_receive_t* pnt_receive; /* for synaptic events. */
-pnt_receive_t* pnt_receive_init;
-nrn_watch_check_t* nrn_watch_check;
-short* pnt_receive_size;
+std::vector<pnt_receive_t> pnt_receive; /* for synaptic events. */
+std::vector<pnt_receive_t> pnt_receive_init;
+std::vector<nrn_watch_check_t> nrn_watch_check;
+std::vector<short> pnt_receive_size;
 /* values are type numbers of mechanisms which do net_send call */
 std::vector<int> nrn_has_net_event_;
 std::vector<int> pnttype2presyn; /* inverse of nrn_has_net_event_ */
-int* nrn_prop_param_size_;
-int* nrn_prop_dparam_size_;
-int* nrn_mech_data_layout_; /* 1 AoS (default), >1 AoSoA, 0 SoA */
-int* nrn_dparam_ptr_start_;
-int* nrn_dparam_ptr_end_;
-short* nrn_is_artificial_;
+std::vector<int> nrn_prop_param_size_;
+std::vector<int> nrn_prop_dparam_size_;
+std::vector<int> nrn_mech_data_layout_; /* 1 AoS (default), >1 AoSoA, 0 SoA */
+std::vector<int> nrn_dparam_ptr_start_;
+std::vector<int> nrn_dparam_ptr_end_;
+std::vector<short> nrn_is_artificial_;
 
 /* dependency helper filled by calls to hoc_register_dparam_semantics */
 /* used when nrn_mech_depend is called */
@@ -87,8 +85,8 @@ static void ion_write_depend(int type, int etype);
  */
 std::vector<int> different_mechanism_type;
 
-bbcore_read_t* nrn_bbcore_read_;
-bbcore_write_t* nrn_bbcore_write_;
+std::vector<bbcore_read_t> nrn_bbcore_read_;
+std::vector<bbcore_write_t> nrn_bbcore_write_;
 void hoc_reg_bbcore_read(int type, bbcore_read_t f) {
     if (type == -1) {
         return;
@@ -128,7 +126,7 @@ void add_nrn_fornetcons(int type, int indx) {
 }
 
 /* array is parallel to memb_func. All are 0 except 1 for ARTIFICIAL_CELL */
-short* nrn_artcell_qindex_;
+std::vector<short> nrn_artcell_qindex_;
 
 void add_nrn_artcell(int type, int qi) {
     if (type == -1)
@@ -138,32 +136,24 @@ void add_nrn_artcell(int type, int qi) {
     nrn_artcell_qindex_[type] = qi;
 }
 
-void alloc_mech(int n) {
-    memb_func_size_ = n;
-    n_memb_func = n;
-    memb_func = (Memb_func*)ecalloc(memb_func_size_, sizeof(Memb_func));
-    memb_list = (Memb_list*)ecalloc(memb_func_size_, sizeof(Memb_list));
-    point_process = (Point_process**)ecalloc(memb_func_size_, sizeof(Point_process*));
-    pnt_map = (char*)ecalloc(memb_func_size_, sizeof(char));
-    pnt_receive = (pnt_receive_t*)ecalloc(memb_func_size_, sizeof(pnt_receive_t));
-    pnt_receive_init = (pnt_receive_t*)ecalloc(memb_func_size_, sizeof(pnt_receive_t));
-    pnt_receive_size = (short*)ecalloc(memb_func_size_, sizeof(short));
-    nrn_watch_check = (nrn_watch_check_t*)ecalloc(memb_func_size_, sizeof(nrn_watch_check_t));
-    nrn_is_artificial_ = (short*)ecalloc(memb_func_size_, sizeof(short));
-    nrn_artcell_qindex_ = (short*)ecalloc(memb_func_size_, sizeof(short));
-    nrn_prop_param_size_ = (int*)ecalloc(memb_func_size_, sizeof(int));
-    nrn_prop_dparam_size_ = (int*)ecalloc(memb_func_size_, sizeof(int));
-    nrn_mech_data_layout_ = (int*)ecalloc(memb_func_size_, sizeof(int));
-    {
-        int i;
-        for (i = 0; i < memb_func_size_; ++i) {
-            nrn_mech_data_layout_[i] = 1;
-        }
-    }
-    nrn_dparam_ptr_start_ = (int*)ecalloc(memb_func_size_, sizeof(int));
-    nrn_dparam_ptr_end_ = (int*)ecalloc(memb_func_size_, sizeof(int));
-    nrn_bbcore_read_ = (bbcore_read_t*)ecalloc(memb_func_size_, sizeof(bbcore_read_t));
-    nrn_bbcore_write_ = (bbcore_write_t*)ecalloc(memb_func_size_, sizeof(bbcore_write_t));
+void alloc_mech(int memb_func_size_) {
+    memb_func.resize(memb_func_size_);
+    memb_list.resize(memb_func_size_);
+    point_process.resize(memb_func_size_);
+    pnt_map.resize(memb_func_size_);
+    pnt_receive.resize(memb_func_size_);
+    pnt_receive_init.resize(memb_func_size_);
+    pnt_receive_size.resize(memb_func_size_);
+    nrn_watch_check.resize(memb_func_size_);
+    nrn_is_artificial_.resize(memb_func_size_);
+    nrn_artcell_qindex_.resize(memb_func_size_);
+    nrn_prop_param_size_.resize(memb_func_size_);
+    nrn_prop_dparam_size_.resize(memb_func_size_);
+    nrn_mech_data_layout_.resize(memb_func_size_, 1);
+    nrn_dparam_ptr_start_.resize(memb_func_size_);
+    nrn_dparam_ptr_end_.resize(memb_func_size_);
+    nrn_bbcore_read_.resize(memb_func_size_);
+    nrn_bbcore_write_.resize(memb_func_size_);
     bamech_ = (BAMech**)ecalloc(BEFORE_AFTER_SIZE, sizeof(BAMech*));
 }
 
@@ -327,12 +317,12 @@ void hoc_register_dparam_semantics(int type, int ix, const char* name) {
  * ion */
 static void ion_write_depend(int type, int etype) {
     int size, i;
-    if (ion_write_depend_size_ < n_memb_func) {
-        ion_write_depend_ = (int**)erealloc(ion_write_depend_, n_memb_func * sizeof(int*));
-        for (i = ion_write_depend_size_; i < n_memb_func; ++i) {
+    if (ion_write_depend_size_ < memb_func.size()) {
+        ion_write_depend_ = (int**)erealloc(ion_write_depend_, memb_func.size() * sizeof(int*));
+        for (i = ion_write_depend_size_; i < memb_func.size(); ++i) {
             ion_write_depend_[i] = nullptr;
         }
-        ion_write_depend_size_ = n_memb_func;
+        ion_write_depend_size_ = memb_func.size();
     }
     size = 2;
     if (ion_write_depend_[etype]) {
@@ -393,7 +383,7 @@ int nrn_mech_depend(int type, int* dependencies) {
 }
 
 void register_destructor(Pfri d) {
-    memb_func[n_memb_func - 1].destructor = d;
+    memb_func.back().destructor = d;
 }
 
 int point_reg_helper(Symbol* s2) {

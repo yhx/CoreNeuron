@@ -940,7 +940,7 @@ double* stdindex2ptr(int mtype, int index, NrnThread& nt) {
                 node_permute(&ix, 1, nt._permute);
             }
             return nt._data + (i_mem + ix);         // relative to nt._data
-    } else if (mtype > 0 && mtype < n_memb_func) {  //
+    } else if (mtype > 0 && mtype < memb_func.size()) {  //
         Memb_list* ml = nt._ml_list[mtype];
         nrn_assert(ml);
         int ix = nrn_param_layout(index, mtype, ml);
@@ -1274,7 +1274,7 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
     // printf("ncell=%d end=%d nmech=%d\n", nt.ncell, nt.end, nmech);
     // printf("nart=%d\n", nart);
     NrnThreadMembList* tml_last = nullptr;
-    nt._ml_list = (Memb_list**)ecalloc_align(n_memb_func, sizeof(Memb_list*));
+    nt._ml_list = (Memb_list**)ecalloc_align(memb_func.size(), sizeof(Memb_list*));
 
 #if CHKPNTDEBUG
     ntc.mlmap = new Memb_list_chkpnt*[n_memb_func];
@@ -1435,7 +1435,7 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
 #endif
 
     int synoffset = 0;
-    int* pnt_offset = new int[n_memb_func];
+    auto pnt_offset = std::vector<int>(memb_func.size());
 
     // All the mechanism data and pdata.
     // Also fill in the pnt_offset
@@ -1656,7 +1656,7 @@ for (int i=0; i < nt.end; ++i) {
      */
 
     /* temporary array for dependencies */
-    int* mech_deps = (int*)ecalloc(n_memb_func, sizeof(int));
+    int* mech_deps = (int*)ecalloc(memb_func.size(), sizeof(int));
 
     for (tml = nt.tml; tml; tml = tml->next) {
         /* initialize to null */
@@ -1716,11 +1716,11 @@ for (int i=0; i < nt.end; ++i) {
     free(mech_deps);
 
     /// Fill the BA lists
-    BAMech** bamap = new BAMech*[n_memb_func];
+    auto bamap = std::vector<BAMech*>(memb_func.size());
     for (int i = 0; i < BEFORE_AFTER_SIZE; ++i) {
         BAMech* bam;
         NrnThreadBAList *tbl, **ptbl;
-        for (int ii = 0; ii < n_memb_func; ++ii) {
+        for (int ii = 0; ii < memb_func.size(); ++ii) {
             bamap[ii] = (BAMech*)0;
         }
         for (bam = bamech_[i]; bam; bam = bam->next) {
@@ -1740,7 +1740,6 @@ for (int i=0; i < nt.end; ++i) {
             }
         }
     }
-    delete[] bamap;
 
     // for fast watch statement checking
     // setup a list of types that have WATCH statement
@@ -1764,7 +1763,7 @@ for (int i=0; i < nt.end; ++i) {
 
     // from nrn_has_net_event create pnttype2presyn.
     if (pnttype2presyn.empty()) {
-        pnttype2presyn.resize(n_memb_func, -1);
+        pnttype2presyn.resize(memb_func.size(), -1);
     }
     for (int i = 0; i < nrn_has_net_event_.size(); ++i) {
         pnttype2presyn[nrn_has_net_event_[i]] = i;
@@ -2161,8 +2160,6 @@ for (int i=0; i < nt.end; ++i) {
             nsb->_nsb_flag = (double*)ecalloc_align(nsb->_size, sizeof(double));
         }
     }
-
-    delete[] pnt_offset;
 }
 
 /** read mapping information for neurons */

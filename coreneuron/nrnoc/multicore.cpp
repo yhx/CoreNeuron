@@ -167,7 +167,7 @@ void nrn_mk_table_check() {
     }
 
     // Allocate int array of size of mechanism types
-    auto ix = std::vector<int>(n_memb_func, -1);
+    auto ix = std::vector<int>(memb_func.size(), -1);
     table_check_cnt_ = 0;
     for (int id = 0; id < nrn_nthread; ++id) {
         auto& nt = nrn_threads[id];

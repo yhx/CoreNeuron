@@ -282,7 +282,7 @@ static void write_phase2(NrnThread& nt, FileHandlerWrap& fh) {
     }
 
     // will need the ml_pinv inverse permutation of ml._permute for ions
-    int** ml_pinv = (int**)ecalloc(n_memb_func, sizeof(int*));
+    int** ml_pinv = (int**)ecalloc(memb_func.size(), sizeof(int*));
 
     for (NrnThreadMembList* current_tml = nt.tml; current_tml; current_tml = current_tml->next) {
         Memb_list* ml = current_tml->ml;
@@ -407,10 +407,9 @@ static void write_phase2(NrnThread& nt, FileHandlerWrap& fh) {
     delete[] pinv_nt;
 
     int synoffset = 0;
-    int* pnt_offset = new int[n_memb_func];
+    auto pnt_offset = std::vector<int>(memb_func.size(), -1);
     for (NrnThreadMembList* tml = nt.tml; tml; tml = tml->next) {
         int type = tml->index;
-        pnt_offset[type] = -1;
         if (pnt_map[type] > 0) {
             pnt_offset[type] = synoffset;
             synoffset += tml->ml->nodecount;
@@ -451,7 +450,6 @@ static void write_phase2(NrnThread& nt, FileHandlerWrap& fh) {
         assert(ntc.delay[i] == delay[i]);
     }
 #endif
-    delete[] pnt_offset;
     delete[] pnttype;
     delete[] pntindex;
     delete[] delay;
@@ -585,7 +583,7 @@ static void write_phase2(NrnThread& nt, FileHandlerWrap& fh) {
         }
     }
 
-    for (int i = 0; i < n_memb_func; ++i) {
+    for (int i = 0; i < memb_func.size(); ++i) {
         if (ml_pinv[i]) {
             delete[] ml_pinv[i];
         }

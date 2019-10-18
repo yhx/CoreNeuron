@@ -1122,7 +1122,7 @@ void nrn_cleanup(bool clean_ion_global_map) {
         }
 
         if (nt->pnt2presyn_ix) {
-            for (int i = 0; i < nrn_has_net_event_cnt_; ++i) {
+            for (int i = 0; i < nrn_has_net_event_.size(); ++i) {
                 if (nt->pnt2presyn_ix[i]) {
                     free(nt->pnt2presyn_ix[i]);
                 }
@@ -1181,9 +1181,8 @@ void nrn_cleanup(bool clean_ion_global_map) {
 
     nrn_threads_free();
 
-    if (pnttype2presyn) {
-        free(pnttype2presyn);
-        pnttype2presyn = nullptr;
+    if (!pnttype2presyn.empty()) {
+        pnttype2presyn.clear();
     }
 }
 
@@ -1764,18 +1763,15 @@ for (int i=0; i < nt.end; ++i) {
     }
 
     // from nrn_has_net_event create pnttype2presyn.
-    if (!pnttype2presyn) {
-        pnttype2presyn = (int*)ecalloc(n_memb_func, sizeof(int));
+    if (pnttype2presyn.empty()) {
+        pnttype2presyn.resize(n_memb_func, -1);
     }
-    for (int i = 0; i < n_memb_func; ++i) {
-        pnttype2presyn[i] = -1;
-    }
-    for (int i = 0; i < nrn_has_net_event_cnt_; ++i) {
+    for (int i = 0; i < nrn_has_net_event_.size(); ++i) {
         pnttype2presyn[nrn_has_net_event_[i]] = i;
     }
     // create the nt.pnt2presyn_ix array of arrays.
-    nt.pnt2presyn_ix = (int**)ecalloc(nrn_has_net_event_cnt_, sizeof(int*));
-    for (int i = 0; i < nrn_has_net_event_cnt_; ++i) {
+    nt.pnt2presyn_ix = (int**)ecalloc(nrn_has_net_event_.size(), sizeof(int*));
+    for (int i = 0; i < nrn_has_net_event_.size(); ++i) {
         Memb_list* ml = nt._ml_list[nrn_has_net_event_[i]];
         if (ml && ml->nodecount > 0) {
             nt.pnt2presyn_ix[i] = (int*)ecalloc(ml->nodecount, sizeof(int));

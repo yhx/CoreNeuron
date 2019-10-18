@@ -68,9 +68,8 @@ pnt_receive_t* pnt_receive_init;
 nrn_watch_check_t* nrn_watch_check;
 short* pnt_receive_size;
 /* values are type numbers of mechanisms which do net_send call */
-int nrn_has_net_event_cnt_;
-int* nrn_has_net_event_;
-int* pnttype2presyn; /* inverse of nrn_has_net_event_ */
+std::vector<int> nrn_has_net_event_;
+std::vector<int> pnttype2presyn; /* inverse of nrn_has_net_event_ */
 int* nrn_prop_param_size_;
 int* nrn_prop_dparam_size_;
 int* nrn_mech_data_layout_; /* 1 AoS (default), >1 AoSoA, 0 SoA */
@@ -107,9 +106,7 @@ void add_nrn_has_net_event(int type) {
     if (type == -1) {
         return;
     }
-    ++nrn_has_net_event_cnt_;
-    nrn_has_net_event_ = (int*)erealloc(nrn_has_net_event_, nrn_has_net_event_cnt_ * sizeof(int));
-    nrn_has_net_event_[nrn_has_net_event_cnt_ - 1] = type;
+    nrn_has_net_event_.push_back(type);
 }
 
 /* values are type numbers of mechanisms which have FOR_NETCONS statement */

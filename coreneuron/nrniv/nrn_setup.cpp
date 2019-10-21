@@ -1277,8 +1277,8 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
     nt._ml_list = (Memb_list**)ecalloc_align(memb_func.size(), sizeof(Memb_list*));
 
 #if CHKPNTDEBUG
-    ntc.mlmap = new Memb_list_chkpnt*[n_memb_func];
-    for (int i = 0; i < n_memb_func; ++i) {
+    ntc.mlmap = new Memb_list_chkpnt*[memb_func.size()];
+    for (int i = 0; i < _memb_func.size(); ++i) {
         ntc.mlmap[i] = nullptr;
     }
 #endif

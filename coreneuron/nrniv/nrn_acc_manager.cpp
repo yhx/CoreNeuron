@@ -134,7 +134,7 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
 
         /* nt._ml_list is used in NET_RECEIVE block and should have valid membrane list id*/
         Memb_list** d_ml_list =
-            (Memb_list**)acc_copyin(nt->_ml_list, n_memb_func * sizeof(Memb_list*));
+            (Memb_list**)acc_copyin(nt->_ml_list, memb_func.size() * sizeof(Memb_list*));
         acc_memcpy_to_device(&(d_nt->_ml_list), &(d_ml_list), sizeof(Memb_list**));
 
         /* -- copy NrnThreadMembList list ml to device -- */

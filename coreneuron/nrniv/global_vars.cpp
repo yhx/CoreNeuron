@@ -7,7 +7,7 @@
 #include "coreneuron/utils/randoms/nrnran123.h"
 #include "coreneuron/nrnconf.h"
 #include "coreneuron/nrniv/nrniv_decl.h"
-#include "coreneuron/nrnoc/membfunc.h"
+#include "coreneuron/nrnoc/membfunc.hpp"
 #include "coreneuron/nrniv/nrn_assert.h"
 #include "coreneuron/nrniv/nrn2core_direct.h"
 

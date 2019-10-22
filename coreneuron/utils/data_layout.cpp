@@ -2,7 +2,7 @@
 #include "coreneuron/nrnoc/nrnoc_ml.h"
 #include "coreneuron/nrniv/node_permute.h"
 #include "coreneuron/nrnoc/nrnoc_decl.h"
-#include "coreneuron/nrnoc/membfunc.h"
+#include "coreneuron/nrnoc/membfunc.hpp"
 
 namespace coreneuron {
 /*

@@ -34,7 +34,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/nrnoc/membdef.h"
 #include "coreneuron/nrnoc/nrnoc_decl.h"
 #include "coreneuron/nrnoc/mech_mapping.hpp"
-#include "coreneuron/nrnoc/membfunc.h"
+#include "coreneuron/nrnoc/membfunc.hpp"
 
 namespace coreneuron {
 int secondorder = 0;

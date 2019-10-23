@@ -25,6 +25,7 @@ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 THE POSSIBILITY OF SUCH DAMAGE.
 */
+#pragma once
 
 /***
  * Includes all headers required to communicate and run all methods
@@ -32,12 +33,12 @@ THE POSSIBILITY OF SUCH DAMAGE.
  * functions.
  **/
 
-#ifndef CORENEURON_H
-#define CORENEURON_H
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cmath>
+#include <string.h>
+#include <vector>
 
 #include "coreneuron/utils/randoms/nrnran123.h"      //Random Number Generator
 #include "coreneuron/scopmath_core/newton_struct.h"  //Newton Struct
@@ -45,6 +46,10 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/nrnoc/nrnoc_ml.h"               //Memb_list and mechs info
 
 #include "coreneuron/nrniv/memory.h"  //Memory alignments and padding
+#include "coreneuron/nrnconf.h"
+#include "coreneuron/nrnoc/multicore.h"
+#include "coreneuron/nrnoc/nrnoc_decl.h"
+#include "coreneuron/nrnoc/mech_mapping.hpp"
 
 namespace coreneuron {
 
@@ -59,6 +64,27 @@ extern void nrn_cur_ion(NrnThread* _nt, Memb_list* ml, int type);
 extern void nrn_alloc_ion(double* data, Datum* pdata, int type);
 extern void second_order_cur(NrnThread* _nt, int secondorder);
 
-}  // namespace coreneuron
+/**
+ * A class representing the CoreNEURON state, holding pointers to the various data structures
+ *
+ * The pointers to "global" data such as the NrnThread, Memb_list and Memb_func data structures
+ * are managed here. they logically share their lifetime and runtime scope with instances of
+ * this class.
+ */
+class CoreNeuron {
+    std::vector<Memb_func> memb_funcs;
 
-#endif
+  public:
+
+    auto& get_memb_funcs() {
+        return memb_funcs;
+    }
+
+    auto& get_memb_func(size_t idx) {
+        return memb_funcs[idx];
+    }
+};
+
+extern CoreNeuron crnrn;
+
+}  // namespace coreneuron

@@ -26,7 +26,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "coreneuron/coreneuron.h"
+#include "coreneuron/coreneuron.hpp"
 #include "coreneuron/nrnconf.h"
 #include "coreneuron/nrnoc/multicore.h"
 #include "coreneuron/nrnmpi/nrnmpi.h"
@@ -206,8 +206,8 @@ void nonvint(NrnThread* _nt) {
 
     Instrumentor::phase_begin("state-update");
     for (tml = _nt->tml; tml; tml = tml->next)
-        if (memb_func[tml->index].state) {
-            mod_f_t s = memb_func[tml->index].state;
+        if (crnrn.get_memb_func(tml->index).state) {
+            mod_f_t s = crnrn.get_memb_func(tml->index).state;
             std::string ss("state-");
             ss += nrn_get_mechname(tml->index);
             {

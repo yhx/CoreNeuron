@@ -69,6 +69,7 @@ so pdata_m(k, isz) = inew + data_t
 #include "coreneuron/nrnoc/nrnoc_decl.h"
 #include "coreneuron/nrniv/nrniv_decl.h"
 #include "coreneuron/nrniv/nrn_assert.h"
+#include "coreneuron/coreneuron.hpp"
 #include <vector>
 #include <utility>
 #include <algorithm>
@@ -133,7 +134,7 @@ void update_pdata_values(Memb_list* ml, int type, NrnThread& nt) {
     if (nrn_is_artificial_[type]) {
         return;
     }
-    int* semantics = memb_func[type].dparam_semantics;
+    int* semantics = crnrn.get_memb_func(type).dparam_semantics;
     if (!semantics) {
         return;
     }

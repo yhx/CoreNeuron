@@ -35,6 +35,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/mech/mod2c_core_thread.h"
 #include "coreneuron/utils/file_utils.h"
 #include "coreneuron/nrniv/node_permute.h"
+#include "coreneuron/coreneuron.hpp"
 
 #include <iostream>
 #include <fstream>
@@ -281,6 +282,7 @@ static void write_phase2(NrnThread& nt, FileHandlerWrap& fh) {
         chkpnt_data_write(fh, nt._actual_diam, nt.end, 1, 0, nt._permute);
     }
 
+    auto& memb_func = crnrn.get_memb_funcs();
     // will need the ml_pinv inverse permutation of ml._permute for ions
     int** ml_pinv = (int**)ecalloc(memb_func.size(), sizeof(int*));
 
@@ -864,7 +866,7 @@ bool checkpoint_initialize() {
         NrnThread& nt = nrn_threads[i];
         for (NrnThreadMembList* tml = nt.tml; tml; tml = tml->next) {
             Memb_list* ml = tml->ml;
-            mod_f_t s = memb_func[tml->index].initialize;
+            mod_f_t s = crnrn.get_memb_func(tml->index).initialize;
             if (s) {
                 (*s)(&nt, ml, tml->index);
             }

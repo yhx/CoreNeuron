@@ -43,6 +43,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/nrnoc/nrnoc_decl.h"
 #include "coreneuron/nrniv/output_spikes.h"
 #include "coreneuron/nrniv/nrn_assert.h"
+#include "coreneuron/coreneuron.hpp"
 
 namespace coreneuron {
 void _pattern_reg(void);
@@ -65,7 +66,7 @@ void nrn_set_extra_thread0_vdata() {
     // limited to PatternStim for now.
     // if called, must be called before nrn_setup and after mk_mech.
     int type = nrn_get_mechtype("PatternStim");
-    if (!memb_func[type].initialize) {
+    if (!crnrn.get_memb_func(type).initialize) {
         // the NEURON mod file version is not vectorized so the param size
         // differs by 1 from the coreneuron version.
         nrn_prop_param_size_[type] += 1;
@@ -78,7 +79,7 @@ void nrn_set_extra_thread0_vdata() {
 // todo : add function for memory cleanup (to be called at the end of simulation)
 void nrn_mkPatternStim(const char* fname) {
     int type = nrn_get_mechtype("PatternStim");
-    if (!memb_func[type].sym) {
+    if (!crnrn.get_memb_func(type).sym) {
         printf("nrn_set_extra_thread_vdata must be called (after mk_mech, and before nrn_setup\n");
         assert(0);
     }

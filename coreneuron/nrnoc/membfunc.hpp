@@ -88,7 +88,6 @@ extern BAMech** bamech_;
 extern int nrn_ion_global_map_size;
 extern double** nrn_ion_global_map;
 
-extern std::vector<Memb_func> memb_func;
 #define NRNPOINTER                                                            \
     4 /* added on to list of mechanism variables.These are                    \
 pointers which connect variables  from other mechanisms via the _ppval array. \

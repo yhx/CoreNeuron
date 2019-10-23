@@ -41,6 +41,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/utils/sdprintf.h"
 #include "coreneuron/mech/cfile/cabvars.h"
 #include "coreneuron/nrniv/nrn2core_direct.h"
+#include "coreneuron/coreneuron.hpp"
 
 static char banner[] = "Duke, Yale, and the BlueBrain Project -- Copyright 1984-2019";
 
@@ -152,7 +153,7 @@ static void mk_mech(std::istream& s) {
         printf("%s %d %d %d %d %d %d\n", mname, type, pnttype, is_art, is_ion, dsize, pdsize);
 #endif
         std::string str(mname);
-        memb_func[type].sym = (Symbol*)strdup(mname);
+        crnrn.get_memb_func(type).sym = (Symbol*)strdup(mname);
         mech2type[str] = type;
         pnt_map[type] = (char)pnttype;
         nrn_prop_param_size_[type] = dsize;

@@ -35,6 +35,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/nrnmpi/nrnmpi.h"
 #include "coreneuron/nrnoc/nrnoc_decl.h"
 #include "coreneuron/nrniv/memory.h"
+#include "coreneuron/coreneuron.hpp"
 /*
 Now that threads have taken over the actual_v, v_node, etc, it might
 be a good time to regularize the method of freeing, allocating, and
@@ -69,6 +70,8 @@ the handling of v_structure_change as long as possible.
 */
 
 namespace coreneuron {
+
+CoreNeuron crnrn;
 
 int nrn_nthread = 0;
 NrnThread* nrn_threads = nullptr;
@@ -165,7 +168,7 @@ void nrn_mk_table_check() {
         free((void*)table_check_);
         table_check_ = nullptr;
     }
-
+    auto& memb_func = crnrn.get_memb_funcs();
     // Allocate int array of size of mechanism types
     auto ix = std::vector<int>(memb_func.size(), -1);
     table_check_cnt_ = 0;
@@ -201,7 +204,7 @@ void nrn_thread_table_check() {
         auto& nt = nrn_threads[table_check_[i].i];
         auto tml = static_cast<NrnThreadMembList*>(table_check_[i + 1]._pvoid);
         Memb_list* ml = tml->ml;
-        (*memb_func[tml->index].thread_table_check_)(0, ml->_nodecount_padded, ml->data, ml->pdata,
+        (*crnrn.get_memb_func(tml->index).thread_table_check_)(0, ml->_nodecount_padded, ml->data, ml->pdata,
                                                      ml->_thread, &nt, tml->index);
     }
 }

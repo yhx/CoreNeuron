@@ -35,6 +35,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/nrnoc/nrnoc_decl.h"
 #include "coreneuron/nrnoc/mech_mapping.hpp"
 #include "coreneuron/nrnoc/membfunc.hpp"
+#include "coreneuron/coreneuron.hpp"
 
 namespace coreneuron {
 int secondorder = 0;
@@ -137,7 +138,7 @@ void add_nrn_artcell(int type, int qi) {
 }
 
 void alloc_mech(int memb_func_size_) {
-    memb_func.resize(memb_func_size_);
+    crnrn.get_memb_funcs().resize(memb_func_size_);
     memb_list.resize(memb_func_size_);
     point_process.resize(memb_func_size_);
     pnt_map.resize(memb_func_size_);
@@ -175,6 +176,7 @@ int register_mech(const char** m,
                   mod_f_t initialize,
                   int nrnpointerindex,
                   int vectorized) {
+    auto& memb_func = crnrn.get_memb_funcs();
     int type;              /* 0 unused, 1 for cable section */
     (void)nrnpointerindex; /*unused*/
 
@@ -262,7 +264,7 @@ void hoc_register_prop_size(int type, int psize, int dpsize) {
     nrn_prop_param_size_[type] = psize;
     nrn_prop_dparam_size_[type] = dpsize;
     if (dpsize) {
-        memb_func[type].dparam_semantics = (int*)ecalloc(dpsize, sizeof(int));
+        crnrn.get_memb_func(type).dparam_semantics = (int*)ecalloc(dpsize, sizeof(int));
     }
 }
 void hoc_register_dparam_semantics(int type, int ix, const char* name) {
@@ -274,6 +276,7 @@ void hoc_register_dparam_semantics(int type, int ix, const char* name) {
        -4, -5, -6, -7, -8, -9,
        type, and type+1000 respectively
     */
+    auto& memb_func = crnrn.get_memb_funcs();
     if (strcmp(name, "area") == 0) {
         memb_func[type].dparam_semantics[ix] = -1;
     } else if (strcmp(name, "iontype") == 0) {
@@ -359,7 +362,7 @@ int nrn_mech_depend(int type, int* dependencies) {
     int i, dpsize, idep, deptype;
     int* ds;
     dpsize = nrn_prop_dparam_size_[type];
-    ds = memb_func[type].dparam_semantics;
+    ds = crnrn.get_memb_func(type).dparam_semantics;
     idep = 0;
     if (ds)
         for (i = 0; i < dpsize; ++i) {
@@ -383,7 +386,7 @@ int nrn_mech_depend(int type, int* dependencies) {
 }
 
 void register_destructor(Pfri d) {
-    memb_func.back().destructor = d;
+    crnrn.get_memb_funcs().back().destructor = d;
 }
 
 int point_reg_helper(Symbol* s2) {
@@ -395,7 +398,7 @@ int point_reg_helper(Symbol* s2) {
         return type;
 
     pnt_map[type] = pointtype;
-    memb_func[type].is_point = 1;
+    crnrn.get_memb_func(type).is_point = 1;
 
     return pointtype++;
 }
@@ -454,7 +457,7 @@ void hoc_reg_ba(int mt, mod_f_t f, int type) {
             break;
         default:
             printf("before-after processing type %d for %s not implemented\n", type,
-                   memb_func[mt].sym);
+                   crnrn.get_memb_func(mt).sym);
             nrn_exit(1);
     }
     bam = (BAMech*)emalloc(sizeof(BAMech));
@@ -468,14 +471,14 @@ void _nrn_thread_reg0(int i, void (*f)(ThreadDatum*)) {
     if (i == -1)
         return;
 
-    memb_func[i].thread_cleanup_ = f;
+    crnrn.get_memb_func(i).thread_cleanup_ = f;
 }
 
 void _nrn_thread_reg1(int i, void (*f)(ThreadDatum*)) {
     if (i == -1)
         return;
 
-    memb_func[i].thread_mem_init_ = f;
+    crnrn.get_memb_func(i).thread_mem_init_ = f;
 }
 
 void _nrn_thread_table_reg(int i,
@@ -483,13 +486,13 @@ void _nrn_thread_table_reg(int i,
     if (i == -1)
         return;
 
-    memb_func[i].thread_table_check_ = f;
+    crnrn.get_memb_func(i).thread_table_check_ = f;
 }
 
 void _nrn_setdata_reg(int i, void (*call)(double*, Datum*)) {
     if (i == -1)
         return;
 
-    memb_func[i].setdata_ = call;
+    crnrn.get_memb_func(i).setdata_ = call;
 }
 }  // namespace coreneuron

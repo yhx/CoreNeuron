@@ -36,6 +36,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/utils/sdprintf.h"
 #include "coreneuron/nrniv/nrniv_decl.h"
 #include "coreneuron/nrniv/nrn_assert.h"
+#include "coreneuron/coreneuron.hpp"
 
 #define precision 15
 namespace coreneuron {
@@ -86,7 +87,7 @@ static void pr_memb(int type, Memb_list* ml, int* cellnodes, NrnThread& nt, FILE
         if (cix >= 0) {
             if (!header_printed) {
                 header_printed = 1;
-                fprintf(f, "type=%d %s size=%d\n", type, memb_func[type].sym, size);
+                fprintf(f, "type=%d %s size=%d\n", type, crnrn.get_memb_func(type).sym, size);
             }
             if (receives_events) {
                 fprintf(f, "%d nri %d\n", cix, pntindex);
@@ -178,7 +179,7 @@ static void pr_netcon(NrnThread& nt, FILE* f) {
                     Point_process* pnt = ps->pntsrc_;
                     if (srcgid < 0 && pnt) {
                         int type = pnt->_type;
-                        fprintf(f, "%d %s %d %.*g", i, memb_func[type].sym, nc->active_ ? 1 : 0,
+                        fprintf(f, "%d %s %d %.*g", i, crnrn.get_memb_func(type).sym, nc->active_ ? 1 : 0,
                                 precision, nc->delay_);
                     } else if (srcgid < 0 && ps->thvar_index_ > 0) {
                         fprintf(f, "%d %s %d %.*g", i, "v", nc->active_ ? 1 : 0, precision,

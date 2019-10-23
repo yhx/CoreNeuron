@@ -29,7 +29,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <math.h>
 #include <string.h>
 
-#include "coreneuron/coreneuron.h"
+#include "coreneuron/coreneuron.hpp"
 #include "coreneuron/nrnoc/nrnoc_decl.h"
 #include "coreneuron/nrnmpi/nrnmpi.h"
 #include "coreneuron/nrnoc/membfunc.hpp"

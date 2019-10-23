@@ -42,6 +42,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/nrniv/nrn_acc_manager.h"
 #include "coreneuron/nrniv/multisend.h"
 #include "coreneuron/nrnoc/membfunc.hpp"
+#include "coreneuron/coreneuron.hpp"
 #ifdef _OPENACC
 #include <openacc.h>
 #endif
@@ -323,7 +324,7 @@ bool NetCvode::deliver_event(double til, NrnThread* nt) {
 
 void net_move(void** v, Point_process* pnt, double tt) {
     if (!(*v))
-        hoc_execerror("No event with flag=1 for net_move in ", memb_func[pnt->_type].sym);
+        hoc_execerror("No event with flag=1 for net_move in ", crnrn.get_memb_func(pnt->_type).sym);
 
     TQItem* q = (TQItem*)(*v);
     // printf("net_move tt=%g %s *v=%p\n", tt, memb_func[pnt->_type].sym, *v);
@@ -481,7 +482,7 @@ void NetCon::deliver(double tt, NetCvode* ns, NrnThread* nt) {
 void NetCon::pr(const char* s, double tt, NetCvode* ns) {
     (void)ns;
     Point_process* pp = target_;
-    printf("%s NetCon target=%s[%d] %.15g\n", s, memb_func[pp->_type].sym, pp->_i_instance, tt);
+    printf("%s NetCon target=%s[%d] %.15g\n", s, crnrn.get_memb_func(pp->_type).sym, pp->_i_instance, tt);
 }
 
 void PreSyn::send(double tt, NetCvode* ns, NrnThread* nt) {

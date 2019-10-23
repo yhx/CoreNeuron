@@ -54,6 +54,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/nrnoc/fast_imem.h"
 #include "coreneuron/nrniv/nrniv_decl.h"
 #include "coreneuron/nrniv/nrn2core_direct.h"
+#include "coreneuron/coreneuron.hpp"
 
 int corenrn_embedded;
 int corenrn_embedded_nthread;
@@ -822,7 +823,7 @@ void nrn_setup(const char* filesdat,
 
 void setup_ThreadData(NrnThread& nt) {
     for (NrnThreadMembList* tml = nt.tml; tml; tml = tml->next) {
-        Memb_func& mf = memb_func[tml->index];
+        Memb_func& mf = crnrn.get_memb_func(tml->index);
         Memb_list* ml = tml->ml;
         if (mf.thread_size_) {
             ml->_thread = (ThreadDatum*)ecalloc_align(mf.thread_size_, sizeof(ThreadDatum));
@@ -940,7 +941,7 @@ double* stdindex2ptr(int mtype, int index, NrnThread& nt) {
                 node_permute(&ix, 1, nt._permute);
             }
             return nt._data + (i_mem + ix);         // relative to nt._data
-    } else if (mtype > 0 && mtype < memb_func.size()) {  //
+    } else if (mtype > 0 && mtype < crnrn.get_memb_funcs().size()) {  //
         Memb_list* ml = nt._ml_list[mtype];
         nrn_assert(ml);
         int ix = nrn_param_layout(index, mtype, ml);
@@ -1274,7 +1275,7 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
     // printf("ncell=%d end=%d nmech=%d\n", nt.ncell, nt.end, nmech);
     // printf("nart=%d\n", nart);
     NrnThreadMembList* tml_last = nullptr;
-    nt._ml_list = (Memb_list**)ecalloc_align(memb_func.size(), sizeof(Memb_list*));
+    nt._ml_list = (Memb_list**)ecalloc_align(crnrn.get_memb_funcs().size(), sizeof(Memb_list*));
 
 #if CHKPNTDEBUG
     ntc.mlmap = new Memb_list_chkpnt*[memb_func.size()];
@@ -1297,7 +1298,7 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
 #if defined(_OPENMP)
     nt.stream_id = omp_get_thread_num();
 #endif
-
+    auto& memb_func = crnrn.get_memb_funcs();
     for (int i = 0; i < nmech; ++i) {
         tml = (NrnThreadMembList*)emalloc_align(sizeof(NrnThreadMembList));
         tml->ml = (Memb_list*)ecalloc_align(1, sizeof(Memb_list));

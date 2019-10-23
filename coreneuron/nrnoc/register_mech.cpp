@@ -71,8 +71,6 @@ std::vector<int> pnttype2presyn; /* inverse of nrn_has_net_event_ */
 std::vector<int> nrn_prop_param_size_;
 std::vector<int> nrn_prop_dparam_size_;
 std::vector<int> nrn_mech_data_layout_; /* 1 AoS (default), >1 AoSoA, 0 SoA */
-std::vector<int> nrn_dparam_ptr_start_;
-std::vector<int> nrn_dparam_ptr_end_;
 std::vector<short> nrn_is_artificial_;
 
 /* dependency helper filled by calls to hoc_register_dparam_semantics */
@@ -150,8 +148,6 @@ void alloc_mech(int memb_func_size_) {
     nrn_prop_param_size_.resize(memb_func_size_);
     nrn_prop_dparam_size_.resize(memb_func_size_);
     nrn_mech_data_layout_.resize(memb_func_size_, 1);
-    nrn_dparam_ptr_start_.resize(memb_func_size_);
-    nrn_dparam_ptr_end_.resize(memb_func_size_);
     nrn_bbcore_read_.resize(memb_func_size_);
     nrn_bbcore_write_.resize(memb_func_size_);
     bamech_ = (BAMech**)ecalloc(BEFORE_AFTER_SIZE, sizeof(BAMech*));
@@ -189,8 +185,6 @@ int register_mech(const char** m,
 #ifdef DEBUG
     printf("register_mech %s %d\n", m[1], type);
 #endif
-    nrn_dparam_ptr_start_[type] = 0; /* fill in later */
-    nrn_dparam_ptr_end_[type] = 0;   /* fill in later */
     if (memb_func[type].sym) {
         assert(strcmp(memb_func[type].sym, m[1]) == 0);
     } else {

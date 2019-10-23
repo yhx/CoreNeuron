@@ -55,7 +55,6 @@ std::vector<int> net_buf_send_type_;
 
 static int pointtype = 1; /* starts at 1 since 0 means not point in pnt_map*/
 
-std::vector<Memb_func> memb_func;
 std::vector<Memb_list> memb_list;
 std::vector<Point_process*> point_process;
 std::vector<char> pnt_map; /* so prop_free can know its a point mech*/
@@ -319,18 +318,17 @@ void hoc_register_dparam_semantics(int type, int ix, const char* name) {
 /* and remaining size-1 integers containing the mechanism types that write concentrations to that
  * ion */
 static void ion_write_depend(int type, int etype) {
-    int size, i;
+    auto& memb_func = crnrn.get_memb_funcs();
     if (ion_write_depend_size_ < memb_func.size()) {
         ion_write_depend_ = (int**)erealloc(ion_write_depend_, memb_func.size() * sizeof(int*));
-        for (i = ion_write_depend_size_; i < memb_func.size(); ++i) {
+        for (int i = ion_write_depend_size_; i < memb_func.size(); ++i) {
             ion_write_depend_[i] = nullptr;
         }
         ion_write_depend_size_ = memb_func.size();
     }
-    size = 2;
-    if (ion_write_depend_[etype]) {
-        size = ion_write_depend_[etype][0] + 1;
-    }
+
+    int size = (ion_write_depend_[etype]) ? ion_write_depend_[etype][0] + 1: 2;
+
     ion_write_depend_[etype] = (int*)erealloc(ion_write_depend_[etype], size * sizeof(int));
     ion_write_depend_[etype][0] = size;
     ion_write_depend_[etype][size - 1] = type;

@@ -56,6 +56,8 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/nrniv/nrn2core_direct.h"
 #include "coreneuron/coreneuron.hpp"
 
+
+/// --> Coreneuron
 int corenrn_embedded;
 int corenrn_embedded_nthread;
 
@@ -281,8 +283,6 @@ std::vector<NetCon*> netcon_in_presyn_order_;
 /// Only for setup vector of netcon source gids
 std::vector<int*> netcon_srcgid;
 
-/// Vector storing indexes (IDs) of different mechanisms of mod files between Neuron and CoreNeuron
-extern std::vector<int> different_mechanism_type;
 
 // Wrap read_phase1 and read_phase2 calls to allow using  nrn_multithread_job.
 // Args marshaled by store_phase_args are used by phase1_wrapper
@@ -1236,10 +1236,9 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
         for (int i = 0; i < nmech; ++i) {
             tml_index[i] = F.read_int();
             ml_nodecount[i] = F.read_int();
-            auto mechanism_differs =
-                std::find(different_mechanism_type.begin(), different_mechanism_type.end(),
-                          tml_index[i]) != different_mechanism_type.end();
-            if (mechanism_differs) {
+            if (std::any_of(crnrn.get_different_mechanism_type().begin(),
+                crnrn.get_different_mechanism_type().end(),
+                [&](int e) { return e == tml_index[i]; })) {
                 if (nrnmpi_myid == 0) {
                     printf("Error: %s is a different MOD file than used by NEURON!\n",
                            nrn_get_mechname(tml_index[i]));
@@ -1388,7 +1387,7 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
         offset = nrn_soa_byte_align(offset);
         ml->data = (double*)0 + offset;  // adjust below since nt._data not allocated
         offset += nrn_soa_padded_size(n, layout) * sz;
-        if (pnt_map[type] > 0) {
+        if (crnrn.get_pnt_map()[type] > 0) {
             npnt += n;
         }
     }
@@ -1497,7 +1496,7 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
         } else {
             ml->pdata = nullptr;
         }
-        if (pnt_map[type] > 0) {  // POINT_PROCESS mechanism including acell
+        if (crnrn.get_pnt_map()[type] > 0) {  // POINT_PROCESS mechanism including acell
             int cnt = ml->nodecount;
             Point_process* pnt = nullptr;
             pnt = nt.pntprocs + synoffset;

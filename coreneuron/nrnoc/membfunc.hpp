@@ -97,7 +97,6 @@ pointers which connect variables  from other mechanisms via the _ppval array. \
 
 extern std::vector<int> nrn_prop_param_size_;
 extern std::vector<int> nrn_prop_dparam_size_;
-extern std::vector<char> pnt_map;
 extern std::vector<short> nrn_is_artificial_;
 extern std::vector<short> pnt_receive_size;
 extern std::vector<pnt_receive_t> pnt_receive;

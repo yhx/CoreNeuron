@@ -82,6 +82,7 @@ void nrn_fixed_step_minimal() { /* not so minimal anymore with gap junctions */
 /* better cache efficiency since a thread can do an entire minimum delay
 integration interval before joining
 */
+/// --> Coreneuron
 static int step_group_n;
 static int step_group_begin;
 static int step_group_end;

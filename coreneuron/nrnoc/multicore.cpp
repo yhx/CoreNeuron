@@ -77,10 +77,10 @@ int nrn_nthread = 0;
 NrnThread* nrn_threads = nullptr;
 void (*nrn_mk_transfer_thread_data_)();
 
+/// --> CoreNeuron class
 static int table_check_cnt_;
 static ThreadDatum* table_check_;
 
-int nrn_inthread_;
 
 void nrn_threads_create(int n) {
     int i, j;

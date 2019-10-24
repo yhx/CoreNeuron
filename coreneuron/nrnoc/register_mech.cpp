@@ -56,17 +56,6 @@ std::vector<int> net_buf_receive_type_;
 std::vector<NetBufReceive_t> net_buf_receive_;
 std::vector<int> net_buf_send_type_;
 
-/**
- * Local to coreneuron, used to keep track of point process IDs
- * can go as a static local variable
- */
-static int pointtype = 1; /* starts at 1 since 0 means not point in pnt_map*/
-/**
- * map if mech is a point process
- * Coreneuron class
- * In the future only a field of Mechanism class
- */
-std::vector<char> pnt_map; /* so prop_free can know its a point mech*/
 
 typedef void (*Pfrv)();
 
@@ -77,53 +66,51 @@ typedef void (*Pfrv)();
  */
 BAMech** bamech_;
 
+/**
+ * Net Receive function pointer lookup tables
+ * --> Coreneuron
+ */
 std::vector<pnt_receive_t> pnt_receive; /* for synaptic events. */
 std::vector<pnt_receive_t> pnt_receive_init;
 std::vector<short> pnt_receive_size;
 
 /**
- * Holds function pointers
- * Only used insice coreneuron and can go into Coreneuron class
+ * Holds function pointers for WATCH callback
+ * Only used inside coreneuron and can go into Coreneuron class
  */
 std::vector<nrn_watch_check_t> nrn_watch_check;
 
 /**
  * values are type numbers of mechanisms which do net_send call
  * only used inside coreneuron and can go into Coreneuron class
- * related to net_receive/net_send?
+ * related to NMODL net_event()
+ *
  */
 std::vector<int> nrn_has_net_event_;
 /**
- * inverse of nrn_has_net_event_ (?)
+ * inverse of nrn_has_net_event_ maps the values of nrn_has_net_event_ to the index of
+ * ptntype2presyn
+ * TODO: clarify exact semantics and use. Can this be simplified?
  * --> Coreneuron class
  */
 std::vector<int> pnttype2presyn;
 
 /**
- * Internal lookup tables --> Coreneuron class
+ * Internal lookup tables. Number of float and int variables in each mechanism and memory layout
+ * --> Coreneuron class
+ * future --> mech class
  */
 std::vector<int> nrn_prop_param_size_;
 std::vector<int> nrn_prop_dparam_size_;
 std::vector<int> nrn_mech_data_layout_; /* 1 AoS (default), >1 AoSoA, 0 SoA */
 std::vector<short> nrn_is_artificial_; /* TODO: shoudl be bool */
 
-/**
- * dependency helper filled by calls to hoc_register_dparam_semantics
- * used when nrn_mech_depend is called
- * --> Coreneuron class
- */
-static int ion_write_depend_size_;
-static int** ion_write_depend_;
+
 static void ion_write_depend(int type, int etype);
 
-/** Vector keeping the types (IDs) of different mechanisms of mod files between Neuron and
- * CoreNeuron
- * --> Coreneuron class
- */
-std::vector<int> different_mechanism_type;
-
 /**
  * --> Coreneuron class
+ * --> future mech
  */
 std::vector<bbcore_read_t> nrn_bbcore_read_;
 std::vector<bbcore_write_t> nrn_bbcore_write_;
@@ -179,7 +166,7 @@ void add_nrn_artcell(int type, int qi) {
 
 void alloc_mech(int memb_func_size_) {
     crnrn.get_memb_funcs().resize(memb_func_size_);
-    pnt_map.resize(memb_func_size_);
+    crnrn.get_pnt_map().resize(memb_func_size_);
     pnt_receive.resize(memb_func_size_);
     pnt_receive_init.resize(memb_func_size_);
     pnt_receive_size.resize(memb_func_size_);
@@ -291,7 +278,7 @@ void hoc_register_prop_size(int type, int psize, int dpsize) {
     pold = nrn_prop_param_size_[type];
     dpold = nrn_prop_dparam_size_[type];
     if (psize != pold || dpsize != dpold) {
-        different_mechanism_type.push_back(type);
+        crnrn.get_different_mechanism_type().push_back(type);
     }
     nrn_prop_param_size_[type] = psize;
     nrn_prop_dparam_size_[type] = dpsize;
@@ -352,17 +339,14 @@ void hoc_register_dparam_semantics(int type, int ix, const char* name) {
  * ion */
 static void ion_write_depend(int type, int etype) {
     auto& memb_func = crnrn.get_memb_funcs();
-    if (ion_write_depend_size_ < memb_func.size()) {
-        ion_write_depend_ = (int**)erealloc(ion_write_depend_, memb_func.size() * sizeof(int*));
-        for (int i = ion_write_depend_size_; i < memb_func.size(); ++i) {
-            ion_write_depend_[i] = nullptr;
-        }
-        ion_write_depend_size_ = memb_func.size();
+    auto& ion_write_depend_ = crnrn.get_ion_write_dependency();
+    if (ion_write_depend_.size() < memb_func.size()) {
+        ion_write_depend_.emplace_back();
     }
 
-    int size = (ion_write_depend_[etype]) ? ion_write_depend_[etype][0] + 1: 2;
+    int size = !ion_write_depend_[etype].empty() ? ion_write_depend_[etype][0] + 1: 2;
 
-    ion_write_depend_[etype] = (int*)erealloc(ion_write_depend_[etype], size * sizeof(int));
+    ion_write_depend_[etype].resize(size, 0);
     ion_write_depend_[etype][0] = size;
     ion_write_depend_[etype][size - 1] = type;
 }
@@ -399,11 +383,10 @@ int nrn_mech_depend(int type, int* dependencies) {
         for (i = 0; i < dpsize; ++i) {
             if (ds[i] > 0 && ds[i] < 1000) {
                 int idepnew;
-                int* iwd;
                 deptype = ds[i];
                 idepnew = depend_append(idep, dependencies, deptype, type);
-                iwd = ion_write_depend_ ? ion_write_depend_[deptype] : 0;
-                if (idepnew > idep && iwd) {
+                if ((crnrn.get_ion_write_dependency().size() > deptype) && (idepnew > idep) ){
+                    auto& iwd = crnrn.get_ion_write_dependency()[deptype];
                     int size, j;
                     size = iwd[0];
                     for (j = 1; j < size; ++j) {
@@ -428,10 +411,10 @@ int point_reg_helper(Symbol* s2) {
     if (type == -1)
         return type;
 
-    pnt_map[type] = pointtype;
+    crnrn.get_pnt_map()[type] = crnrn.get_next_pointtype();
     crnrn.get_memb_func(type).is_point = 1;
 
-    return pointtype++;
+    return crnrn.get_pnt_map()[type];
 }
 
 int point_register_mech(const char** m,

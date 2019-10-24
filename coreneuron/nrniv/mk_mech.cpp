@@ -155,7 +155,7 @@ static void mk_mech(std::istream& s) {
         std::string str(mname);
         crnrn.get_memb_func(type).sym = (Symbol*)strdup(mname);
         mech2type[str] = type;
-        pnt_map[type] = (char)pnttype;
+        crnrn.get_pnt_map()[type] = (char)pnttype;
         nrn_prop_param_size_[type] = dsize;
         nrn_prop_dparam_size_[type] = pdsize;
         nrn_is_artificial_[type] = is_art;

@@ -412,7 +412,7 @@ static void write_phase2(NrnThread& nt, FileHandlerWrap& fh) {
     auto pnt_offset = std::vector<int>(memb_func.size(), -1);
     for (NrnThreadMembList* tml = nt.tml; tml; tml = tml->next) {
         int type = tml->index;
-        if (pnt_map[type] > 0) {
+        if (crnrn.get_pnt_map()[type] > 0) {
             pnt_offset[type] = synoffset;
             synoffset += tml->ml->nodecount;
         }

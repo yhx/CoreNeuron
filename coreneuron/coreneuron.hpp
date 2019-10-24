@@ -64,6 +64,8 @@ extern void nrn_cur_ion(NrnThread* _nt, Memb_list* ml, int type);
 extern void nrn_alloc_ion(double* data, Datum* pdata, int type);
 extern void second_order_cur(NrnThread* _nt, int secondorder);
 
+using DependencyTable = std::vector<std::vector<int>>;
+
 /**
  * A class representing the CoreNEURON state, holding pointers to the various data structures
  *
@@ -72,6 +74,29 @@ extern void second_order_cur(NrnThread* _nt, int secondorder);
  * this class.
  */
 class CoreNeuron {
+
+
+    /// Local to coreneuron, used to keep track of point process IDs
+    int pointtype = 1; /* starts at 1 since 0 means not point in pnt_map*/
+    /**
+     * map if mech is a point process
+     * In the future only a field of Mechanism class
+     */
+    std::vector<char> pnt_map; /* so prop_free can know its a point mech*/
+
+    /** Vector mapping the types (IDs) of different mechanisms of mod files between Neuron and
+     * CoreNeuron
+     */
+    std::vector<int> different_mechanism_type;
+
+    /**
+     * dependency helper filled by calls to hoc_register_dparam_semantics
+     * used when nrn_mech_depend is called
+     * vector-of-vector DS. First idx is the mech, second idx is the dependent mech.
+     * --> Coreneuron class
+     */
+    DependencyTable ion_write_dependency;
+
     std::vector<Memb_func> memb_funcs;
 
   public:
@@ -83,6 +108,27 @@ class CoreNeuron {
     auto& get_memb_func(size_t idx) {
         return memb_funcs[idx];
     }
+
+    auto& get_different_mechanism_type() {
+        return different_mechanism_type;
+    }
+
+    auto& get_pnt_map() {
+        return pnt_map;
+    }
+
+    auto& get_ion_write_dependency() {
+        return ion_write_dependency;
+    }
+
+    /**
+     * Generate point process IDs for pnt_map starting at 1 (since 0 means no point process)
+     * \return the next available point process ID
+     */
+    int get_next_pointtype() {
+        return pointtype++;
+    }
+
 };
 
 extern CoreNeuron crnrn;

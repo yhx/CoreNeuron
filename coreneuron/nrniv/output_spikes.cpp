@@ -46,6 +46,8 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 
 namespace coreneuron {
+
+/// --> Coreneuron as SpikeBuffer class
 std::vector<double> spikevec_time;
 std::vector<int> spikevec_gid;
 

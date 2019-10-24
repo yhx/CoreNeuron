@@ -48,43 +48,86 @@ double t, dt, celsius;
 #endif
 int rev_dt;
 
+/**
+ * Net send / Net receive
+ * only used in crnrn for book keeping synapse mechs, should go into Coreneuron class
+ */
 std::vector<int> net_buf_receive_type_;
 std::vector<NetBufReceive_t> net_buf_receive_;
-
 std::vector<int> net_buf_send_type_;
 
+/**
+ * Local to coreneuron, used to keep track of point process IDs
+ * can go as a static local variable
+ */
 static int pointtype = 1; /* starts at 1 since 0 means not point in pnt_map*/
-
-std::vector<Memb_list> memb_list;
-std::vector<Point_process*> point_process;
+/**
+ * map if mech is a point process
+ * Coreneuron class
+ * In the future only a field of Mechanism class
+ */
 std::vector<char> pnt_map; /* so prop_free can know its a point mech*/
+
 typedef void (*Pfrv)();
+
+/**
+ * before-after-blocks from nmodl are registered here as function pointers
+ * Should go into Corenrueon
+ * For efficiency maybe not into Mechanism, because only a few mechanisms will actually have this
+ */
 BAMech** bamech_;
 
 std::vector<pnt_receive_t> pnt_receive; /* for synaptic events. */
 std::vector<pnt_receive_t> pnt_receive_init;
-std::vector<nrn_watch_check_t> nrn_watch_check;
 std::vector<short> pnt_receive_size;
-/* values are type numbers of mechanisms which do net_send call */
+
+/**
+ * Holds function pointers
+ * Only used insice coreneuron and can go into Coreneuron class
+ */
+std::vector<nrn_watch_check_t> nrn_watch_check;
+
+/**
+ * values are type numbers of mechanisms which do net_send call
+ * only used inside coreneuron and can go into Coreneuron class
+ * related to net_receive/net_send?
+ */
 std::vector<int> nrn_has_net_event_;
-std::vector<int> pnttype2presyn; /* inverse of nrn_has_net_event_ */
+/**
+ * inverse of nrn_has_net_event_ (?)
+ * --> Coreneuron class
+ */
+std::vector<int> pnttype2presyn;
+
+/**
+ * Internal lookup tables --> Coreneuron class
+ */
 std::vector<int> nrn_prop_param_size_;
 std::vector<int> nrn_prop_dparam_size_;
 std::vector<int> nrn_mech_data_layout_; /* 1 AoS (default), >1 AoSoA, 0 SoA */
-std::vector<short> nrn_is_artificial_;
+std::vector<short> nrn_is_artificial_; /* TODO: shoudl be bool */
 
-/* dependency helper filled by calls to hoc_register_dparam_semantics */
-/* used when nrn_mech_depend is called */
+/**
+ * dependency helper filled by calls to hoc_register_dparam_semantics
+ * used when nrn_mech_depend is called
+ * --> Coreneuron class
+ */
 static int ion_write_depend_size_;
 static int** ion_write_depend_;
 static void ion_write_depend(int type, int etype);
 
-/* Vector keeping the types (IDs) of different mechanisms of mod files between Neuron and CoreNeuron
+/** Vector keeping the types (IDs) of different mechanisms of mod files between Neuron and
+ * CoreNeuron
+ * --> Coreneuron class
  */
 std::vector<int> different_mechanism_type;
 
+/**
+ * --> Coreneuron class
+ */
 std::vector<bbcore_read_t> nrn_bbcore_read_;
 std::vector<bbcore_write_t> nrn_bbcore_write_;
+
 void hoc_reg_bbcore_read(int type, bbcore_read_t f) {
     if (type == -1) {
         return;
@@ -136,8 +179,6 @@ void add_nrn_artcell(int type, int qi) {
 
 void alloc_mech(int memb_func_size_) {
     crnrn.get_memb_funcs().resize(memb_func_size_);
-    memb_list.resize(memb_func_size_);
-    point_process.resize(memb_func_size_);
     pnt_map.resize(memb_func_size_);
     pnt_receive.resize(memb_func_size_);
     pnt_receive_init.resize(memb_func_size_);
@@ -206,8 +247,6 @@ int register_mech(const char** m,
     memb_func[type].is_point = 0;
     memb_func[type].setdata_ = nullptr;
     memb_func[type].dparam_semantics = (int*)0;
-    memb_list[type].nodecount = 0;
-    memb_list[type]._thread = (ThreadDatum*)0;
 #endif
     register_all_variables_offsets(type, &m[2]);
     return type;

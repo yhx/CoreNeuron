@@ -293,8 +293,12 @@ static void write_phase2(NrnThread& nt, FileHandlerWrap& fh) {
             continue;
         }
         int cnt = ml->nodecount;
-        int sz = nrn_prop_param_size_[type];
-        int layout = nrn_mech_data_layout_[type];
+        auto& nrn_prop_param_size_ = crnrn.get_prop_param_size();
+        auto& nrn_prop_dparam_size_ = crnrn.get_prop_dparam_size();
+        auto& nrn_is_artificial_ = crnrn.get_is_artificial();
+
+            int sz = nrn_prop_param_size_[type];
+        int layout = crnrn.get_mech_data_layout()[type];
         int* semantics = memb_func[type].dparam_semantics;
 
         if (!nrn_is_artificial_[type]) {
@@ -340,7 +344,7 @@ static void write_phase2(NrnThread& nt, FileHandlerWrap& fh) {
                             Memb_list* eml = nt._ml_list[etype];
                             int ecnt = eml->nodecount;
                             int esz = nrn_prop_param_size_[etype];
-                            int elayout = nrn_mech_data_layout_[etype];
+                            int elayout = crnrn.get_mech_data_layout()[etype];
                             // current index into eml->data is a  function
                             // of elayout, eml._permute, ei_instance, ei, and
                             // eml padding.
@@ -477,9 +481,9 @@ static void write_phase2(NrnThread& nt, FileHandlerWrap& fh) {
             Memb_list* ml = tml->ml;
             double* d = nullptr;
             Datum* pd = nullptr;
-            int layout = nrn_mech_data_layout_[type];
-            int dsz = nrn_prop_param_size_[type];
-            int pdsz = nrn_prop_dparam_size_[type];
+            int layout = crnrn.get_mech_data_layout()[type];
+            int dsz = crnrn.get_prop_param_size()[type];
+            int pdsz = crnrn.get_prop_dparam_size()[type];
             int aln_cntml = nrn_soa_padded_size(ml->nodecount, layout);
             fh << type << "\n";
             int icnt = 0;
@@ -549,7 +553,7 @@ static void write_phase2(NrnThread& nt, FileHandlerWrap& fh) {
         Memb_list* ml = nullptr;
         for (NrnThreadMembList* tml = nt.tml; tml; tml = tml->next) {
             ml = tml->ml;
-            int nn = nrn_prop_param_size_[tml->index] * ml->nodecount;
+            int nn = crnrn.get_prop_param_size()[tml->index] * ml->nodecount;
             if (nn && pr->pd_ >= ml->data && pr->pd_ < (ml->data + nn)) {
                 mtype = tml->index;
                 ix = (pr->pd_ - ml->data);
@@ -558,12 +562,12 @@ static void write_phase2(NrnThread& nt, FileHandlerWrap& fh) {
         }
         assert(mtype >= 0);
         int icnt, isz;
-        nrn_inverse_i_layout(ix, icnt, ml->nodecount, isz, nrn_prop_param_size_[mtype],
-                             nrn_mech_data_layout_[mtype]);
+        nrn_inverse_i_layout(ix, icnt, ml->nodecount, isz, crnrn.get_prop_param_size()[mtype],
+                             crnrn.get_mech_data_layout()[mtype]);
         if (ml_pinv[mtype]) {
             icnt = ml_pinv[mtype][icnt];
         }
-        ix = nrn_i_layout(icnt, ml->nodecount, isz, nrn_prop_param_size_[mtype], 1 /*AOS_LAYOUT*/);
+        ix = nrn_i_layout(icnt, ml->nodecount, isz, crnrn.get_prop_param_size()[mtype], 1 /*AOS_LAYOUT*/);
 
         fh << vtype << "\n";
         fh << mtype << "\n";

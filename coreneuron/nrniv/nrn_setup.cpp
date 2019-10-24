@@ -896,12 +896,12 @@ static size_t nrn_soa_byte_align(size_t i) {
 // alignment requirements. Ie. i_instance + i_item*align_cnt.
 
 int nrn_param_layout(int i, int mtype, Memb_list* ml) {
-    int layout = nrn_mech_data_layout_[mtype];
+    int layout = crnrn.get_mech_data_layout()[mtype];
     if (layout == 1) {
         return i;
     }
     assert(layout == 0);
-    int sz = nrn_prop_param_size_[mtype];
+    int sz = crnrn.get_prop_param_size()[mtype];
     int cnt = ml->nodecount;
     int i_cnt = i / sz;
     int i_sz = i % sz;
@@ -1288,6 +1288,8 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
 
     nt.stream_id = 0;
     nt.compute_gpu = 0;
+    auto& nrn_prop_param_size_ = crnrn.get_prop_param_size();
+    auto& nrn_prop_dparam_size_ = crnrn.get_prop_dparam_size();
 
 /* read_phase2 is being called from openmp region
  * and hence we can set the stream equal to current thread id.
@@ -1315,8 +1317,8 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
             exit(1);
         }
         tml->ml->_nodecount_padded =
-            nrn_soa_padded_size(tml->ml->nodecount, nrn_mech_data_layout_[tml->index]);
-        if (memb_func[tml->index].is_point && nrn_is_artificial_[tml->index] == 0) {
+            nrn_soa_padded_size(tml->ml->nodecount, crnrn.get_mech_data_layout()[tml->index]);
+        if (memb_func[tml->index].is_point && crnrn.get_is_artificial()[tml->index] == 0) {
             // Avoid race for multiple PointProcess instances in same compartment.
             if (tml->ml->nodecount > shadow_rhs_cnt) {
                 shadow_rhs_cnt = tml->ml->nodecount;
@@ -1381,7 +1383,7 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
     for (tml = nt.tml; tml; tml = tml->next) {
         Memb_list* ml = tml->ml;
         int type = tml->index;
-        int layout = nrn_mech_data_layout_[type];
+        int layout = crnrn.get_mech_data_layout()[type];
         int n = ml->nodecount;
         int sz = nrn_prop_param_size_[type];
         offset = nrn_soa_byte_align(offset);
@@ -1445,11 +1447,11 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
     for (tml = nt.tml, itml = 0; tml; tml = tml->next, ++itml) {
         int type = tml->index;
         Memb_list* ml = tml->ml;
-        int is_art = nrn_is_artificial_[type];
+        int is_art = crnrn.get_is_artificial()[type];
         int n = ml->nodecount;
         int szp = nrn_prop_param_size_[type];
         int szdp = nrn_prop_dparam_size_[type];
-        int layout = nrn_mech_data_layout_[type];
+        int layout = crnrn.get_mech_data_layout()[type];
 
         if (!is_art && !direct) {
             ml->nodeindices = (int*)ecalloc_align(ml->nodecount, sizeof(int));
@@ -1523,14 +1525,14 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
     // type block in nt.data into which it indexes, has a layout.
     for (tml = nt.tml; tml; tml = tml->next) {
         int type = tml->index;
-        int layout = nrn_mech_data_layout_[type];
+        int layout = crnrn.get_mech_data_layout()[type];
         int* pdata = tml->ml->pdata;
         int cnt = tml->ml->nodecount;
         int szdp = nrn_prop_dparam_size_[type];
         int* semantics = memb_func[type].dparam_semantics;
 
         // ignore ARTIFICIAL_CELL (has useless area pointer with semantics=-1)
-        if (nrn_is_artificial_[type]) {
+        if (crnrn.get_is_artificial()[type]) {
             continue;
         }
 
@@ -1569,7 +1571,7 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
                 }
             } else if (s >= 0 && s < 1000) {  // ion
                 int etype = s;
-                int elayout = nrn_mech_data_layout_[etype];
+                int elayout = crnrn.get_mech_data_layout()[etype];
                 /* if ion is SoA, must recalculate pdata values */
                 /* if ion is AoS, have to deal with offset */
                 Memb_list* eml = nt._ml_list[etype];
@@ -1723,7 +1725,7 @@ for (int i=0; i < nt.end; ++i) {
         for (int ii = 0; ii < memb_func.size(); ++ii) {
             bamap[ii] = (BAMech*)0;
         }
-        for (bam = bamech_[i]; bam; bam = bam->next) {
+        for (bam = crnrn.get_bamech()[i]; bam; bam = bam->next) {
             bamap[bam->type] = bam;
         }
         /* unnecessary but keep in order anyway */
@@ -2008,7 +2010,7 @@ for (int i=0; i < nt.end; ++i) {
         int dsz = nrn_prop_param_size_[type];
         int pdsz = nrn_prop_dparam_size_[type];
         int cntml = ml->nodecount;
-        int layout = nrn_mech_data_layout_[type];
+        int layout = crnrn.get_mech_data_layout()[type];
         for (int j = 0; j < cntml; ++j) {
             int jp = j;
             if (ml->_permute) {
@@ -2105,8 +2107,8 @@ for (int i=0; i < nt.end; ++i) {
     }
 
     // NetReceiveBuffering
-    for (int i = 0; i < net_buf_receive_type_.size(); ++i) {
-        int type = net_buf_receive_type_[i];
+    for (auto& net_buf_receive : crnrn.get_net_buf_receive()) {
+        int type = net_buf_receive.second;
         // Does this thread have this type.
         Memb_list* ml = nt._ml_list[type];
         if (ml) {  // needs a NetReceiveBuffer
@@ -2136,8 +2138,7 @@ for (int i=0; i < nt.end; ++i) {
     }
 
     // NetSendBuffering
-    for (int i = 0; i < net_buf_send_type_.size(); ++i) {
-        int type = net_buf_send_type_[i];
+    for (int type : crnrn.get_net_buf_send_type()) {
         // Does this thread have this type.
         Memb_list* ml = nt._ml_list[type];
         if (ml) {  // needs a NetSendBuffer
@@ -2211,7 +2212,7 @@ static size_t memb_list_size(NrnThreadMembList* tml) {
     size_t szi = sizeof(int);
     size_t nbyte = sz_ntml + sz_ml;
     nbyte += tml->ml->nodecount * szi;
-    nbyte += nrn_prop_dparam_size_[tml->index] * tml->ml->nodecount * sizeof(Datum);
+    nbyte += crnrn.get_prop_dparam_size()[tml->index] * tml->ml->nodecount * sizeof(Datum);
 #ifdef DEBUG
     int i = tml->index;
     printf("%s %d psize=%d ppsize=%d cnt=%d nbyte=%ld\n", memb_func[i].sym, i,

@@ -70,15 +70,15 @@ static int ml_permute(int i, Memb_list* ml) {
 // Note: cellnodes array is in unpermuted order.
 
 static void pr_memb(int type, Memb_list* ml, int* cellnodes, NrnThread& nt, FILE* f) {
-    int is_art = nrn_is_artificial_[type];
+    int is_art = crnrn.get_is_artificial()[type];
     if (is_art)
         return;
 
     int header_printed = 0;
-    int size = nrn_prop_param_size_[type];
-    int psize = nrn_prop_dparam_size_[type];
+    int size = crnrn.get_prop_param_size()[type];
+    int psize = crnrn.get_prop_dparam_size()[type];
     int receives_events = pnt_receive[type] ? 1 : 0;
-    int layout = nrn_mech_data_layout_[type];
+    int layout = crnrn.get_mech_data_layout()[type];
     int cnt = ml->nodecount;
     for (int iorig = 0; iorig < ml->nodecount; ++iorig) {  // original index
         int i = ml_permute(iorig, ml);                     // present index

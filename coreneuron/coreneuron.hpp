@@ -39,6 +39,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <cmath>
 #include <string.h>
 #include <vector>
+#include <array>
 
 #include "coreneuron/utils/randoms/nrnran123.h"      //Random Number Generator
 #include "coreneuron/scopmath_core/newton_struct.h"  //Newton Struct
@@ -93,11 +94,33 @@ class CoreNeuron {
      * dependency helper filled by calls to hoc_register_dparam_semantics
      * used when nrn_mech_depend is called
      * vector-of-vector DS. First idx is the mech, second idx is the dependent mech.
-     * --> Coreneuron class
      */
     DependencyTable ion_write_dependency;
 
     std::vector<Memb_func> memb_funcs;
+
+    /**
+     * Net send / Net receive
+     * only used in crnrn for book keeping synapse mechs, should go into Coreneuron class
+     */
+    std::vector<std::pair<NetBufReceive_t, int>> net_buf_receive;
+    std::vector<int> net_buf_send_type;
+
+    /**
+     * before-after-blocks from nmodl are registered here as function pointers
+     */
+    std::array<BAMech*, BEFORE_AFTER_SIZE> bamech;
+
+    /**
+     * Internal lookup tables. Number of float and int variables in each mechanism and memory layout
+     * future --> mech class
+     */
+    std::vector<int> nrn_prop_param_size_;
+    std::vector<int> nrn_prop_dparam_size_;
+    std::vector<int> nrn_mech_data_layout_; /* 1 AoS (default), >1 AoSoA, 0 SoA */
+    /* array is parallel to memb_func. All are 0 except 1 for ARTIFICIAL_CELL */
+    std::vector<short> nrn_artcell_qindex_;
+    std::vector<bool> nrn_is_artificial_;
 
   public:
 
@@ -120,6 +143,34 @@ class CoreNeuron {
     auto& get_ion_write_dependency() {
         return ion_write_dependency;
     }
+
+    auto& get_net_buf_receive() {
+        return net_buf_receive;
+    }
+
+    auto& get_net_buf_send_type() {
+        return net_buf_send_type;
+    }
+
+    auto& get_bamech() {
+        return bamech;
+    }
+    auto& get_prop_param_size() {
+        return nrn_prop_param_size_;
+    }
+    auto& get_prop_dparam_size() {
+        return nrn_prop_dparam_size_;
+    }
+    auto& get_mech_data_layout() {
+        return nrn_mech_data_layout_;
+    }
+    auto& get_is_artificial() {
+        return nrn_is_artificial_;
+    }
+    auto& get_artcell_qindex() {
+        return nrn_artcell_qindex_;
+    }
+
 
     /**
      * Generate point process IDs for pnt_map starting at 1 (since 0 means no point process)

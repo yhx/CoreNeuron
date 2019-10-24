@@ -1,3 +1,4 @@
+#include "coreneuron/coreneuron.hpp"
 #include "coreneuron/utils/data_layout.hpp"
 #include "coreneuron/nrnoc/nrnoc_ml.h"
 #include "coreneuron/nrniv/node_permute.h"
@@ -9,9 +10,9 @@ namespace coreneuron {
  * Return the index to mechanism variable based Original input files are organized in AoS
  */
 int get_data_index(int node_index, int variable_index, int mtype, Memb_list* ml) {
-    int layout = nrn_mech_data_layout_[mtype];
+    int layout = crnrn.get_mech_data_layout()[mtype];
     if (layout == AOS_LAYOUT) {
-        return variable_index + node_index * nrn_prop_dparam_size_[mtype];
+        return variable_index + node_index * crnrn.get_prop_dparam_size()[mtype];
     }
     assert(layout == SOA_LAYOUT);
     return variable_index * ml->_nodecount_padded + node_index;

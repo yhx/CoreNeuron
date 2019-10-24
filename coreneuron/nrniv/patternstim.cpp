@@ -69,10 +69,10 @@ void nrn_set_extra_thread0_vdata() {
     if (!crnrn.get_memb_func(type).initialize) {
         // the NEURON mod file version is not vectorized so the param size
         // differs by 1 from the coreneuron version.
-        nrn_prop_param_size_[type] += 1;
+        crnrn.get_prop_param_size()[type] += 1;
         _pattern_reg();
     }
-    nrn_extra_thread0_vdata = nrn_prop_dparam_size_[type];
+    nrn_extra_thread0_vdata = crnrn.get_prop_dparam_size()[type];
 }
 
 // fname is the filename of an output_spikes.h format raster file.
@@ -99,9 +99,9 @@ void nrn_mkPatternStim(const char* fname) {
     NrnThread* nt = nrn_threads + pnt->_tid;
 
     Memb_list* ml = nt->_ml_list[type];
-    int layout = nrn_mech_data_layout_[type];
-    int sz = nrn_prop_param_size_[type];
-    int psz = nrn_prop_dparam_size_[type];
+    int layout = crnrn.get_mech_data_layout()[type];
+    int sz = crnrn.get_prop_param_size()[type];
+    int psz = crnrn.get_prop_dparam_size()[type];
     int _cntml = ml->nodecount;
     int _iml = pnt->_i_instance;
     double* _p = ml->data;
@@ -196,8 +196,8 @@ Point_process* nrn_artcell_instantiate(const char* mechname) {
 
     // fill in tml->ml info. The data is not in the cache efficient
     // NrnThread arrays but there should not be many of these instances.
-    int psize = nrn_prop_param_size_[type];
-    int dsize = nrn_prop_dparam_size_[type];
+    int psize = crnrn.get_prop_param_size()[type];
+    int dsize = crnrn.get_prop_dparam_size()[type];
     // int layout = nrn_mech_data_layout_[type]; // not needed because singleton
     Memb_list* ml = tml->ml;
     ml->nodecount = 1;

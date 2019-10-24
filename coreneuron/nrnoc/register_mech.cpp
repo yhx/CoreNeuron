@@ -48,23 +48,10 @@ double t, dt, celsius;
 #endif
 int rev_dt;
 
-/**
- * Net send / Net receive
- * only used in crnrn for book keeping synapse mechs, should go into Coreneuron class
- */
-std::vector<int> net_buf_receive_type_;
-std::vector<NetBufReceive_t> net_buf_receive_;
-std::vector<int> net_buf_send_type_;
 
 
 typedef void (*Pfrv)();
 
-/**
- * before-after-blocks from nmodl are registered here as function pointers
- * Should go into Corenrueon
- * For efficiency maybe not into Mechanism, because only a few mechanisms will actually have this
- */
-BAMech** bamech_;
 
 /**
  * Net Receive function pointer lookup tables
@@ -95,15 +82,6 @@ std::vector<int> nrn_has_net_event_;
  */
 std::vector<int> pnttype2presyn;
 
-/**
- * Internal lookup tables. Number of float and int variables in each mechanism and memory layout
- * --> Coreneuron class
- * future --> mech class
- */
-std::vector<int> nrn_prop_param_size_;
-std::vector<int> nrn_prop_dparam_size_;
-std::vector<int> nrn_mech_data_layout_; /* 1 AoS (default), >1 AoSoA, 0 SoA */
-std::vector<short> nrn_is_artificial_; /* TODO: shoudl be bool */
 
 
 static void ion_write_depend(int type, int etype);
@@ -153,15 +131,12 @@ void add_nrn_fornetcons(int type, int indx) {
     nrn_fornetcon_index_[i] = indx;
 }
 
-/* array is parallel to memb_func. All are 0 except 1 for ARTIFICIAL_CELL */
-std::vector<short> nrn_artcell_qindex_;
-
 void add_nrn_artcell(int type, int qi) {
     if (type == -1)
         return;
 
-    nrn_is_artificial_[type] = 1;
-    nrn_artcell_qindex_[type] = qi;
+    crnrn.get_is_artificial()[type] = 1;
+    crnrn.get_artcell_qindex()[type] = qi;
 }
 
 void alloc_mech(int memb_func_size_) {
@@ -171,14 +146,13 @@ void alloc_mech(int memb_func_size_) {
     pnt_receive_init.resize(memb_func_size_);
     pnt_receive_size.resize(memb_func_size_);
     nrn_watch_check.resize(memb_func_size_);
-    nrn_is_artificial_.resize(memb_func_size_);
-    nrn_artcell_qindex_.resize(memb_func_size_);
-    nrn_prop_param_size_.resize(memb_func_size_);
-    nrn_prop_dparam_size_.resize(memb_func_size_);
-    nrn_mech_data_layout_.resize(memb_func_size_, 1);
+    crnrn.get_is_artificial().resize(memb_func_size_, false);
+    crnrn.get_artcell_qindex().resize(memb_func_size_);
+    crnrn.get_prop_param_size().resize(memb_func_size_);
+    crnrn.get_prop_dparam_size().resize(memb_func_size_);
+    crnrn.get_mech_data_layout().resize(memb_func_size_, 1);
     nrn_bbcore_read_.resize(memb_func_size_);
     nrn_bbcore_write_.resize(memb_func_size_);
-    bamech_ = (BAMech**)ecalloc(BEFORE_AFTER_SIZE, sizeof(BAMech*));
 }
 
 void initnrn() {
@@ -254,16 +228,15 @@ void nrn_writes_conc(int type, int unused) {
 }
 
 void _nrn_layout_reg(int type, int layout) {
-    nrn_mech_data_layout_[type] = layout;
+    crnrn.get_mech_data_layout()[type] = layout;
 }
 
 void hoc_register_net_receive_buffering(NetBufReceive_t f, int type) {
-    net_buf_receive_type_.push_back(type);
-    net_buf_receive_.push_back(f);
+    crnrn.get_net_buf_receive().emplace_back(f, type);
 }
 
 void hoc_register_net_send_buffering(int type) {
-    net_buf_send_type_.push_back(type);
+    crnrn.get_net_buf_send_type().push_back(type);
 }
 
 void hoc_register_watch_check(nrn_watch_check_t nwc, int type) {
@@ -275,13 +248,13 @@ void hoc_register_prop_size(int type, int psize, int dpsize) {
     if (type == -1)
         return;
 
-    pold = nrn_prop_param_size_[type];
-    dpold = nrn_prop_dparam_size_[type];
+    pold = crnrn.get_prop_param_size()[type];
+    dpold = crnrn.get_prop_dparam_size()[type];
     if (psize != pold || dpsize != dpold) {
         crnrn.get_different_mechanism_type().push_back(type);
     }
-    nrn_prop_param_size_[type] = psize;
-    nrn_prop_dparam_size_[type] = dpsize;
+    crnrn.get_prop_param_size()[type] = psize;
+    crnrn.get_prop_dparam_size()[type] = dpsize;
     if (dpsize) {
         crnrn.get_memb_func(type).dparam_semantics = (int*)ecalloc(dpsize, sizeof(int));
     }
@@ -376,7 +349,7 @@ static int depend_append(int idep, int* dependencies, int deptype, int type) {
 int nrn_mech_depend(int type, int* dependencies) {
     int i, dpsize, idep, deptype;
     int* ds;
-    dpsize = nrn_prop_dparam_size_[type];
+    dpsize = crnrn.get_prop_dparam_size()[type];
     ds = crnrn.get_memb_func(type).dparam_semantics;
     idep = 0;
     if (ds)
@@ -477,8 +450,8 @@ void hoc_reg_ba(int mt, mod_f_t f, int type) {
     bam = (BAMech*)emalloc(sizeof(BAMech));
     bam->f = f;
     bam->type = mt;
-    bam->next = bamech_[type];
-    bamech_[type] = bam;
+    bam->next = crnrn.get_bamech()[type];
+    crnrn.get_bamech()[type] = bam;
 }
 
 void _nrn_thread_reg0(int i, void (*f)(ThreadDatum*)) {

@@ -156,9 +156,9 @@ static void mk_mech(std::istream& s) {
         crnrn.get_memb_func(type).sym = (Symbol*)strdup(mname);
         mech2type[str] = type;
         crnrn.get_pnt_map()[type] = (char)pnttype;
-        nrn_prop_param_size_[type] = dsize;
-        nrn_prop_dparam_size_[type] = pdsize;
-        nrn_is_artificial_[type] = is_art;
+        crnrn.get_prop_param_size()[type] = dsize;
+        crnrn.get_prop_dparam_size()[type] = pdsize;
+        crnrn.get_is_artificial()[type] = is_art;
         if (is_ion) {
             double charge = 0.;
             nrn_assert(s >> charge);

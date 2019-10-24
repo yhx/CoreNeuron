@@ -83,7 +83,6 @@ struct BAMech {
     int type;
     struct BAMech* next;
 };
-extern BAMech** bamech_;
 
 extern int nrn_ion_global_map_size;
 extern double** nrn_ion_global_map;
@@ -95,9 +94,6 @@ pointers which connect variables  from other mechanisms via the _ppval array. \
 
 #define _AMBIGUOUS 5
 
-extern std::vector<int> nrn_prop_param_size_;
-extern std::vector<int> nrn_prop_dparam_size_;
-extern std::vector<short> nrn_is_artificial_;
 extern std::vector<short> pnt_receive_size;
 extern std::vector<pnt_receive_t> pnt_receive;
 extern std::vector<pnt_receive_t> pnt_receive_init;
@@ -124,11 +120,8 @@ extern int point_register_mech(const char**,
                                int vectorized);
 typedef void (*NetBufReceive_t)(NrnThread*);
 extern void hoc_register_net_receive_buffering(NetBufReceive_t, int);
-extern std::vector<int> net_buf_receive_type_;
-extern std::vector<NetBufReceive_t> net_buf_receive_;
 
 extern void hoc_register_net_send_buffering(int);
-extern std::vector<int> net_buf_send_type_;
 
 typedef void (*nrn_watch_check_t)(NrnThread*, Memb_list*);
 extern void hoc_register_watch_check(nrn_watch_check_t, int);
@@ -159,7 +152,6 @@ struct VoidFunc {
 extern void hoc_register_var(DoubScal*, DoubVec*, VoidFunc*);
 
 extern void _nrn_layout_reg(int, int);
-extern std::vector<int> nrn_mech_data_layout_;
 extern void _nrn_thread_reg0(int i, void (*f)(ThreadDatum*));
 extern void _nrn_thread_reg1(int i, void (*f)(ThreadDatum*));
 
@@ -194,7 +186,6 @@ extern int nrn_fornetcon_cnt_;
 extern int* nrn_fornetcon_type_;
 extern int* nrn_fornetcon_index_;
 extern void add_nrn_fornetcons(int, int);
-extern void add_nrn_artcell(int, int);
 extern void add_nrn_has_net_event(int);
 extern void net_event(Point_process*, double);
 extern void net_send(void**, int, Point_process*, double, double);
@@ -202,7 +193,6 @@ extern void net_move(void**, Point_process*, double);
 extern void artcell_net_send(void**, int, Point_process*, double, double);
 extern void artcell_net_move(void**, Point_process*, double);
 extern void nrn2ncs_outputevent(int netcon_output_index, double firetime);
-extern std::vector<short> nrn_artcell_qindex_;
 extern bool nrn_use_localgid_;
 extern void net_sem_from_gpu(int sendtype, int i_vdata, int, int ith, int ipnt, double, double);
 

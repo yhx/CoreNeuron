@@ -807,8 +807,8 @@ tryagain:
     /*before executing on gpu, we have to update the NetReceiveBuffer_t on GPU */
     update_net_receive_buffer(nt);
 
-    for (auto& net_buf_receive : net_buf_receive_) {
-        (*net_buf_receive)(nt);
+    for (auto& net_buf_receive : crnrn.get_net_buf_receive()) {
+        (*net_buf_receive.first)(nt);
     }
 }
 }  // namespace coreneuron

@@ -161,7 +161,6 @@ typedef void (*bbcore_read_t)(double*,
                               ThreadDatum*,
                               NrnThread*,
                               double);
-extern std::vector<bbcore_read_t> nrn_bbcore_read_;
 
 typedef void (*bbcore_write_t)(double*,
                                int*,
@@ -174,7 +173,6 @@ typedef void (*bbcore_write_t)(double*,
                                ThreadDatum*,
                                NrnThread*,
                                double);
-extern std::vector<bbcore_write_t> nrn_bbcore_write_;
 
 extern int nrn_mech_depend(int type, int* dependencies);
 extern int nrn_fornetcon_cnt_;

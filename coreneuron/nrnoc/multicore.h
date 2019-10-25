@@ -40,8 +40,6 @@ class PreSyn;
    eliminated. Needed only by net_event function. Replaced by
    PreSyn* = nt->presyns + nt->pnt2presyn_ix[pnttype2presyn[pnt->_type]][pnt->_i_instance];
 */
-extern std::vector<int> nrn_has_net_event_;    /* the types that send a net_event */
-extern std::vector<int> pnttype2presyn; /* from the type, which array of pnt2presyn_ix are we talking about. */
 
 struct NrnThreadMembList { /* patterned after CvMembList in cvodeobj.h */
     NrnThreadMembList* next;

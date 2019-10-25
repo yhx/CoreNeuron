@@ -133,6 +133,21 @@ class CoreNeuron {
      * Holds function pointers for WATCH callback
      */
     std::vector<nrn_watch_check_t> nrn_watch_check;
+    /**
+     * values are type numbers of mechanisms which do net_send call
+     * related to NMODL net_event()
+     *
+     */
+    std::vector<int> nrn_has_net_event_;
+    /**
+     * inverse of nrn_has_net_event_ maps the values of nrn_has_net_event_ to the index of
+     * ptntype2presyn
+     */
+    std::vector<int> pnttype2presyn;
+
+
+    std::vector<bbcore_read_t> nrn_bbcore_read_;
+    std::vector<bbcore_write_t> nrn_bbcore_write_;
 
   public:
 
@@ -193,6 +208,18 @@ class CoreNeuron {
     }
     auto& get_watch_check() {
         return nrn_watch_check;
+    }
+    auto& get_has_net_event() {
+        return nrn_has_net_event_;
+    }
+    auto& get_pnttype2presyn() {
+        return pnttype2presyn;
+    }
+    auto& get_bbcore_read() {
+        return nrn_bbcore_read_;
+    }
+    auto& get_bbcore_write() {
+        return nrn_bbcore_write_;
     }
 
 

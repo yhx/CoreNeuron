@@ -463,7 +463,7 @@ static void write_phase2(NrnThread& nt, FileHandlerWrap& fh) {
     // BBCOREPOINTER
     int nbcp = 0;
     for (NrnThreadMembList* tml = nt.tml; tml; tml = tml->next) {
-        if (nrn_bbcore_read_[tml->index] && tml->index != patstimtype) {
+        if (crnrn.get_bbcore_read()[tml->index] && tml->index != patstimtype) {
             ++nbcp;
         }
     }
@@ -474,10 +474,10 @@ static void write_phase2(NrnThread& nt, FileHandlerWrap& fh) {
 #endif
     nbcp = 0;
     for (NrnThreadMembList* tml = nt.tml; tml; tml = tml->next) {
-        if (nrn_bbcore_read_[tml->index] && tml->index != patstimtype) {
+        if (crnrn.get_bbcore_read()[tml->index] && tml->index != patstimtype) {
             int i = nbcp++;
             int type = tml->index;
-            assert(nrn_bbcore_write_[type]);
+            assert(crnrn.get_bbcore_write()[type]);
             Memb_list* ml = tml->ml;
             double* d = nullptr;
             Datum* pd = nullptr;
@@ -496,7 +496,7 @@ static void write_phase2(NrnThread& nt, FileHandlerWrap& fh) {
                 }
                 d = ml->data + nrn_i_layout(jp, ml->nodecount, 0, dsz, layout);
                 pd = ml->pdata + nrn_i_layout(jp, ml->nodecount, 0, pdsz, layout);
-                (*nrn_bbcore_write_[type])(nullptr, nullptr, &dcnt, &icnt, 0, aln_cntml, d, pd,
+                (*crnrn.get_bbcore_write()[type])(nullptr, nullptr, &dcnt, &icnt, 0, aln_cntml, d, pd,
                                            ml->_thread, &nt, 0.0);
             }
             fh << icnt << "\n";
@@ -525,7 +525,7 @@ static void write_phase2(NrnThread& nt, FileHandlerWrap& fh) {
                 d = ml->data + nrn_i_layout(jp, ml->nodecount, 0, dsz, layout);
                 pd = ml->pdata + nrn_i_layout(jp, ml->nodecount, 0, pdsz, layout);
 
-                (*nrn_bbcore_write_[type])(dArray, iArray, &dcnt, &icnt, 0, aln_cntml, d, pd,
+                (*crnrn.get_bbcore_write()[type])(dArray, iArray, &dcnt, &icnt, 0, aln_cntml, d, pd,
                                            ml->_thread, &nt, 0.0);
             }
 

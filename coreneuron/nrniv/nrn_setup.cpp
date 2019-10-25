@@ -1123,7 +1123,7 @@ void nrn_cleanup(bool clean_ion_global_map) {
         }
 
         if (nt->pnt2presyn_ix) {
-            for (int i = 0; i < nrn_has_net_event_.size(); ++i) {
+            for (int i = 0; i < crnrn.get_has_net_event().size(); ++i) {
                 if (nt->pnt2presyn_ix[i]) {
                     free(nt->pnt2presyn_ix[i]);
                 }
@@ -1182,8 +1182,8 @@ void nrn_cleanup(bool clean_ion_global_map) {
 
     nrn_threads_free();
 
-    if (!pnttype2presyn.empty()) {
-        pnttype2presyn.clear();
+    if (!crnrn.get_pnttype2presyn().empty()) {
+        crnrn.get_pnttype2presyn().clear();
     }
 }
 
@@ -1762,7 +1762,8 @@ for (int i=0; i < nt.end; ++i) {
             }
         }
     }
-
+    auto& pnttype2presyn = crnrn.get_pnttype2presyn();
+    auto& nrn_has_net_event_ = crnrn.get_has_net_event();
     // from nrn_has_net_event create pnttype2presyn.
     if (pnttype2presyn.empty()) {
         pnttype2presyn.resize(memb_func.size(), -1);
@@ -1973,7 +1974,7 @@ for (int i=0; i < nt.end; ++i) {
 #endif
     for (NrnThreadMembList* tml = nt.tml; tml; tml = tml->next) {
         int type = tml->index;
-        if (!nrn_bbcore_read_[type]) {
+        if (!crnrn.get_bbcore_read()[type]) {
             continue;
         }
         int* iArray = nullptr;
@@ -1992,12 +1993,12 @@ for (int i=0; i < nt.end; ++i) {
                 dArray = F.read_array<double>(dcnt);
             }
         }
-        if (!nrn_bbcore_write_[type] && nrn_checkpoint_arg_exists) {
+        if (!crnrn.get_bbcore_write()[type] && nrn_checkpoint_arg_exists) {
             fprintf(
                 stderr,
                 "Checkpoint is requested involving BBCOREPOINTER but there is no bbcore_write function for %s\n",
                 memb_func[type].sym);
-            assert(nrn_bbcore_write_[type]);
+            assert(crnrn.get_bbcore_write()[type]);
         }
 #if CHKPNTDEBUG
         ntc.bcptype[i] = type;
@@ -2021,7 +2022,7 @@ for (int i=0; i < nt.end; ++i) {
             d += nrn_i_layout(jp, cntml, 0, dsz, layout);
             pd += nrn_i_layout(jp, cntml, 0, pdsz, layout);
             int aln_cntml = nrn_soa_padded_size(cntml, layout);
-            (*nrn_bbcore_read_[type])(dArray, iArray, &dk, &ik, 0, aln_cntml, d, pd, ml->_thread,
+            (*crnrn.get_bbcore_read()[type])(dArray, iArray, &dk, &ik, 0, aln_cntml, d, pd, ml->_thread,
                                       &nt, 0.0);
         }
         assert(dk == dcnt);

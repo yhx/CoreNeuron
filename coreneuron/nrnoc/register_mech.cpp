@@ -54,49 +54,30 @@ typedef void (*Pfrv)();
 
 
 
-/**
- * values are type numbers of mechanisms which do net_send call
- * only used inside coreneuron and can go into Coreneuron class
- * related to NMODL net_event()
- *
- */
-std::vector<int> nrn_has_net_event_;
-/**
- * inverse of nrn_has_net_event_ maps the values of nrn_has_net_event_ to the index of
- * ptntype2presyn
- * --> Coreneuron class
- */
-std::vector<int> pnttype2presyn;
 
 
 
 static void ion_write_depend(int type, int etype);
 
-/**
- * --> Coreneuron class
- * --> future mech
- */
-std::vector<bbcore_read_t> nrn_bbcore_read_;
-std::vector<bbcore_write_t> nrn_bbcore_write_;
 
 void hoc_reg_bbcore_read(int type, bbcore_read_t f) {
     if (type == -1) {
         return;
     }
-    nrn_bbcore_read_[type] = f;
+    crnrn.get_bbcore_read()[type] = f;
 }
 void hoc_reg_bbcore_write(int type, bbcore_write_t f) {
     if (type == -1) {
         return;
     }
-    nrn_bbcore_write_[type] = f;
+    crnrn.get_bbcore_write()[type] = f;
 }
 
 void add_nrn_has_net_event(int type) {
     if (type == -1) {
         return;
     }
-    nrn_has_net_event_.push_back(type);
+    crnrn.get_has_net_event().push_back(type);
 }
 
 /* values are type numbers of mechanisms which have FOR_NETCONS statement */
@@ -150,8 +131,8 @@ void alloc_mech(int memb_func_size_) {
     crnrn.get_prop_param_size().resize(memb_func_size_);
     crnrn.get_prop_dparam_size().resize(memb_func_size_);
     crnrn.get_mech_data_layout().resize(memb_func_size_, 1);
-    nrn_bbcore_read_.resize(memb_func_size_);
-    nrn_bbcore_write_.resize(memb_func_size_);
+    crnrn.get_bbcore_read().resize(memb_func_size_);
+    crnrn.get_bbcore_write().resize(memb_func_size_);
 }
 
 void initnrn() {

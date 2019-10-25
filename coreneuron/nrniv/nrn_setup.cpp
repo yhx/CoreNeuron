@@ -1748,7 +1748,7 @@ for (int i=0; i < nt.end; ++i) {
     {
         int sz = 0;  // count the types with WATCH
         for (NrnThreadMembList* tml = nt.tml; tml; tml = tml->next) {
-            if (nrn_watch_check[tml->index]) {
+            if (crnrn.get_watch_check()[tml->index]) {
                 ++sz;
             }
         }
@@ -1756,7 +1756,7 @@ for (int i=0; i < nt.end; ++i) {
             nt._watch_types = (int*)ecalloc(sz + 1, sizeof(int));  // nullptr terminated
             sz = 0;
             for (NrnThreadMembList* tml = nt.tml; tml; tml = tml->next) {
-                if (nrn_watch_check[tml->index]) {
+                if (crnrn.get_watch_check()[tml->index]) {
                     nt._watch_types[sz++] = tml->index;
                 }
             }
@@ -1892,7 +1892,7 @@ for (int i=0; i < nt.end; ++i) {
         // Same pattern as algorithm for extracon netcon_srcgid above in phase1.
         extracon_target_type = nrn_get_mechtype("ProbAMPANMDA_EMS");
         assert(extracon_target_type > 0);
-        extracon_target_nweight = pnt_receive_size[extracon_target_type];
+        extracon_target_nweight = crnrn.get_pnt_receive_size()[extracon_target_type];
         int j = 0;
         for (int i = 0; i < nrn_setup_extracon; ++i) {
             int active = 0;
@@ -1927,7 +1927,7 @@ for (int i=0; i < nt.end; ++i) {
         NetCon& nc = nt.netcons[i];
         nc.u.weight_index_ = iw;
         if (pnttype[i] != 0) {
-            iw += pnt_receive_size[pnttype[i]];
+            iw += crnrn.get_pnt_receive_size()[pnttype[i]];
         } else {
             iw += 1;
         }

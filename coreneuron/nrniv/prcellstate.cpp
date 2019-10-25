@@ -77,7 +77,7 @@ static void pr_memb(int type, Memb_list* ml, int* cellnodes, NrnThread& nt, FILE
     int header_printed = 0;
     int size = crnrn.get_prop_param_size()[type];
     int psize = crnrn.get_prop_dparam_size()[type];
-    int receives_events = pnt_receive[type] ? 1 : 0;
+    int receives_events = crnrn.get_pnt_receive()[type] ? 1 : 0;
     int layout = crnrn.get_mech_data_layout()[type];
     int cnt = ml->nodecount;
     for (int iorig = 0; iorig < ml->nodecount; ++iorig) {  // original index
@@ -195,7 +195,7 @@ static void pr_netcon(NrnThread& nt, FILE* f) {
             } else {
                 fprintf(f, "%d %d %d %.*g", i, srcgid, nc->active_ ? 1 : 0, precision, nc->delay_);
             }
-            int wcnt = pnt_receive_size[nc->target_->_type];
+            int wcnt = crnrn.get_pnt_receive_size()[nc->target_->_type];
             for (int k = 0; k < wcnt; ++k) {
                 fprintf(f, " %.*g", precision, nt.weights[nc->u.weight_index_ + k]);
             }

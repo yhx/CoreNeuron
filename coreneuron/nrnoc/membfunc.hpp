@@ -94,10 +94,6 @@ pointers which connect variables  from other mechanisms via the _ppval array. \
 
 #define _AMBIGUOUS 5
 
-extern std::vector<short> pnt_receive_size;
-extern std::vector<pnt_receive_t> pnt_receive;
-extern std::vector<pnt_receive_t> pnt_receive_init;
-
 extern int nrn_get_mechtype(const char*);
 extern const char* nrn_get_mechname(int);  // slow. use memb_func[i].sym if posible
 extern int register_mech(const char** m,
@@ -125,7 +121,6 @@ extern void hoc_register_net_send_buffering(int);
 
 typedef void (*nrn_watch_check_t)(NrnThread*, Memb_list*);
 extern void hoc_register_watch_check(nrn_watch_check_t, int);
-extern std::vector<nrn_watch_check_t> nrn_watch_check;
 
 extern void nrn_jacob_capacitance(NrnThread*, Memb_list*, int);
 extern void nrn_writes_conc(int, int);

@@ -53,19 +53,6 @@ int rev_dt;
 typedef void (*Pfrv)();
 
 
-/**
- * Net Receive function pointer lookup tables
- * --> Coreneuron
- */
-std::vector<pnt_receive_t> pnt_receive; /* for synaptic events. */
-std::vector<pnt_receive_t> pnt_receive_init;
-std::vector<short> pnt_receive_size;
-
-/**
- * Holds function pointers for WATCH callback
- * Only used inside coreneuron and can go into Coreneuron class
- */
-std::vector<nrn_watch_check_t> nrn_watch_check;
 
 /**
  * values are type numbers of mechanisms which do net_send call
@@ -77,7 +64,6 @@ std::vector<int> nrn_has_net_event_;
 /**
  * inverse of nrn_has_net_event_ maps the values of nrn_has_net_event_ to the index of
  * ptntype2presyn
- * TODO: clarify exact semantics and use. Can this be simplified?
  * --> Coreneuron class
  */
 std::vector<int> pnttype2presyn;
@@ -132,20 +118,33 @@ void add_nrn_fornetcons(int type, int indx) {
 }
 
 void add_nrn_artcell(int type, int qi) {
-    if (type == -1)
+    if (type == -1) {
         return;
+    }
 
     crnrn.get_is_artificial()[type] = 1;
     crnrn.get_artcell_qindex()[type] = qi;
 }
 
+void set_pnt_receive(int type,
+    pnt_receive_t pnt_receive,
+    pnt_receive_t pnt_receive_init,
+    short size) {
+    if (type == -1) {
+        return;
+    }
+    crnrn.get_pnt_receive()[type] = pnt_receive;
+    crnrn.get_pnt_receive_init()[type] = pnt_receive_init;
+    crnrn.get_pnt_receive_size()[type] = size;
+}
+
 void alloc_mech(int memb_func_size_) {
     crnrn.get_memb_funcs().resize(memb_func_size_);
     crnrn.get_pnt_map().resize(memb_func_size_);
-    pnt_receive.resize(memb_func_size_);
-    pnt_receive_init.resize(memb_func_size_);
-    pnt_receive_size.resize(memb_func_size_);
-    nrn_watch_check.resize(memb_func_size_);
+    crnrn.get_pnt_receive().resize(memb_func_size_);
+    crnrn.get_pnt_receive_init().resize(memb_func_size_);
+    crnrn.get_pnt_receive_size().resize(memb_func_size_);
+    crnrn.get_watch_check().resize(memb_func_size_);
     crnrn.get_is_artificial().resize(memb_func_size_, false);
     crnrn.get_artcell_qindex().resize(memb_func_size_);
     crnrn.get_prop_param_size().resize(memb_func_size_);
@@ -240,7 +239,7 @@ void hoc_register_net_send_buffering(int type) {
 }
 
 void hoc_register_watch_check(nrn_watch_check_t nwc, int type) {
-    nrn_watch_check[type] = nwc;
+    crnrn.get_watch_check()[type] = nwc;
 }
 
 void hoc_register_prop_size(int type, int psize, int dpsize) {

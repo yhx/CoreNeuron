@@ -122,6 +122,18 @@ class CoreNeuron {
     std::vector<short> nrn_artcell_qindex_;
     std::vector<bool> nrn_is_artificial_;
 
+    /**
+     * Net Receive function pointer lookup tables
+     */
+    std::vector<pnt_receive_t> pnt_receive; /* for synaptic events. */
+    std::vector<pnt_receive_t> pnt_receive_init;
+    std::vector<short> pnt_receive_size;
+
+    /**
+     * Holds function pointers for WATCH callback
+     */
+    std::vector<nrn_watch_check_t> nrn_watch_check;
+
   public:
 
     auto& get_memb_funcs() {
@@ -169,6 +181,18 @@ class CoreNeuron {
     }
     auto& get_artcell_qindex() {
         return nrn_artcell_qindex_;
+    }
+    auto& get_pnt_receive() {
+        return pnt_receive;
+    }
+    auto& get_pnt_receive_init() {
+        return pnt_receive_init;
+    }
+    auto& get_pnt_receive_size() {
+        return pnt_receive_size;
+    }
+    auto& get_watch_check() {
+        return nrn_watch_check;
     }
 
 

@@ -43,13 +43,14 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/nrniv/multisend.h"
 #include "coreneuron/nrnoc/membfunc.hpp"
 #include "coreneuron/coreneuron.hpp"
+#include "netcon.h"
 #ifdef _OPENACC
 #include <openacc.h>
 #endif
 namespace coreneuron {
 #define PP2NT(pp) (nrn_threads + (pp)->_tid)
 #define PP2t(pp) (PP2NT(pp)->_t)
-#define POINT_RECEIVE(type, tar, w, f) (*pnt_receive[type])(tar, w, f)
+//#define POINT_RECEIVE(type, tar, w, f) (*pnt_receive[type])(tar, w, f)
 
 typedef void (*ReceiveFunc)(Point_process*, double*, double);
 
@@ -285,10 +286,10 @@ void NetCvode::init_events() {
             NetCon* d = nt->netcons + inetc;
             if (d->target_) {
                 int type = d->target_->_type;
-                if (pnt_receive_init[type]) {
-                    (*pnt_receive_init[type])(d->target_, d->u.weight_index_, 0);
+                if (crnrn.get_pnt_receive_init()[type]) {
+                    (*crnrn.get_pnt_receive_init()[type])(d->target_, d->u.weight_index_, 0);
                 } else {
-                    int cnt = pnt_receive_size[type];
+                    int cnt = crnrn.get_pnt_receive_size()[type];
                     double* wt = nt->weights + d->u.weight_index_;
                     // not the first
                     for (int j = 1; j < cnt; ++j) {
@@ -472,7 +473,7 @@ void NetCon::deliver(double tt, NetCvode* ns, NrnThread* nt) {
     nt->_t = tt;
 
     // printf("NetCon::deliver t=%g tt=%g %s\n", t, tt, pnt_name(target_));
-    POINT_RECEIVE(typ, target_, u.weight_index_, 0);
+    (*crnrn.get_pnt_receive()[typ])(target_, u.weight_index_, 0);
 #ifdef DEBUG
     if (errno && nrn_errno_check(typ))
         hoc_warning("errno set during NetCon deliver to NET_RECEIVE", (char*)0);
@@ -558,7 +559,7 @@ void SelfEvent::deliver(double tt, NetCvode* ns, NrnThread* nt) {
 }
 
 void SelfEvent::call_net_receive(NetCvode* ns) {
-    POINT_RECEIVE(target_->_type, target_, weight_index_, flag_);
+    (*crnrn.get_pnt_receive()[target_->_type])(target_, weight_index_, flag_);
 
 #ifdef DEBUG
     if (errno && nrn_errno_check(target_->_type))
@@ -709,7 +710,7 @@ void NetCvode::check_thresh(NrnThread* nt) {  // for default method
     if (nt->_watch_types) {
         for (int i = 0; nt->_watch_types[i] != 0; ++i) {
             int type = nt->_watch_types[i];
-            (*nrn_watch_check[type])(nt, nt->_ml_list[type]);
+            (*crnrn.get_watch_check()[type])(nt, nt->_ml_list[type]);
             // may generate net_send events (with 0 (teps) delay)
         }
     }

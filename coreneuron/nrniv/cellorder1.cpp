@@ -12,7 +12,6 @@
 #include <algorithm>
 #include <string.h>
 
-using namespace std;
 namespace coreneuron {
 static size_t groupsize = 32;
 
@@ -85,8 +84,8 @@ static void check(VecTNode&);
 static void prtree(VecTNode&);
 
 typedef std::pair<TNode*, int> TNI;
-typedef std::map<size_t, pair<TNode*, int> > HashCnt;
-typedef vector<TNI> TNIVec;
+typedef std::map<size_t, std::pair<TNode*, int> > HashCnt;
+typedef std::vector<TNI> TNIVec;
 
 static char* stree(TNode* nd) {
     char s[1000];
@@ -96,8 +95,8 @@ static char* stree(TNode* nd) {
     }
     s[0] = '(';
     s[1] = '\0';
-    for (size_t i = 0; i < nd->children.size(); ++i) {  // need sorted by child hash
-        char* sr = stree(nd->children[i]);
+    for (auto & child : nd->children) {  // need sorted by child hash
+        char* sr = stree(child);
         strcat(s, sr);
         free(sr);
     }
@@ -116,8 +115,8 @@ static void quality(VecTNode& nodevec, size_t max = 32) {
     size_t qcnt = 0;  // how many contiguous nodes have contiguous parents
 
     // first ncell nodes are by definition in contiguous order
-    for (size_t i = 0; i < nodevec.size(); ++i) {
-        if (nodevec[i]->parent != nullptr) {
+    for (auto & n : nodevec) {
+        if (n->parent != nullptr) {
             break;
         }
         qcnt += 1;
@@ -126,7 +125,7 @@ static void quality(VecTNode& nodevec, size_t max = 32) {
 
     // key is how many parents in contiguous order
     // value is number of nodes that participate in that
-    map<size_t, size_t> qual;
+    std::map<size_t, size_t> qual;
     size_t ip_last = 10000000000;
     for (size_t i = ncell; i < nodevec.size(); ++i) {
         size_t ip = nodevec[i]->parent->nodevec_index;
@@ -172,7 +171,7 @@ static void quality(VecTNode& nodevec, size_t max = 32) {
     size_t maxip = ncell;
     size_t nrace1 = 0;
     size_t nrace2 = 0;
-    set<size_t> ipused;
+    std::set<size_t> ipused;
     for (size_t i = ncell; i < nodevec.size(); ++i) {
         TNode* nd = nodevec[i];
         size_t ip = nd->parent->nodevec_index;
@@ -203,8 +202,7 @@ static void quality(VecTNode& nodevec, size_t max = 32) {
 
 size_t level_from_root(VecTNode& nodevec) {
     size_t maxlevel = 0;
-    for (size_t i = 0; i < nodevec.size(); ++i) {
-        TNode* nd = nodevec[i];
+    for (auto nd : nodevec) {
         if (nd->parent) {
             nd->level = nd->parent->level + 1;
             if (maxlevel < nd->level) {
@@ -222,9 +220,9 @@ size_t level_from_leaf(VecTNode& nodevec) {
     for (size_t i = nodevec.size() - 1; true; --i) {
         TNode* nd = nodevec[i];
         size_t lmax = 0;
-        for (size_t ichild = 0; ichild < nd->children.size(); ++ichild) {
-            if (lmax <= nd->children[ichild]->level) {
-                lmax = nd->children[ichild]->level + 1;
+        for (auto& child : nd->children) {
+            if (lmax <= child->level) {
+                lmax = child->level + 1;
             }
         }
         nd->level = lmax;
@@ -290,18 +288,18 @@ static void ident_statistic(VecTNode& nodevec, size_t ncell) {
     size_t maxlevel = level_from_root(nodevec);
 
     // # in each level
-    vector<vector<size_t> > n_in_level(maxlevel + 1);
-    for (size_t i = 0; i <= maxlevel; ++i) {
-        n_in_level[i].resize(ncell / groupsize);
+    std::vector<std::vector<size_t> > n_in_level(maxlevel + 1);
+    for (auto& n : n_in_level) {
+        n.resize(ncell / groupsize);
     }
-    for (size_t i = 0; i < nodevec.size(); ++i) {
-        n_in_level[nodevec[i]->level][nodevec[i]->groupindex]++;
+    for (auto& n: nodevec) {
+        n_in_level[n->level][n->groupindex]++;
     }
     printf("n_in_level.size = %ld\n", n_in_level.size());
     for (size_t i = 0; i < n_in_level.size(); ++i) {
         printf("%5ld\n", i);
-        for (size_t j = 0; j < n_in_level[i].size(); ++j) {
-            printf(" %5ld", n_in_level[i][j]);
+        for (auto& n : n_in_level[i]) {
+            printf(" %5ld", n);
         }
         printf("\n");
     }

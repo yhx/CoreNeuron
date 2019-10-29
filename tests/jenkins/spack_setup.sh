@@ -41,6 +41,7 @@ install_spack() (
     # Use BBP configs
     mkdir -p $SPACK_ROOT/etc/spack/defaults/linux
     cp /gpfs/bbp.cscs.ch/apps/hpc/jenkins/config/*.yaml $SPACK_ROOT/etc/spack/
+    sed -i '/tempdir/d' $SPACK_ROOT/etc/spack/config.yaml
 
 )
 

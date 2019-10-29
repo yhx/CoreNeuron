@@ -95,58 +95,10 @@ void nrn_threads_create(int n) {
 
             for (i = 0; i < nrn_nthread; ++i) {
                 NrnThread& nt = nrn_threads[i];
-                nt._t = 0.;
-                nt._dt = -1e9;
                 nt.id = i;
-                nt._stop_stepping = 0;
-                nt.n_vecplay = 0;
-                nt._vecplay = nullptr;
-                nt.tml = nullptr;
-                nt._ml_list = nullptr;
-                nt.pntprocs = nullptr;
-                nt.presyns = nullptr;
-                nt.presyns_helper = nullptr;
-                nt.pnt2presyn_ix = nullptr;
-                nt.netcons = nullptr;
-                nt.weights = nullptr;
-                nt.n_pntproc = 0;
-                nt.n_presyn = 0;
-                nt.n_netcon = 0;
-                nt.n_weight = 0;
-                nt._ndata = 0;
-                nt._nidata = 0;
-                nt._nvdata = 0;
-                nt._data = nullptr;
-                nt._idata = nullptr;
-                nt._vdata = nullptr;
-                nt.ncell = 0;
-                nt.end = 0;
                 for (j = 0; j < BEFORE_AFTER_SIZE; ++j) {
                     nt.tbl[j] = nullptr;
                 }
-                nt._actual_rhs = nullptr;
-                nt._actual_d = nullptr;
-                nt._actual_a = nullptr;
-                nt._actual_b = nullptr;
-                nt._actual_v = nullptr;
-                nt._actual_area = nullptr;
-                nt._actual_diam = nullptr;
-                nt._v_parent_index = nullptr;
-                nt._permute = nullptr;
-                nt._shadow_rhs = nullptr;
-                nt._shadow_d = nullptr;
-                nt._ecell_memb_list = nullptr;
-                nt._sp13mat = nullptr;
-                nt._ctime = 0.0;
-
-                nt._net_send_buffer_size = 0;
-                nt._net_send_buffer = nullptr;
-                nt._net_send_buffer_cnt = 0;
-                nt._watch_types = nullptr;
-                nt.mapping = nullptr;
-                nt.trajec_requests = nullptr;
-
-                nt.nrn_fast_imem = nullptr;
             }
         }
         v_structure_change = 1;

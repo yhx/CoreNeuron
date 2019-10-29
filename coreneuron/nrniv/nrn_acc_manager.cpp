@@ -173,10 +173,10 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
 
             int type = tml->index;
             int n = tml->ml->nodecount;
-            int szp = nrn_prop_param_size_[type];
-            int szdp = nrn_prop_dparam_size_[type];
-            int is_art = nrn_is_artificial_[type];
-            int layout = nrn_mech_data_layout_[type];
+            int szp = corenrn.get_prop_param_size()[type];
+            int szdp = corenrn.get_prop_dparam_size()[type];
+            int is_art = corenrn.get_is_artificial()[type];
+            int layout = corenrn.get_mech_data_layout()[type];
 
             offset = nrn_soa_padded_size(offset, layout);
 
@@ -606,10 +606,10 @@ void update_nrnthreads_on_host(NrnThread* threads, int nthreads) {
 
                 int type = tml->index;
                 int n = ml->nodecount;
-                int szp = nrn_prop_param_size_[type];
-                int szdp = nrn_prop_dparam_size_[type];
-                int is_art = nrn_is_artificial_[type];
-                int layout = nrn_mech_data_layout_[type];
+                int szp = corenrn.get_prop_param_size()[type];
+                int szdp = corenrn.get_prop_dparam_size()[type];
+                int is_art = corenrn.get_is_artificial()[type];
+                int layout = corenrn.get_mech_data_layout()[type];
 
                 int pcnt = nrn_soa_padded_size(n, layout) * szp;
 
@@ -702,10 +702,10 @@ void update_nrnthreads_on_device(NrnThread* threads, int nthreads) {
                 Memb_list* ml = tml->ml;
                 int type = tml->index;
                 int n = ml->nodecount;
-                int szp = nrn_prop_param_size_[type];
-                int szdp = nrn_prop_dparam_size_[type];
-                int is_art = nrn_is_artificial_[type];
-                int layout = nrn_mech_data_layout_[type];
+                int szp = nrn_prop_param_size[type];
+                int szdp = nrn_prop_dparam_size[type];
+                int is_art = nrn_is_artificial[type];
+                int layout = nrn_mech_data_layout[type];
 
                 int pcnt = nrn_soa_padded_size(n, layout) * szp;
 

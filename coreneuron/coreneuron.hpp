@@ -116,12 +116,12 @@ class CoreNeuron {
      * Internal lookup tables. Number of float and int variables in each mechanism and memory layout
      * future --> mech class
      */
-    std::vector<int> nrn_prop_param_size_;
-    std::vector<int> nrn_prop_dparam_size_;
-    std::vector<int> nrn_mech_data_layout_; /* 1 AoS (default), 0 SoA */
+    std::vector<int> nrn_prop_param_size;
+    std::vector<int> nrn_prop_dparam_size;
+    std::vector<int> nrn_mech_data_layout; /* 1 AoS (default), 0 SoA */
     /* array is parallel to memb_func. All are 0 except 1 for ARTIFICIAL_CELL */
-    std::vector<short> nrn_artcell_qindex_;
-    std::vector<bool> nrn_is_artificial_;
+    std::vector<short> nrn_artcell_qindex;
+    std::vector<bool> nrn_is_artificial;
 
     /**
      * Net Receive function pointer lookup tables
@@ -140,7 +140,7 @@ class CoreNeuron {
      * related to NMODL net_event()
      *
      */
-    std::vector<int> nrn_has_net_event_;
+    std::vector<int> nrn_has_net_event;
 
     /**
      * inverse of nrn_has_net_event_ maps the values of nrn_has_net_event_ to the index of
@@ -149,8 +149,8 @@ class CoreNeuron {
     std::vector<int> pnttype2presyn;
 
 
-    std::vector<bbcore_read_t> nrn_bbcore_read_;
-    std::vector<bbcore_write_t> nrn_bbcore_write_;
+    std::vector<bbcore_read_t> nrn_bbcore_read;
+    std::vector<bbcore_write_t> nrn_bbcore_write;
 
   public:
 
@@ -187,23 +187,23 @@ class CoreNeuron {
     }
 
     auto& get_prop_param_size() {
-        return nrn_prop_param_size_;
+        return nrn_prop_param_size;
     }
 
     auto& get_prop_dparam_size() {
-        return nrn_prop_dparam_size_;
+        return nrn_prop_dparam_size;
     }
 
     auto& get_mech_data_layout() {
-        return nrn_mech_data_layout_;
+        return nrn_mech_data_layout;
     }
 
     auto& get_is_artificial() {
-        return nrn_is_artificial_;
+        return nrn_is_artificial;
     }
 
     auto& get_artcell_qindex() {
-        return nrn_artcell_qindex_;
+        return nrn_artcell_qindex;
     }
 
     auto& get_pnt_receive() {
@@ -223,7 +223,7 @@ class CoreNeuron {
     }
 
     auto& get_has_net_event() {
-        return nrn_has_net_event_;
+        return nrn_has_net_event;
     }
 
     auto& get_pnttype2presyn() {
@@ -231,11 +231,11 @@ class CoreNeuron {
     }
 
     auto& get_bbcore_read() {
-        return nrn_bbcore_read_;
+        return nrn_bbcore_read;
     }
 
     auto& get_bbcore_write() {
-        return nrn_bbcore_write_;
+        return nrn_bbcore_write;
     }
 
 

@@ -198,7 +198,7 @@ Point_process* nrn_artcell_instantiate(const char* mechname) {
     // NrnThread arrays but there should not be many of these instances.
     int psize = corenrn.get_prop_param_size()[type];
     int dsize = corenrn.get_prop_dparam_size()[type];
-    // int layout = nrn_mech_data_layout_[type]; // not needed because singleton
+    // int layout = nrn_mech_data_layout[type]; // not needed because singleton
     Memb_list* ml = tml->ml;
     ml->nodecount = 1;
     ml->_nodecount_padded = ml->nodecount;

@@ -2217,7 +2217,8 @@ static size_t memb_list_size(NrnThreadMembList* tml) {
 #ifdef DEBUG
     int i = tml->index;
     printf("%s %d psize=%d ppsize=%d cnt=%d nbyte=%ld\n", memb_func[i].sym, i,
-           nrn_prop_param_size_[i], nrn_prop_dparam_size_[i], tml->ml->nodecount, nbyte);
+           crnrn.get_prop_param_size()[i],
+           crnrn.get_prop_dparam_size()[i], tml->ml->nodecount, nbyte);
 #endif
     return nbyte;
 }

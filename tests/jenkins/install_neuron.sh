@@ -10,7 +10,6 @@ export PATH=$WORKSPACE/BUILD_HOME/spack/bin:/usr/bin:$PATH
 export MODULEPATH=$SPACK_INSTALL_PREFIX/modules/tcl/$(spack arch):$MODULEPATH
 
 unset $(env|awk -F= '/^(PMI|SLURM)_/ {if ($1 != "SLURM_ACCOUNT") print $1}')
-spack config get config
-spack config get mirrors
+
 spack install neuron@develop
 module av neuron

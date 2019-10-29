@@ -78,8 +78,8 @@ static void nrn_rhs(NrnThread* _nt) {
     nrn_ba(_nt, BEFORE_BREAKPOINT);
     /* note that CAP has no current */
     for (tml = _nt->tml; tml; tml = tml->next)
-        if (crnrn.get_memb_func(tml->index).current) {
-            mod_f_t s = crnrn.get_memb_func(tml->index).current;
+        if (corenrn.get_memb_func(tml->index).current) {
+            mod_f_t s = corenrn.get_memb_func(tml->index).current;
             std::string ss("cur-");
             ss += nrn_get_mechname(tml->index);
             Instrumentor::phase p(ss.c_str());
@@ -143,8 +143,8 @@ static void nrn_lhs(NrnThread* _nt) {
 
     /* note that CAP has no jacob */
     for (tml = _nt->tml; tml; tml = tml->next)
-        if (crnrn.get_memb_func(tml->index).jacob) {
-            mod_f_t s = crnrn.get_memb_func(tml->index).jacob;
+        if (corenrn.get_memb_func(tml->index).jacob) {
+            mod_f_t s = corenrn.get_memb_func(tml->index).jacob;
             std::string ss("cur-");
             ss += nrn_get_mechname(tml->index);
             Instrumentor::phase p(ss.c_str());

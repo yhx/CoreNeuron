@@ -42,7 +42,7 @@ int hoc_errno_count;
 const char* bbcore_write_version = "1.2";
 
 char* pnt_name(Point_process* pnt) {
-    return crnrn.get_memb_func(pnt->_type).sym;
+    return corenrn.get_memb_func(pnt->_type).sym;
 }
 
 void nrn_exit(int err) {

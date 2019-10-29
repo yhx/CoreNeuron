@@ -153,12 +153,12 @@ static void mk_mech(std::istream& s) {
         printf("%s %d %d %d %d %d %d\n", mname, type, pnttype, is_art, is_ion, dsize, pdsize);
 #endif
         std::string str(mname);
-        crnrn.get_memb_func(type).sym = (Symbol*)strdup(mname);
+        corenrn.get_memb_func(type).sym = (Symbol*)strdup(mname);
         mech2type[str] = type;
-        crnrn.get_pnt_map()[type] = (char)pnttype;
-        crnrn.get_prop_param_size()[type] = dsize;
-        crnrn.get_prop_dparam_size()[type] = pdsize;
-        crnrn.get_is_artificial()[type] = is_art;
+        corenrn.get_pnt_map()[type] = (char)pnttype;
+        corenrn.get_prop_param_size()[type] = dsize;
+        corenrn.get_prop_dparam_size()[type] = pdsize;
+        corenrn.get_is_artificial()[type] = is_art;
         if (is_ion) {
             double charge = 0.;
             nrn_assert(s >> charge);

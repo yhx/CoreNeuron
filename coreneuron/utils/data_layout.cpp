@@ -10,9 +10,9 @@ namespace coreneuron {
  * Return the index to mechanism variable based Original input files are organized in AoS
  */
 int get_data_index(int node_index, int variable_index, int mtype, Memb_list* ml) {
-    int layout = crnrn.get_mech_data_layout()[mtype];
+    int layout = corenrn.get_mech_data_layout()[mtype];
     if (layout == AOS_LAYOUT) {
-        return variable_index + node_index * crnrn.get_prop_dparam_size()[mtype];
+        return variable_index + node_index * corenrn.get_prop_dparam_size()[mtype];
     }
     assert(layout == SOA_LAYOUT);
     return variable_index * ml->_nodecount_padded + node_index;

@@ -74,8 +74,8 @@ void nrn_partrans::gap_mpi_setup(int ngroup) {
         if (si.ntar) {
             hgi.ix_vpre = si.ix_vpre;
             hgi.type = si.type;
-            hgi.sz = crnrn.get_prop_param_size()[hgi.type];
-            hgi.layout = crnrn.get_mech_data_layout()[hgi.type];
+            hgi.sz = corenrn.get_prop_param_size()[hgi.type];
+            hgi.layout = corenrn.get_mech_data_layout()[hgi.type];
         }
     }
 

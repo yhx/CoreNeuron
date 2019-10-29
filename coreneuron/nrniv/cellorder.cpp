@@ -17,22 +17,6 @@ namespace coreneuron {
 int use_interleave_permute;
 InterleaveInfo* interleave_info;  // nrn_nthread array
 
-InterleaveInfo::InterleaveInfo() {
-    nwarp = 0;
-    nstride = 0;
-    stridedispl = nullptr;
-    stride = nullptr;
-    firstnode = nullptr;
-    lastnode = nullptr;
-    cellsize = nullptr;
-
-    // for print statistics
-    nnode = nullptr;
-    ncycle = nullptr;
-    idle = nullptr;
-    cache_access = nullptr;
-    child_race = nullptr;
-}
 
 void InterleaveInfo::swap(InterleaveInfo& info) {
     std::swap(nwarp, info.nwarp);

@@ -1,4 +1,8 @@
 [submodule "external/mod2c"]
-	path = external/mod2c
+  path = external/mod2c
   url = https://github.com/BlueBrain/mod2c
   branch = coreneuron-cleanup
+[submodule "external/nmodl"]
+  path = external/nmodl
+  url = https://github.com/BlueBrain/nmodl
+  branch = crnrn-cleanup

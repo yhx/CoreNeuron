@@ -207,8 +207,8 @@ void nonvint(NrnThread* _nt) {
 
     Instrumentor::phase_begin("state-update");
     for (tml = _nt->tml; tml; tml = tml->next)
-        if (crnrn.get_memb_func(tml->index).state) {
-            mod_f_t s = crnrn.get_memb_func(tml->index).state;
+        if (corenrn.get_memb_func(tml->index).state) {
+            mod_f_t s = corenrn.get_memb_func(tml->index).state;
             std::string ss("state-");
             ss += nrn_get_mechname(tml->index);
             {

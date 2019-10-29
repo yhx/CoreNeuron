@@ -84,7 +84,7 @@ void nrn_finitialize(int setv, double v) {
         NrnThread* nt = nrn_threads + i;
         NrnThreadMembList* tml;
         for (tml = nt->tml; tml; tml = tml->next) {
-            mod_f_t s = crnrn.get_memb_func(tml->index).initialize;
+            mod_f_t s = corenrn.get_memb_func(tml->index).initialize;
             if (s) {
                 (*s)(nt, tml->ml, tml->index);
             }

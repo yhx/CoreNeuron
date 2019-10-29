@@ -66,20 +66,20 @@ void nrn_set_extra_thread0_vdata() {
     // limited to PatternStim for now.
     // if called, must be called before nrn_setup and after mk_mech.
     int type = nrn_get_mechtype("PatternStim");
-    if (!crnrn.get_memb_func(type).initialize) {
+    if (!corenrn.get_memb_func(type).initialize) {
         // the NEURON mod file version is not vectorized so the param size
         // differs by 1 from the coreneuron version.
-        crnrn.get_prop_param_size()[type] += 1;
+        corenrn.get_prop_param_size()[type] += 1;
         _pattern_reg();
     }
-    nrn_extra_thread0_vdata = crnrn.get_prop_dparam_size()[type];
+    nrn_extra_thread0_vdata = corenrn.get_prop_dparam_size()[type];
 }
 
 // fname is the filename of an output_spikes.h format raster file.
 // todo : add function for memory cleanup (to be called at the end of simulation)
 void nrn_mkPatternStim(const char* fname) {
     int type = nrn_get_mechtype("PatternStim");
-    if (!crnrn.get_memb_func(type).sym) {
+    if (!corenrn.get_memb_func(type).sym) {
         printf("nrn_set_extra_thread_vdata must be called (after mk_mech, and before nrn_setup\n");
         assert(0);
     }
@@ -99,9 +99,9 @@ void nrn_mkPatternStim(const char* fname) {
     NrnThread* nt = nrn_threads + pnt->_tid;
 
     Memb_list* ml = nt->_ml_list[type];
-    int layout = crnrn.get_mech_data_layout()[type];
-    int sz = crnrn.get_prop_param_size()[type];
-    int psz = crnrn.get_prop_dparam_size()[type];
+    int layout = corenrn.get_mech_data_layout()[type];
+    int sz = corenrn.get_prop_param_size()[type];
+    int psz = corenrn.get_prop_dparam_size()[type];
     int _cntml = ml->nodecount;
     int _iml = pnt->_i_instance;
     double* _p = ml->data;
@@ -196,8 +196,8 @@ Point_process* nrn_artcell_instantiate(const char* mechname) {
 
     // fill in tml->ml info. The data is not in the cache efficient
     // NrnThread arrays but there should not be many of these instances.
-    int psize = crnrn.get_prop_param_size()[type];
-    int dsize = crnrn.get_prop_dparam_size()[type];
+    int psize = corenrn.get_prop_param_size()[type];
+    int dsize = corenrn.get_prop_dparam_size()[type];
     // int layout = nrn_mech_data_layout_[type]; // not needed because singleton
     Memb_list* ml = tml->ml;
     ml->nodecount = 1;

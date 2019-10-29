@@ -823,7 +823,7 @@ void nrn_setup(const char* filesdat,
 
 void setup_ThreadData(NrnThread& nt) {
     for (NrnThreadMembList* tml = nt.tml; tml; tml = tml->next) {
-        Memb_func& mf = crnrn.get_memb_func(tml->index);
+        Memb_func& mf = corenrn.get_memb_func(tml->index);
         Memb_list* ml = tml->ml;
         if (mf.thread_size_) {
             ml->_thread = (ThreadDatum*)ecalloc_align(mf.thread_size_, sizeof(ThreadDatum));
@@ -896,12 +896,12 @@ static size_t nrn_soa_byte_align(size_t i) {
 // alignment requirements. Ie. i_instance + i_item*align_cnt.
 
 int nrn_param_layout(int i, int mtype, Memb_list* ml) {
-    int layout = crnrn.get_mech_data_layout()[mtype];
+    int layout = corenrn.get_mech_data_layout()[mtype];
     if (layout == 1) {
         return i;
     }
     assert(layout == 0);
-    int sz = crnrn.get_prop_param_size()[mtype];
+    int sz = corenrn.get_prop_param_size()[mtype];
     int cnt = ml->nodecount;
     int i_cnt = i / sz;
     int i_sz = i % sz;
@@ -941,7 +941,7 @@ double* stdindex2ptr(int mtype, int index, NrnThread& nt) {
                 node_permute(&ix, 1, nt._permute);
             }
             return nt._data + (i_mem + ix);         // relative to nt._data
-    } else if (mtype > 0 && mtype < crnrn.get_memb_funcs().size()) {  //
+    } else if (mtype > 0 && mtype < corenrn.get_memb_funcs().size()) {  //
         Memb_list* ml = nt._ml_list[mtype];
         nrn_assert(ml);
         int ix = nrn_param_layout(index, mtype, ml);
@@ -1123,7 +1123,7 @@ void nrn_cleanup(bool clean_ion_global_map) {
         }
 
         if (nt->pnt2presyn_ix) {
-            for (int i = 0; i < crnrn.get_has_net_event().size(); ++i) {
+            for (int i = 0; i < corenrn.get_has_net_event().size(); ++i) {
                 if (nt->pnt2presyn_ix[i]) {
                     free(nt->pnt2presyn_ix[i]);
                 }
@@ -1182,8 +1182,8 @@ void nrn_cleanup(bool clean_ion_global_map) {
 
     nrn_threads_free();
 
-    if (!crnrn.get_pnttype2presyn().empty()) {
-        crnrn.get_pnttype2presyn().clear();
+    if (!corenrn.get_pnttype2presyn().empty()) {
+        corenrn.get_pnttype2presyn().clear();
     }
 }
 
@@ -1236,8 +1236,8 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
         for (int i = 0; i < nmech; ++i) {
             tml_index[i] = F.read_int();
             ml_nodecount[i] = F.read_int();
-            if (std::any_of(crnrn.get_different_mechanism_type().begin(),
-                crnrn.get_different_mechanism_type().end(),
+            if (std::any_of(corenrn.get_different_mechanism_type().begin(),
+                            corenrn.get_different_mechanism_type().end(),
                 [&](int e) { return e == tml_index[i]; })) {
                 if (nrnmpi_myid == 0) {
                     printf("Error: %s is a different MOD file than used by NEURON!\n",
@@ -1274,7 +1274,7 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
     // printf("ncell=%d end=%d nmech=%d\n", nt.ncell, nt.end, nmech);
     // printf("nart=%d\n", nart);
     NrnThreadMembList* tml_last = nullptr;
-    nt._ml_list = (Memb_list**)ecalloc_align(crnrn.get_memb_funcs().size(), sizeof(Memb_list*));
+    nt._ml_list = (Memb_list**)ecalloc_align(corenrn.get_memb_funcs().size(), sizeof(Memb_list*));
 
 #if CHKPNTDEBUG
     ntc.mlmap = new Memb_list_chkpnt*[memb_func.size()];
@@ -1288,8 +1288,8 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
 
     nt.stream_id = 0;
     nt.compute_gpu = 0;
-    auto& nrn_prop_param_size_ = crnrn.get_prop_param_size();
-    auto& nrn_prop_dparam_size_ = crnrn.get_prop_dparam_size();
+    auto& nrn_prop_param_size_ = corenrn.get_prop_param_size();
+    auto& nrn_prop_dparam_size_ = corenrn.get_prop_dparam_size();
 
 /* read_phase2 is being called from openmp region
  * and hence we can set the stream equal to current thread id.
@@ -1299,7 +1299,7 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
 #if defined(_OPENMP)
     nt.stream_id = omp_get_thread_num();
 #endif
-    auto& memb_func = crnrn.get_memb_funcs();
+    auto& memb_func = corenrn.get_memb_funcs();
     for (int i = 0; i < nmech; ++i) {
         tml = (NrnThreadMembList*)emalloc_align(sizeof(NrnThreadMembList));
         tml->ml = (Memb_list*)ecalloc_align(1, sizeof(Memb_list));
@@ -1317,8 +1317,8 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
             exit(1);
         }
         tml->ml->_nodecount_padded =
-            nrn_soa_padded_size(tml->ml->nodecount, crnrn.get_mech_data_layout()[tml->index]);
-        if (memb_func[tml->index].is_point && crnrn.get_is_artificial()[tml->index] == 0) {
+            nrn_soa_padded_size(tml->ml->nodecount, corenrn.get_mech_data_layout()[tml->index]);
+        if (memb_func[tml->index].is_point && corenrn.get_is_artificial()[tml->index] == 0) {
             // Avoid race for multiple PointProcess instances in same compartment.
             if (tml->ml->nodecount > shadow_rhs_cnt) {
                 shadow_rhs_cnt = tml->ml->nodecount;
@@ -1383,13 +1383,13 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
     for (tml = nt.tml; tml; tml = tml->next) {
         Memb_list* ml = tml->ml;
         int type = tml->index;
-        int layout = crnrn.get_mech_data_layout()[type];
+        int layout = corenrn.get_mech_data_layout()[type];
         int n = ml->nodecount;
         int sz = nrn_prop_param_size_[type];
         offset = nrn_soa_byte_align(offset);
         ml->data = (double*)0 + offset;  // adjust below since nt._data not allocated
         offset += nrn_soa_padded_size(n, layout) * sz;
-        if (crnrn.get_pnt_map()[type] > 0) {
+        if (corenrn.get_pnt_map()[type] > 0) {
             npnt += n;
         }
     }
@@ -1437,7 +1437,7 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
 #endif
 
     int synoffset = 0;
-    auto pnt_offset = std::vector<int>(memb_func.size());
+    std::vector<int> pnt_offset(memb_func.size());
 
     // All the mechanism data and pdata.
     // Also fill in the pnt_offset
@@ -1447,11 +1447,11 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
     for (tml = nt.tml, itml = 0; tml; tml = tml->next, ++itml) {
         int type = tml->index;
         Memb_list* ml = tml->ml;
-        int is_art = crnrn.get_is_artificial()[type];
+        int is_art = corenrn.get_is_artificial()[type];
         int n = ml->nodecount;
         int szp = nrn_prop_param_size_[type];
         int szdp = nrn_prop_dparam_size_[type];
-        int layout = crnrn.get_mech_data_layout()[type];
+        int layout = corenrn.get_mech_data_layout()[type];
 
         if (!is_art && !direct) {
             ml->nodeindices = (int*)ecalloc_align(ml->nodecount, sizeof(int));
@@ -1498,7 +1498,7 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
         } else {
             ml->pdata = nullptr;
         }
-        if (crnrn.get_pnt_map()[type] > 0) {  // POINT_PROCESS mechanism including acell
+        if (corenrn.get_pnt_map()[type] > 0) {  // POINT_PROCESS mechanism including acell
             int cnt = ml->nodecount;
             Point_process* pnt = nullptr;
             pnt = nt.pntprocs + synoffset;
@@ -1525,14 +1525,14 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
     // type block in nt.data into which it indexes, has a layout.
     for (tml = nt.tml; tml; tml = tml->next) {
         int type = tml->index;
-        int layout = crnrn.get_mech_data_layout()[type];
+        int layout = corenrn.get_mech_data_layout()[type];
         int* pdata = tml->ml->pdata;
         int cnt = tml->ml->nodecount;
         int szdp = nrn_prop_dparam_size_[type];
         int* semantics = memb_func[type].dparam_semantics;
 
         // ignore ARTIFICIAL_CELL (has useless area pointer with semantics=-1)
-        if (crnrn.get_is_artificial()[type]) {
+        if (corenrn.get_is_artificial()[type]) {
             continue;
         }
 
@@ -1571,7 +1571,7 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
                 }
             } else if (s >= 0 && s < 1000) {  // ion
                 int etype = s;
-                int elayout = crnrn.get_mech_data_layout()[etype];
+                int elayout = corenrn.get_mech_data_layout()[etype];
                 /* if ion is SoA, must recalculate pdata values */
                 /* if ion is AoS, have to deal with offset */
                 Memb_list* eml = nt._ml_list[etype];
@@ -1718,14 +1718,14 @@ for (int i=0; i < nt.end; ++i) {
     free(mech_deps);
 
     /// Fill the BA lists
-    auto bamap = std::vector<BAMech*>(memb_func.size());
+    std::vector<BAMech*> bamap(memb_func.size());
     for (int i = 0; i < BEFORE_AFTER_SIZE; ++i) {
         BAMech* bam;
         NrnThreadBAList *tbl, **ptbl;
         for (int ii = 0; ii < memb_func.size(); ++ii) {
             bamap[ii] = (BAMech*)0;
         }
-        for (bam = crnrn.get_bamech()[i]; bam; bam = bam->next) {
+        for (bam = corenrn.get_bamech()[i]; bam; bam = bam->next) {
             bamap[bam->type] = bam;
         }
         /* unnecessary but keep in order anyway */
@@ -1748,7 +1748,7 @@ for (int i=0; i < nt.end; ++i) {
     {
         int sz = 0;  // count the types with WATCH
         for (NrnThreadMembList* tml = nt.tml; tml; tml = tml->next) {
-            if (crnrn.get_watch_check()[tml->index]) {
+            if (corenrn.get_watch_check()[tml->index]) {
                 ++sz;
             }
         }
@@ -1756,14 +1756,14 @@ for (int i=0; i < nt.end; ++i) {
             nt._watch_types = (int*)ecalloc(sz + 1, sizeof(int));  // nullptr terminated
             sz = 0;
             for (NrnThreadMembList* tml = nt.tml; tml; tml = tml->next) {
-                if (crnrn.get_watch_check()[tml->index]) {
+                if (corenrn.get_watch_check()[tml->index]) {
                     nt._watch_types[sz++] = tml->index;
                 }
             }
         }
     }
-    auto& pnttype2presyn = crnrn.get_pnttype2presyn();
-    auto& nrn_has_net_event_ = crnrn.get_has_net_event();
+    auto& pnttype2presyn = corenrn.get_pnttype2presyn();
+    auto& nrn_has_net_event_ = corenrn.get_has_net_event();
     // from nrn_has_net_event create pnttype2presyn.
     if (pnttype2presyn.empty()) {
         pnttype2presyn.resize(memb_func.size(), -1);
@@ -1893,7 +1893,7 @@ for (int i=0; i < nt.end; ++i) {
         // Same pattern as algorithm for extracon netcon_srcgid above in phase1.
         extracon_target_type = nrn_get_mechtype("ProbAMPANMDA_EMS");
         assert(extracon_target_type > 0);
-        extracon_target_nweight = crnrn.get_pnt_receive_size()[extracon_target_type];
+        extracon_target_nweight = corenrn.get_pnt_receive_size()[extracon_target_type];
         int j = 0;
         for (int i = 0; i < nrn_setup_extracon; ++i) {
             int active = 0;
@@ -1928,7 +1928,7 @@ for (int i=0; i < nt.end; ++i) {
         NetCon& nc = nt.netcons[i];
         nc.u.weight_index_ = iw;
         if (pnttype[i] != 0) {
-            iw += crnrn.get_pnt_receive_size()[pnttype[i]];
+            iw += corenrn.get_pnt_receive_size()[pnttype[i]];
         } else {
             iw += 1;
         }
@@ -1974,7 +1974,7 @@ for (int i=0; i < nt.end; ++i) {
 #endif
     for (NrnThreadMembList* tml = nt.tml; tml; tml = tml->next) {
         int type = tml->index;
-        if (!crnrn.get_bbcore_read()[type]) {
+        if (!corenrn.get_bbcore_read()[type]) {
             continue;
         }
         int* iArray = nullptr;
@@ -1993,12 +1993,12 @@ for (int i=0; i < nt.end; ++i) {
                 dArray = F.read_array<double>(dcnt);
             }
         }
-        if (!crnrn.get_bbcore_write()[type] && nrn_checkpoint_arg_exists) {
+        if (!corenrn.get_bbcore_write()[type] && nrn_checkpoint_arg_exists) {
             fprintf(
                 stderr,
                 "Checkpoint is requested involving BBCOREPOINTER but there is no bbcore_write function for %s\n",
                 memb_func[type].sym);
-            assert(crnrn.get_bbcore_write()[type]);
+            assert(corenrn.get_bbcore_write()[type]);
         }
 #if CHKPNTDEBUG
         ntc.bcptype[i] = type;
@@ -2011,7 +2011,7 @@ for (int i=0; i < nt.end; ++i) {
         int dsz = nrn_prop_param_size_[type];
         int pdsz = nrn_prop_dparam_size_[type];
         int cntml = ml->nodecount;
-        int layout = crnrn.get_mech_data_layout()[type];
+        int layout = corenrn.get_mech_data_layout()[type];
         for (int j = 0; j < cntml; ++j) {
             int jp = j;
             if (ml->_permute) {
@@ -2022,7 +2022,7 @@ for (int i=0; i < nt.end; ++i) {
             d += nrn_i_layout(jp, cntml, 0, dsz, layout);
             pd += nrn_i_layout(jp, cntml, 0, pdsz, layout);
             int aln_cntml = nrn_soa_padded_size(cntml, layout);
-            (*crnrn.get_bbcore_read()[type])(dArray, iArray, &dk, &ik, 0, aln_cntml, d, pd, ml->_thread,
+            (*corenrn.get_bbcore_read()[type])(dArray, iArray, &dk, &ik, 0, aln_cntml, d, pd, ml->_thread,
                                       &nt, 0.0);
         }
         assert(dk == dcnt);
@@ -2108,7 +2108,7 @@ for (int i=0; i < nt.end; ++i) {
     }
 
     // NetReceiveBuffering
-    for (auto& net_buf_receive : crnrn.get_net_buf_receive()) {
+    for (auto& net_buf_receive : corenrn.get_net_buf_receive()) {
         int type = net_buf_receive.second;
         // Does this thread have this type.
         Memb_list* ml = nt._ml_list[type];
@@ -2139,7 +2139,7 @@ for (int i=0; i < nt.end; ++i) {
     }
 
     // NetSendBuffering
-    for (int type : crnrn.get_net_buf_send_type()) {
+    for (int type : corenrn.get_net_buf_send_type()) {
         // Does this thread have this type.
         Memb_list* ml = nt._ml_list[type];
         if (ml) {  // needs a NetSendBuffer
@@ -2213,7 +2213,7 @@ static size_t memb_list_size(NrnThreadMembList* tml) {
     size_t szi = sizeof(int);
     size_t nbyte = sz_ntml + sz_ml;
     nbyte += tml->ml->nodecount * szi;
-    nbyte += crnrn.get_prop_dparam_size()[tml->index] * tml->ml->nodecount * sizeof(Datum);
+    nbyte += corenrn.get_prop_dparam_size()[tml->index] * tml->ml->nodecount * sizeof(Datum);
 #ifdef DEBUG
     int i = tml->index;
     printf("%s %d psize=%d ppsize=%d cnt=%d nbyte=%ld\n", memb_func[i].sym, i,

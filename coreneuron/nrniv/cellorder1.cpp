@@ -95,7 +95,7 @@ static char* stree(TNode* nd) {
     }
     s[0] = '(';
     s[1] = '\0';
-    for (auto & child : nd->children) {  // need sorted by child hash
+    for (const auto& child : nd->children) {  // need sorted by child hash
         char* sr = stree(child);
         strcat(s, sr);
         free(sr);
@@ -115,7 +115,7 @@ static void quality(VecTNode& nodevec, size_t max = 32) {
     size_t qcnt = 0;  // how many contiguous nodes have contiguous parents
 
     // first ncell nodes are by definition in contiguous order
-    for (auto & n : nodevec) {
+    for (const auto& n : nodevec) {
         if (n->parent != nullptr) {
             break;
         }
@@ -202,7 +202,7 @@ static void quality(VecTNode& nodevec, size_t max = 32) {
 
 size_t level_from_root(VecTNode& nodevec) {
     size_t maxlevel = 0;
-    for (auto nd : nodevec) {
+    for (auto& nd : nodevec) {
         if (nd->parent) {
             nd->level = nd->parent->level + 1;
             if (maxlevel < nd->level) {
@@ -292,13 +292,13 @@ static void ident_statistic(VecTNode& nodevec, size_t ncell) {
     for (auto& n : n_in_level) {
         n.resize(ncell / groupsize);
     }
-    for (auto& n: nodevec) {
+    for (const auto& n: nodevec) {
         n_in_level[n->level][n->groupindex]++;
     }
     printf("n_in_level.size = %ld\n", n_in_level.size());
     for (size_t i = 0; i < n_in_level.size(); ++i) {
         printf("%5ld\n", i);
-        for (auto& n : n_in_level[i]) {
+        for (const auto& n : n_in_level[i]) {
             printf(" %5ld", n);
         }
         printf("\n");

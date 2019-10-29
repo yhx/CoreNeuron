@@ -128,7 +128,7 @@ void artcell_net_send(void** v, int weight_index_, Point_process* pnt, double td
 
 void net_event(Point_process* pnt, double time) {
     NrnThread* nt = PP2NT(pnt);
-    PreSyn* ps = nt->presyns + nt->pnt2presyn_ix[crnrn.get_pnttype2presyn()[pnt->_type]][pnt->_i_instance];
+    PreSyn* ps = nt->presyns + nt->pnt2presyn_ix[corenrn.get_pnttype2presyn()[pnt->_type]][pnt->_i_instance];
     if (ps) {
         if (time < nt->_t) {
             char buf[100];
@@ -286,10 +286,10 @@ void NetCvode::init_events() {
             NetCon* d = nt->netcons + inetc;
             if (d->target_) {
                 int type = d->target_->_type;
-                if (crnrn.get_pnt_receive_init()[type]) {
-                    (*crnrn.get_pnt_receive_init()[type])(d->target_, d->u.weight_index_, 0);
+                if (corenrn.get_pnt_receive_init()[type]) {
+                    (*corenrn.get_pnt_receive_init()[type])(d->target_, d->u.weight_index_, 0);
                 } else {
-                    int cnt = crnrn.get_pnt_receive_size()[type];
+                    int cnt = corenrn.get_pnt_receive_size()[type];
                     double* wt = nt->weights + d->u.weight_index_;
                     // not the first
                     for (int j = 1; j < cnt; ++j) {
@@ -325,7 +325,8 @@ bool NetCvode::deliver_event(double til, NrnThread* nt) {
 
 void net_move(void** v, Point_process* pnt, double tt) {
     if (!(*v))
-        hoc_execerror("No event with flag=1 for net_move in ", crnrn.get_memb_func(pnt->_type).sym);
+        hoc_execerror("No event with flag=1 for net_move in ",
+                      corenrn.get_memb_func(pnt->_type).sym);
 
     TQItem* q = (TQItem*)(*v);
     // printf("net_move tt=%g %s *v=%p\n", tt, memb_func[pnt->_type].sym, *v);
@@ -473,7 +474,7 @@ void NetCon::deliver(double tt, NetCvode* ns, NrnThread* nt) {
     nt->_t = tt;
 
     // printf("NetCon::deliver t=%g tt=%g %s\n", t, tt, pnt_name(target_));
-    (*crnrn.get_pnt_receive()[typ])(target_, u.weight_index_, 0);
+    (*corenrn.get_pnt_receive()[typ])(target_, u.weight_index_, 0);
 #ifdef DEBUG
     if (errno && nrn_errno_check(typ))
         hoc_warning("errno set during NetCon deliver to NET_RECEIVE", (char*)0);
@@ -483,7 +484,7 @@ void NetCon::deliver(double tt, NetCvode* ns, NrnThread* nt) {
 void NetCon::pr(const char* s, double tt, NetCvode* ns) {
     (void)ns;
     Point_process* pp = target_;
-    printf("%s NetCon target=%s[%d] %.15g\n", s, crnrn.get_memb_func(pp->_type).sym, pp->_i_instance, tt);
+    printf("%s NetCon target=%s[%d] %.15g\n", s, corenrn.get_memb_func(pp->_type).sym, pp->_i_instance, tt);
 }
 
 void PreSyn::send(double tt, NetCvode* ns, NrnThread* nt) {
@@ -559,7 +560,7 @@ void SelfEvent::deliver(double tt, NetCvode* ns, NrnThread* nt) {
 }
 
 void SelfEvent::call_net_receive(NetCvode* ns) {
-    (*crnrn.get_pnt_receive()[target_->_type])(target_, weight_index_, flag_);
+    (*corenrn.get_pnt_receive()[target_->_type])(target_, weight_index_, flag_);
 
 #ifdef DEBUG
     if (errno && nrn_errno_check(target_->_type))
@@ -710,7 +711,7 @@ void NetCvode::check_thresh(NrnThread* nt) {  // for default method
     if (nt->_watch_types) {
         for (int i = 0; nt->_watch_types[i] != 0; ++i) {
             int type = nt->_watch_types[i];
-            (*crnrn.get_watch_check()[type])(nt, nt->_ml_list[type]);
+            (*corenrn.get_watch_check()[type])(nt, nt->_ml_list[type]);
             // may generate net_send events (with 0 (teps) delay)
         }
     }
@@ -808,7 +809,7 @@ tryagain:
     /*before executing on gpu, we have to update the NetReceiveBuffer_t on GPU */
     update_net_receive_buffer(nt);
 
-    for (auto& net_buf_receive : crnrn.get_net_buf_receive()) {
+    for (auto& net_buf_receive : corenrn.get_net_buf_receive()) {
         (*net_buf_receive.first)(nt);
     }
 }

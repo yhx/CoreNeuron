@@ -3,6 +3,7 @@
 
 #include <numeric>
 #include <string>
+#include <utility>
 #include <vector>
 #include <map>
 #include <iostream>
@@ -29,22 +30,21 @@ struct SecMapping {
     /** map of section and associated segments */
     secseg_map_type secmap;
 
-    SecMapping() {
-    }
-    SecMapping(std::string s) : name(s) {
+    SecMapping() = default;
+
+    explicit SecMapping(std::string s) : name(std::move(s)) {
     }
 
     /** @brief return total number of sections in section list */
-    size_t num_sections() const {
+    size_t num_sections() const noexcept {
         return secmap.size();
     }
 
     /** @brief return number of segments in section list */
     size_t num_segments() const {
         size_t count = 0;
-        for (auto & iterator : secmap) {
-            count += iterator.second.size();
-        }
+        std::accumulate(secmap.begin(), secmap.end(), 0,
+            [](int psum, const auto& item) { return psum + item.second.size(); });
         return count;
     }
 
@@ -73,17 +73,17 @@ struct CellMapping {
     /** @brief total number of sections in a cell */
     int num_sections() const {
         return std::accumulate(secmapvec.begin(), secmapvec.end(), 0,
-            [](int psum, const SecMapping* secmap) { return psum + secmap->num_sections(); });
+            [](int psum, const auto& secmap) { return psum + secmap->num_sections(); });
     }
 
     /** @brief return number of segments in a cell */
     int num_segments() const {
         return std::accumulate(secmapvec.begin(), secmapvec.end(), 0,
-                               [](int psum, const SecMapping* secmap) { return psum + secmap->num_segments(); });
+                               [](int psum, const auto& secmap) { return psum + secmap->num_segments(); });
     }
 
     /** @brief number of section lists */
-    size_t size() const {
+    size_t size() const noexcept {
         return secmapvec.size();
     }
 
@@ -93,7 +93,7 @@ struct CellMapping {
     }
 
     /** @brief return section list mapping with given name */
-    SecMapping* get_seclist_mapping(std::string name) const {
+    SecMapping* get_seclist_mapping(const std::string& name) const {
         for (auto& secmap : secmapvec) {
             if (name == secmap->name) {
                 return secmap;
@@ -105,7 +105,7 @@ struct CellMapping {
     }
 
     /** @brief return segment count for specific section list with given name */
-    size_t get_seclist_segment_count(std::string name) const {
+    size_t get_seclist_segment_count(const std::string& name) const {
         SecMapping* s = get_seclist_mapping(name);
         size_t count = 0;
         if (s) {
@@ -114,7 +114,7 @@ struct CellMapping {
         return count;
     }
     /** @brief return segment count for specific section list with given name */
-    size_t get_seclist_section_count(std::string name) const {
+    size_t get_seclist_section_count(const std::string& name) const {
         SecMapping* s = get_seclist_mapping(name);
         size_t count = 0;
         if (s) {
@@ -155,7 +155,7 @@ struct NrnThreadMappingInfo {
      *	if exist otherwise return nullptr.
      */
     CellMapping* get_cell_mapping(int gid) const {
-        for (auto& mapping  : mappingvec) {
+        for (const auto& mapping  : mappingvec) {
             if (mapping->gid == gid) {
                 return mapping;
             }

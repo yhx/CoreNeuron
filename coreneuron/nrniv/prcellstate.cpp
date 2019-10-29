@@ -70,15 +70,15 @@ static int ml_permute(int i, Memb_list* ml) {
 // Note: cellnodes array is in unpermuted order.
 
 static void pr_memb(int type, Memb_list* ml, int* cellnodes, NrnThread& nt, FILE* f) {
-    int is_art = crnrn.get_is_artificial()[type];
+    int is_art = corenrn.get_is_artificial()[type];
     if (is_art)
         return;
 
     int header_printed = 0;
-    int size = crnrn.get_prop_param_size()[type];
-    int psize = crnrn.get_prop_dparam_size()[type];
-    int receives_events = crnrn.get_pnt_receive()[type] ? 1 : 0;
-    int layout = crnrn.get_mech_data_layout()[type];
+    int size = corenrn.get_prop_param_size()[type];
+    int psize = corenrn.get_prop_dparam_size()[type];
+    int receives_events = corenrn.get_pnt_receive()[type] ? 1 : 0;
+    int layout = corenrn.get_mech_data_layout()[type];
     int cnt = ml->nodecount;
     for (int iorig = 0; iorig < ml->nodecount; ++iorig) {  // original index
         int i = ml_permute(iorig, ml);                     // present index
@@ -87,7 +87,7 @@ static void pr_memb(int type, Memb_list* ml, int* cellnodes, NrnThread& nt, FILE
         if (cix >= 0) {
             if (!header_printed) {
                 header_printed = 1;
-                fprintf(f, "type=%d %s size=%d\n", type, crnrn.get_memb_func(type).sym, size);
+                fprintf(f, "type=%d %s size=%d\n", type, corenrn.get_memb_func(type).sym, size);
             }
             if (receives_events) {
                 fprintf(f, "%d nri %d\n", cix, pntindex);
@@ -179,7 +179,7 @@ static void pr_netcon(NrnThread& nt, FILE* f) {
                     Point_process* pnt = ps->pntsrc_;
                     if (srcgid < 0 && pnt) {
                         int type = pnt->_type;
-                        fprintf(f, "%d %s %d %.*g", i, crnrn.get_memb_func(type).sym, nc->active_ ? 1 : 0,
+                        fprintf(f, "%d %s %d %.*g", i, corenrn.get_memb_func(type).sym, nc->active_ ? 1 : 0,
                                 precision, nc->delay_);
                     } else if (srcgid < 0 && ps->thvar_index_ > 0) {
                         fprintf(f, "%d %s %d %.*g", i, "v", nc->active_ ? 1 : 0, precision,
@@ -195,7 +195,7 @@ static void pr_netcon(NrnThread& nt, FILE* f) {
             } else {
                 fprintf(f, "%d %d %d %.*g", i, srcgid, nc->active_ ? 1 : 0, precision, nc->delay_);
             }
-            int wcnt = crnrn.get_pnt_receive_size()[nc->target_->_type];
+            int wcnt = corenrn.get_pnt_receive_size()[nc->target_->_type];
             for (int k = 0; k < wcnt; ++k) {
                 fprintf(f, " %.*g", precision, nt.weights[nc->u.weight_index_ + k]);
             }

@@ -29,7 +29,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 
 /***
  * Includes all headers required to communicate and run all methods
- * described in CoreNeuron, neurox, and mod2c C-generated mechanisms
+ * described in CoreNEURON, neurox, and mod2c C-generated mechanisms
  * functions.
  **/
 
@@ -79,14 +79,15 @@ class CoreNeuron {
 
     /// Local to coreneuron, used to keep track of point process IDs
     int pointtype = 1; /* starts at 1 since 0 means not point in pnt_map*/
+
     /**
      * map if mech is a point process
      * In the future only a field of Mechanism class
      */
     std::vector<char> pnt_map; /* so prop_free can know its a point mech*/
 
-    /** Vector mapping the types (IDs) of different mechanisms of mod files between Neuron and
-     * CoreNeuron
+    /** Vector mapping the types (IDs) of different mechanisms of mod files between NEURON and
+     * CoreNEURON
      */
     std::vector<int> different_mechanism_type;
 
@@ -101,7 +102,7 @@ class CoreNeuron {
 
     /**
      * Net send / Net receive
-     * only used in crnrn for book keeping synapse mechs, should go into Coreneuron class
+     * only used in CoreNEURON for book keeping synapse mechs, should go into CoreNEURON class
      */
     std::vector<std::pair<NetBufReceive_t, int>> net_buf_receive;
     std::vector<int> net_buf_send_type;
@@ -117,7 +118,7 @@ class CoreNeuron {
      */
     std::vector<int> nrn_prop_param_size_;
     std::vector<int> nrn_prop_dparam_size_;
-    std::vector<int> nrn_mech_data_layout_; /* 1 AoS (default), >1 AoSoA, 0 SoA */
+    std::vector<int> nrn_mech_data_layout_; /* 1 AoS (default), 0 SoA */
     /* array is parallel to memb_func. All are 0 except 1 for ARTIFICIAL_CELL */
     std::vector<short> nrn_artcell_qindex_;
     std::vector<bool> nrn_is_artificial_;
@@ -133,12 +134,14 @@ class CoreNeuron {
      * Holds function pointers for WATCH callback
      */
     std::vector<nrn_watch_check_t> nrn_watch_check;
+
     /**
      * values are type numbers of mechanisms which do net_send call
      * related to NMODL net_event()
      *
      */
     std::vector<int> nrn_has_net_event_;
+
     /**
      * inverse of nrn_has_net_event_ maps the values of nrn_has_net_event_ to the index of
      * ptntype2presyn
@@ -182,42 +185,55 @@ class CoreNeuron {
     auto& get_bamech() {
         return bamech;
     }
+
     auto& get_prop_param_size() {
         return nrn_prop_param_size_;
     }
+
     auto& get_prop_dparam_size() {
         return nrn_prop_dparam_size_;
     }
+
     auto& get_mech_data_layout() {
         return nrn_mech_data_layout_;
     }
+
     auto& get_is_artificial() {
         return nrn_is_artificial_;
     }
+
     auto& get_artcell_qindex() {
         return nrn_artcell_qindex_;
     }
+
     auto& get_pnt_receive() {
         return pnt_receive;
     }
+
     auto& get_pnt_receive_init() {
         return pnt_receive_init;
     }
+
     auto& get_pnt_receive_size() {
         return pnt_receive_size;
     }
+
     auto& get_watch_check() {
         return nrn_watch_check;
     }
+
     auto& get_has_net_event() {
         return nrn_has_net_event_;
     }
+
     auto& get_pnttype2presyn() {
         return pnttype2presyn;
     }
+
     auto& get_bbcore_read() {
         return nrn_bbcore_read_;
     }
+
     auto& get_bbcore_write() {
         return nrn_bbcore_write_;
     }
@@ -233,6 +249,6 @@ class CoreNeuron {
 
 };
 
-extern CoreNeuron crnrn;
+extern CoreNeuron corenrn;
 
 }  // namespace coreneuron

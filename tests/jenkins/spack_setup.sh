@@ -7,9 +7,7 @@ echo "
 Preparing spack environment...
 ====================================================================="
 
-ls -la $HOME
-ls -la $HOME/.spack || echo "Hello"
-
+export HOME=${WORKSPACE}
 export SPACK_INSTALL_PREFIX="${SPACK_INSTALL_PREFIX:-${WORKSPACE}/INSTALL_HOME}"
 export SOFTS_DIR_PATH=$SPACK_INSTALL_PREFIX  # Deprecated, but might still be reqd
 

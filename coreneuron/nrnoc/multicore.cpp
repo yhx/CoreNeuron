@@ -91,8 +91,7 @@ void nrn_threads_create(int n) {
         nrn_threads = nullptr;
         nrn_nthread = n;
         if (n > 0) {
-            nrn_threads = (NrnThread*)emalloc_align(n * sizeof(NrnThread));
-
+            nrn_threads = new NrnThread[n];
             for (i = 0; i < nrn_nthread; ++i) {
                 NrnThread& nt = nrn_threads[i];
                 nt.id = i;

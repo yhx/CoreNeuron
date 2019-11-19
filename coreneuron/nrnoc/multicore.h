@@ -30,6 +30,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "coreneuron/nrnconf.h"
 #include "coreneuron/nrnoc/membfunc.hpp"
+#include "coreneuron/nrniv/memory.h"
 
 namespace coreneuron {
 class NetCon;
@@ -78,7 +79,7 @@ struct PreSynHelper {
     int flag_;
 };
 
-struct NrnThread {
+struct NrnThread : public MemoryManaged {
     double _t = 0;
     double _dt = -1e9;
     double cj = 0.0;

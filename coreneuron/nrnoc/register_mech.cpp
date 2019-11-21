@@ -294,7 +294,7 @@ static void ion_write_depend(int type, int etype) {
     auto& memb_func = corenrn.get_memb_funcs();
     auto& ion_write_depend_ = corenrn.get_ion_write_dependency();
     if (ion_write_depend_.size() < memb_func.size()) {
-        ion_write_depend_.emplace_back();
+        ion_write_depend_.resize(memb_func.size());
     }
 
     int size = !ion_write_depend_[etype].empty() ? ion_write_depend_[etype][0] + 1: 2;
@@ -338,7 +338,7 @@ int nrn_mech_depend(int type, int* dependencies) {
                 int idepnew;
                 deptype = ds[i];
                 idepnew = depend_append(idep, dependencies, deptype, type);
-                if ((corenrn.get_ion_write_dependency().size() > deptype) && (idepnew > idep) ){
+                if ((idepnew > idep) && !corenrn.get_ion_write_dependency()[deptype].empty()) {
                     auto& iwd = corenrn.get_ion_write_dependency()[deptype];
                     int size, j;
                     size = iwd[0];

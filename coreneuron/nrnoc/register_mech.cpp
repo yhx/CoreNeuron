@@ -338,7 +338,9 @@ int nrn_mech_depend(int type, int* dependencies) {
                 int idepnew;
                 deptype = ds[i];
                 idepnew = depend_append(idep, dependencies, deptype, type);
-                if ((idepnew > idep) && !corenrn.get_ion_write_dependency()[deptype].empty()) {
+                if ((idepnew > idep)
+                    && !corenrn.get_ion_write_dependency().empty()
+                    && !corenrn.get_ion_write_dependency()[deptype].empty()) {
                     auto& iwd = corenrn.get_ion_write_dependency()[deptype];
                     int size, j;
                     size = iwd[0];

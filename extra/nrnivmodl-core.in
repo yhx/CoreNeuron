@@ -65,7 +65,7 @@ fi
 # Note: due to bug #712 makefile wont handle mod dir with spaces, so we let it fail here
 params_MODS_PATH=$1
 
-mkdir -p $(dirname "$SAVE_FILE")
+mkdir -p "$(dirname "$SAVE_FILE")"
 echo "# nrnivmodl-core options. Mods location: $params_MODS_PATH" > $SAVE_FILE
 
 make_params=("ROOT=${ROOTDIR}")
@@ -74,9 +74,9 @@ for param in $MAKE_OPTIONS; do
     var="params_${param}"
     if [ "${!var+x}" ]; then
         make_params+=("$param=${!var}")
-        echo "$var=${!var}" >> $SAVE_FILE
+        echo "$var=\"${!var}\""
     fi
-done
+done >> "$SAVE_FILE"
 
 # If -I (install) provided, call "make install"
 if [ "$params_DESTDIR" ]; then

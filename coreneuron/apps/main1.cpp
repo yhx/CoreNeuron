@@ -445,6 +445,7 @@ extern "C" int run_solve_core(int argc, char** argv) {
     Instrumentor::phase_begin("main");
 
     std::vector<ReportConfiguration> configs;
+    std::vector<std::shared_ptr<ReportHandler>> report_handlers;
     bool reports_needs_finalize = false;
 
     report_mem_usage("After mk_mech");
@@ -518,6 +519,14 @@ extern "C" int run_solve_core(int argc, char** argv) {
         double min_report_dt = INT_MAX;
         int report_buffer_size = nrnopt_get_int("--report-buffer-size");
         for (size_t i = 0; i < configs.size(); i++) {
+            /*std::shared_ptr<ReportHandler> report_handler;
+            if(0 == strcmp( configs[i].format, "Bin")) {
+                report_handler = std::make_shared<BinaryReportHandler>();
+            } else if(0 == strcmp(configs[i].format, "SONATA")) {
+                report_handler = std::make_shared<SonataReportHandler>();
+            }
+            report_handlers.push_back(report_handler);
+            report_handler->register_report(dt, tstop, delay, configs[i]);*/
             register_report(dt, tstop, delay, configs[i]);
             if (configs[i].report_dt < min_report_dt) {
                 min_report_dt = configs[i].report_dt;

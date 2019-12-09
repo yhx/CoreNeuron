@@ -41,9 +41,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/mechanism/mech_mapping.hpp"
 #include "coreneuron/mechanism/membfunc.hpp"
 #ifdef ENABLE_REPORTING
-#ifdef ENABLE_SONATA_REPORTS
-#include "reportinglib/records.h"
-#else
+#include "bbp/sonata/reports.h"
 #include "reportinglib/Records.h"
 #endif
 #endif
@@ -93,6 +91,7 @@ class ReportEvent : public DiscreteEvent {
 #pragma omp critical
         {
             // each thread needs to know its own step
+            sonata_record_node_data(step, gids_to_report.size(), &gids_to_report[0], report_path);
             records_nrec(step, gids_to_report.size(), &gids_to_report[0], report_path);
             send(t + dt, nc, nt);
             step++;
@@ -227,8 +226,11 @@ void register_soma_report(NrnThread& nt,
     int mapping[] = {0};
     // first row, from 2nd value (skip gid)
     int extra[] = {1, 0, 0, 0, 0};
-    VarsToReport::iterator it;
 
+    sonata_create_report((char*)config.output_path, config.start, config.stop, config.report_dt, (char*)config.type_str);
+    sonata_set_report_max_buffer_size_hint((char*)config.output_path, config.buffer_size);
+
+    VarsToReport::iterator it;
     for (it = vars_to_report.begin(); it != vars_to_report.end(); ++it) {
         int gid = it->first;
         std::vector<VarWithMapping>& vars = it->second;
@@ -242,18 +244,19 @@ void register_soma_report(NrnThread& nt,
         extra[1] = m->get_seclist_segment_count("soma");
 
         /** for this gid, get mapping information */
-        records_add_report((char*)config.output_path, gid, gid, gid, config.start, config.stop,
+        /*records_add_report((char*)config.output_path, gid, gid, gid, config.start, config.stop,
                            config.report_dt, sizemapping, (char*)config.type_str, extramapping,
                            (char*)config.unit);
 
-        records_set_report_max_buffer_size_hint((char*)config.output_path, config.buffer_size);
+        records_set_report_max_buffer_size_hint((char*)config.output_path, config.buffer_size);*/
         /** add extra mapping */
-        records_extra_mapping(config.output_path, gid, 5, extra);
+        sonata_extra_mapping(config.output_path, gid, 5, extra);
         for (int var_idx = 0; var_idx < vars.size(); ++var_idx) {
             /** 1st key is section-id and 1st value is segment of soma */
             mapping[0] = vars[var_idx].id;
-            records_add_var_with_mapping(config.output_path, gid, vars[var_idx].var_value,
-                                         sizemapping, mapping);
+            sonata_add_element(config.output_path, gid, vars[var_idx].id, vars[var_idx].var_value);
+            /*records_add_var_with_mapping(config.output_path, gid, vars[var_idx].var_value,
+                                         sizemapping, mapping);*/
         }
     }
 }
@@ -265,6 +268,9 @@ void register_compartment_report(NrnThread& nt,
     int extramapping = 5;
     int mapping[] = {0};
     int extra[] = {1, 0, 0, 0, 1};
+
+    sonata_create_report((char*)config.output_path, config.start, config.stop, config.report_dt, (char*)config.type_str);
+    sonata_set_report_max_buffer_size_hint((char*)config.output_path, config.buffer_size);
 
     VarsToReport::iterator it;
     for (it = vars_to_report.begin(); it != vars_to_report.end(); ++it) {
@@ -279,17 +285,18 @@ void register_compartment_report(NrnThread& nt,
         extra[3] = m->get_seclist_section_count("dend");
         extra[4] = m->get_seclist_section_count("apic");
         extra[0] = extra[1] + extra[2] + extra[3] + extra[4];
-        records_add_report((char*)config.output_path, gid, gid, gid, config.start, config.stop,
+        /*records_add_report((char*)config.output_path, gid, gid, gid, config.start, config.stop,
                            config.report_dt, sizemapping, (char*)config.type_str, extramapping,
                            (char*)config.unit);
 
-        records_set_report_max_buffer_size_hint((char*)config.output_path, config.buffer_size);
+        records_set_report_max_buffer_size_hint((char*)config.output_path, config.buffer_size);*/
         /** add extra mapping */
-        records_extra_mapping(config.output_path, gid, 5, extra);
+        sonata_extra_mapping(config.output_path, gid, 5, extra);
         for (int var_idx = 0; var_idx < vars.size(); ++var_idx) {
             mapping[0] = vars[var_idx].id;
-            records_add_var_with_mapping(config.output_path, gid, vars[var_idx].var_value,
-                                         sizemapping, mapping);
+            sonata_add_element(config.output_path, gid, vars[var_idx].id, vars[var_idx].var_value);
+            /*records_add_var_with_mapping(config.output_path, gid, vars[var_idx].var_value,
+                                         sizemapping, mapping);*/
         }
     }
 }
@@ -304,6 +311,9 @@ void register_custom_report(NrnThread& nt,
     int segment_count = 0;
     int section_count = 0;
 
+    sonata_create_report((char*)config.output_path, config.start, config.stop, config.report_dt, (char*)config.type_str);
+    sonata_set_report_max_buffer_size_hint((char*)config.output_path, config.buffer_size);
+
     VarsToReport::iterator it;
     for (it = vars_to_report.begin(); it != vars_to_report.end(); ++it) {
         int gid = it->first;
@@ -317,17 +327,18 @@ void register_custom_report(NrnThread& nt,
         // extra[2] and extra[3]
         extra[4] = m->get_seclist_section_count("apic");
         extra[0] = extra[1] + extra[2] + extra[3] + extra[4];
-        records_add_report((char*)config.output_path, gid, gid, gid, config.start, config.stop,
+        /*records_add_report((char*)config.output_path, gid, gid, gid, config.start, config.stop,
                            config.report_dt, sizemapping, (char*)config.type_str, extramapping,
                            (char*)config.unit);
 
-        records_set_report_max_buffer_size_hint((char*)config.output_path, config.buffer_size);
+        records_set_report_max_buffer_size_hint((char*)config.output_path, config.buffer_size);*/
         /** add extra mapping : @todo api changes in reportinglib*/
-        records_extra_mapping((char*)config.output_path, gid, 5, extra);
+        sonata_extra_mapping((char*)config.output_path, gid, 5, extra);
         for (int var_idx = 0; var_idx < vars.size(); ++var_idx) {
             mapping[0] = vars[var_idx].id;
-            records_add_var_with_mapping(config.output_path, gid, vars[var_idx].var_value,
-                                         sizemapping, mapping);
+            sonata_add_element(config.output_path, gid, vars[var_idx].id, vars[var_idx].var_value);
+            /*records_add_var_with_mapping(config.output_path, gid, vars[var_idx].var_value,
+                                         sizemapping, mapping);*/
         }
     }
 }
@@ -366,6 +377,7 @@ static int size_report_buffer = 4;
 void nrn_flush_reports(double t) {
 #ifdef ENABLE_REPORTING
     // flush before buffer is full
+    sonata_end_iteration(t);
     records_end_iteration(t);
 #endif
 }
@@ -381,6 +393,10 @@ void setup_report_engine(double dt_report, double mindelay) {
 #ifdef ENABLE_REPORTING
     /** reportinglib setup */
     int min_steps_to_record = static_cast<int>(std::round(mindelay / dt_report));
+    sonata_set_min_steps_to_record(min_steps_to_record);
+    sonata_setup_communicators();
+    sonata_prepare_datasets();
+
     records_set_min_steps_to_record(min_steps_to_record);
     records_setup_communicator();
     records_finish_and_share();
@@ -391,6 +407,7 @@ void setup_report_engine(double dt_report, double mindelay) {
 void set_report_buffer_size(int n) {
     size_report_buffer = n;
 #ifdef ENABLE_REPORTING
+    sonata_set_max_buffer_size_hint(size_report_buffer);
     records_set_max_buffer_size_hint(size_report_buffer);
 #endif
 }
@@ -405,7 +422,7 @@ void register_report(double dt, double tstop, double delay, ReportConfiguration&
     }
     report.stop = std::min(report.stop, tstop);
 
-    records_set_atomic_step(dt);
+    sonata_set_atomic_step(dt);
     report.mech_id = nrn_get_mechtype(report.mech_name);
     if (report.type == SynapseReport && report.mech_id == -1) {
         std::cerr << "[ERROR] mechanism to report: " << report.mech_name
@@ -448,6 +465,7 @@ void register_report(double dt, double tstop, double delay, ReportConfiguration&
 
 void finalize_report() {
 #ifdef ENABLE_REPORTING
+    sonata_flush(nrn_threads[0]._t);
     records_flush(nrn_threads[0]._t);
     for (int i = 0; i < reports.size(); i++) {
         delete reports[i];

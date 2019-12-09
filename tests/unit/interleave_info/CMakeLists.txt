@@ -11,6 +11,7 @@ target_link_libraries(interleave_info_bin
                       ${MPI_CXX_LIBRARIES}
                       ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
                       coreneuron
+                      ${reportinglib_LIBRARY}
                       sonata::sonata_report)
 
 add_test(NAME interleave_info_constructor_test

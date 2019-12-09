@@ -24,6 +24,10 @@ fi
 # diff outputed files with reference
 cd @CMAKE_CURRENT_BINARY_DIR@/@SIM_NAME@
 
+# We convert spikes to out.dat format
+data=$(h5dump -d /spikes/timestamps -d /spikes/node_ids -y -O spikes | tr "," "\n")
+echo $data | awk '{n=NF/2; for (i=1;i<=n;i++) print $i,$(n+i) }' >> out.dat
+
 if [ ! -f out.dat ]
 then
   echo "No output files. Test failed!"

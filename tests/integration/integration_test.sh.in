@@ -23,8 +23,24 @@ fi
 cd @CMAKE_CURRENT_BINARY_DIR@/@SIM_NAME@
 
 # We convert spikes to out.dat format
-data=$(h5dump -d /spikes/timestamps -d /spikes/node_ids -y -O spikes | tr "," "\n")
-echo $data | awk '{n=NF/2; for (i=1;i<=n;i++) print $i,$(n+i) }' >> out.dat
+reports=@CORENRN_ENABLE_REPORTING@
+if [ "$reports" = "ON" ]
+then
+  data=$(h5dump -d /spikes/timestamps -d /spikes/node_ids -y -O spikes | tr "," "\n")
+  echo $data | awk '{n=NF/2; for (i=1;i<=n;i++) print $i "\t" $(n+i) }' >> out_SONATA.dat
+
+  if [ ! -f out_SONATA.dat ]
+  then
+    echo "No SONATA output files. Test failed!"
+    exit 1
+  fi
+  diff -w out_SONATA.dat @CMAKE_CURRENT_SOURCE_DIR@/@SIM_NAME@/out.dat.ref > diff_SONATA.dat 2>&1
+  if [ -s diff_SONATA.dat ]
+  then
+    echo "SONATA Results are different, check the file diff_SONATA.dat. Test failed!"
+    exit 1
+  fi
+fi
 
 if [ ! -f out.dat ]
 then

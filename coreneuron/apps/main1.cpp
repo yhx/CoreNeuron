@@ -519,15 +519,14 @@ extern "C" int run_solve_core(int argc, char** argv) {
         double min_report_dt = INT_MAX;
         int report_buffer_size = nrnopt_get_int("--report-buffer-size");
         for (size_t i = 0; i < configs.size(); i++) {
-            /*std::shared_ptr<ReportHandler> report_handler;
+            std::shared_ptr<ReportHandler> report_handler;
             if(0 == strcmp( configs[i].format, "Bin")) {
-                report_handler = std::make_shared<BinaryReportHandler>();
+                report_handler = std::make_shared<BinaryReportHandler>(configs[i]);
             } else if(0 == strcmp(configs[i].format, "SONATA")) {
-                report_handler = std::make_shared<SonataReportHandler>();
+                report_handler = std::make_shared<SonataReportHandler>(configs[i]);
             }
             report_handlers.push_back(report_handler);
-            report_handler->register_report(dt, tstop, delay, configs[i]);*/
-            register_report(dt, tstop, delay, configs[i]);
+            report_handler->create_report(dt, tstop, delay);
             if (configs[i].report_dt < min_report_dt) {
                 min_report_dt = configs[i].report_dt;
             }

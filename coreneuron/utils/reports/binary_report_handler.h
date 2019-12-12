@@ -5,16 +5,17 @@
 
 namespace coreneuron {
 
-    class BinaryReportHandler: public ReportHandler {
-    public:
-        BinaryReportHandler();
-        ~BinaryReportHandler() = default;
+class BinaryReportHandler: public ReportHandler {
+  public:
+    BinaryReportHandler(ReportConfiguration& config): ReportHandler(config) {}
+    ~BinaryReportHandler() = default;
 
-        void register_report(double dt, double tstop, double delay, ReportConfiguration &config) override;
-        void setup_report_engine(double dt_report, double mindelay) override;
-        void set_report_buffer_size(int n) override;
-        void update_reports(double t) override;
-        void finalize_reports() override;
-    };
+    void create_report(double dt, double tstop, double delay) override;
+#ifdef ENABLE_REPORTING
+    void register_soma_report(NrnThread& nt, ReportConfiguration& config, VarsToReport& vars_to_report) override;
+    void register_compartment_report(NrnThread& nt, ReportConfiguration& config, VarsToReport& vars_to_report) override;
+    void register_custom_report(NrnThread& nt, ReportConfiguration& config, VarsToReport& vars_to_report) override;
+#endif  // ENABLE_REPORTING
+};
 
 } // namespace coreneuron

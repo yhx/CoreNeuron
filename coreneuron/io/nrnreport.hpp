@@ -73,10 +73,8 @@ struct ReportConfiguration {
 };
 
 void setup_report_engine(double dt_report, double mindelay);
-void register_report(double dt, double tstop, double delay, ReportConfiguration& config);
 std::vector<ReportConfiguration> create_report_configurations(const char* filename,
                                                               const char* output_dir);
-void setup_report_engine(double dt_report, double mindelay);
 void finalize_report();
 void nrn_flush_reports(double t);
 void set_report_buffer_size(int n);

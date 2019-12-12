@@ -164,10 +164,10 @@ void output_spikes_parallel(const char* outpath) {
     if (nrnmpi_myid == 0) {
         remove(fname.c_str());
     }
-    sort_spikes(spikevec_time, spikevec_gid);
 #ifdef ENABLE_REPORTING
         sonata_write_spikes(spikevec_time.data(), spikevec_time.size(), spikevec_gid.data(), spikevec_gid.size());
 #endif  // ENABLE_REPORTING
+    sort_spikes(spikevec_time, spikevec_gid);
     nrnmpi_barrier();
 
     // each spike record in the file is time + gid (64 chars sufficient)

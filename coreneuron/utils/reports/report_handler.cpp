@@ -14,14 +14,15 @@ void ReportHandler::create_report(double dt, double tstop, double delay) {
     m_report_config.mech_id = nrn_get_mechtype(m_report_config.mech_name);
     if (m_report_config.type == SynapseReport && m_report_config.mech_id == -1) {
         std::cerr << "[ERROR] mechanism to report: " << m_report_config.mech_name
-                  << " is not mapped in this simulation, cannot report on it" << std::endl;
+                  << " is not mapped in this simulation, cannot report on it \n";
         nrn_abort(1);
     }
     for (int ith = 0; ith < nrn_nthread; ++ith) {
         NrnThread &nt = nrn_threads[ith];
-        if (!nt.ncell)
+        if (!nt.ncell) {
             continue;
-        std::vector<int> nodes_to_gid = map_gids(nt);
+        }
+        const std::vector<int>& nodes_to_gid = map_gids(nt);
         VarsToReport vars_to_report;
         switch (m_report_config.type) {
             case SomaReport:
@@ -40,25 +41,24 @@ void ReportHandler::create_report(double dt, double tstop, double delay) {
                 vars_to_report = get_custom_vars_to_report(nt, m_report_config, nodes_to_gid);
                 register_custom_report(nt, m_report_config, vars_to_report);
         }
-        if (vars_to_report.size()) {
+        if (!vars_to_report.empty()) {
             m_report_event = std::make_unique<ReportEvent>(dt, t, vars_to_report, m_report_config.output_path);
             m_report_event->send(t, net_cvode_instance, &nt);
         }
     }
 #else
     if (nrnmpi_myid == 0) {
-        printf("\n WARNING! : Can't enable reports, recompile with ReportingLib! \n");
+        std::cout << "[WARNING] : Can't enable reports, recompile with ReportingLib! \n";
     }
 #endif  // ENABLE_REPORTING
 }
 
 #ifdef ENABLE_REPORTING
-VarsToReport ReportHandler::get_soma_vars_to_report(NrnThread &nt, std::set<int> &target, double *report_variable) {
+VarsToReport ReportHandler::get_soma_vars_to_report(NrnThread &nt, const std::set<int> &target, double *report_variable) {
     VarsToReport vars_to_report;
-    NrnThreadMappingInfo *mapinfo = (NrnThreadMappingInfo *) nt.mapping;
-
+    const auto* mapinfo = static_cast<NrnThreadMappingInfo*>(nt.mapping);
     if (!mapinfo) {
-        std::cout << "[SOMA] Error : mapping information is missing for a Cell group " << std::endl;
+        std::cerr << "[SOMA] Error : mapping information is missing for a Cell group " << nt.ncell << "\n";
         nrn_abort(1);
     }
 
@@ -69,7 +69,7 @@ VarsToReport ReportHandler::get_soma_vars_to_report(NrnThread &nt, std::set<int>
         if (target.find(gid) != target.end()) {
             CellMapping *m = mapinfo->get_cell_mapping(gid);
             if (m == nullptr) {
-                std::cout << "[SOMA] Error : mapping information is missing for Soma Report! \n";
+                std::cerr << "[SOMA] Error : Soma mapping information is missing for gid " << gid << "\n";
                 nrn_abort(1);
             }
             /** get  section list mapping for soma */
@@ -86,33 +86,30 @@ VarsToReport ReportHandler::get_soma_vars_to_report(NrnThread &nt, std::set<int>
 }
 
 VarsToReport
-ReportHandler::get_compartment_vars_to_report(NrnThread &nt, std::set<int> &target, double *report_variable) {
+ReportHandler::get_compartment_vars_to_report(NrnThread &nt, const std::set<int> &target, double *report_variable) {
     VarsToReport vars_to_report;
-    NrnThreadMappingInfo *mapinfo = (NrnThreadMappingInfo *) nt.mapping;
+    const auto* mapinfo = static_cast<NrnThreadMappingInfo*>(nt.mapping);
     if (!mapinfo) {
-        std::cout << "[COMPARTMENTS] Error : mapping information is missing for a Cell group "
-                  << nt.ncell << std::endl;
+        std::cerr << "[COMPARTMENTS] Error : mapping information is missing for a Cell group " << nt.ncell << "\n";
         nrn_abort(1);
     }
 
     for (int i = 0; i < nt.ncell; i++) {
         int gid = nt.presyns[i].gid_;
         if (target.find(gid) != target.end()) {
-            CellMapping *m = mapinfo->get_cell_mapping(gid);
-            if (m == nullptr) {
-                std::cout << "[COMPARTMENTS] Error : Compartment mapping information is missing! \n";
+            CellMapping *cell_mapping = mapinfo->get_cell_mapping(gid);
+            if (cell_mapping == nullptr) {
+                std::cerr << "[COMPARTMENTS] Error : Compartment mapping information is missing for gid " << gid << "\n";
                 nrn_abort(1);
             }
             std::vector<VarWithMapping> to_report;
-            to_report.reserve(m->size());
-            for (int j = 0; j < m->size(); j++) {
-                SecMapping *s = m->secmapvec[j];
-                for (secseg_it_type iterator = s->secmap.begin(); iterator != s->secmap.end();
-                     iterator++) {
-                    int compartment_id = iterator->first;
-                    segvec_type &vec = iterator->second;
-                    for (size_t k = 0; k < vec.size(); k++) {
-                        int idx = vec[k];
+            to_report.reserve(cell_mapping->size());
+            const auto& secmapvec = cell_mapping->secmapvec;
+            for (const auto& s: secmapvec) {
+                for(auto& sm : s->secmap) {
+                    int compartment_id = sm.first;
+                    auto& vec = sm.second;
+                    for (const auto& idx: vec) {
                         /** corresponding voltage in coreneuron voltage array */
                         double *variable = report_variable + idx;
                         to_report.push_back(VarWithMapping(compartment_id, variable));
@@ -127,35 +124,35 @@ ReportHandler::get_compartment_vars_to_report(NrnThread &nt, std::set<int> &targ
 
 VarsToReport ReportHandler::get_custom_vars_to_report(NrnThread &nt,
                                                       ReportConfiguration &report,
-                                                      std::vector<int> &nodes_to_gids) {
+                                                      const std::vector<int> &nodes_to_gids) {
     VarsToReport vars_to_report;
     for (int i = 0; i < nt.ncell; i++) {
         int gid = nt.presyns[i].gid_;
-        if (report.target.find(gid) == report.target.end())
+        if (report.target.find(gid) == report.target.end()) {
             continue;
+        }
         Memb_list *ml = nt._ml_list[report.mech_id];
-        if (!ml)
+        if (!ml){
             continue;
+        }
         std::vector<VarWithMapping> to_report;
         to_report.reserve(ml->nodecount);
 
         for (int j = 0; j < ml->nodecount; j++) {
-            double *is_selected =
-                    get_var_location_from_var_name(report.mech_id, SELECTED_VAR_MOD_NAME, ml, j);
+            double *is_selected = get_var_location_from_var_name(report.mech_id, SELECTED_VAR_MOD_NAME, ml, j);
             bool report_variable = false;
 
             /// if there is no variable in mod file then report on every compartment
             /// otherwise check the flag set in mod file
-            if (is_selected == nullptr)
+            if (is_selected == nullptr) {
                 report_variable = true;
-            else
+            }
+            else {
                 report_variable = *is_selected;
-
+            }
             if ((nodes_to_gids[ml->nodeindices[j]] == gid) && report_variable) {
-                double *var_value =
-                        get_var_location_from_var_name(report.mech_id, report.var_name, ml, j);
-                double *synapse_id =
-                        get_var_location_from_var_name(report.mech_id, SYNAPSE_ID_MOD_NAME, ml, j);
+                double *var_value = get_var_location_from_var_name(report.mech_id, report.var_name, ml, j);
+                double *synapse_id = get_var_location_from_var_name(report.mech_id, SYNAPSE_ID_MOD_NAME, ml, j);
                 assert(synapse_id && var_value);
                 to_report.push_back(VarWithMapping((int) *synapse_id, var_value));
             }

@@ -22,7 +22,7 @@ typedef std::map<int, std::vector<VarWithMapping> > VarsToReport;
 
 class ReportEvent : public DiscreteEvent {
   public:
-    ReportEvent(double dt, double tstart, VarsToReport &filtered_gids, const char *name);
+    ReportEvent(double dt, double tstart, const VarsToReport &filtered_gids, const char *name);
 
     /** on deliver, call ReportingLib and setup next event */
     virtual void deliver(double t, NetCvode *nc, NrnThread *nt);

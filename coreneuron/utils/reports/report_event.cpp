@@ -9,15 +9,15 @@
 namespace coreneuron {
 
 #ifdef ENABLE_REPORTING
-ReportEvent::ReportEvent(double dt, double tstart, VarsToReport &filtered_gids, const char *name)
+ReportEvent::ReportEvent(double dt, double tstart, const VarsToReport &filtered_gids, const char *name)
         : dt(dt), tstart(tstart) {
     strcpy(report_path, name);
     VarsToReport::iterator it;
     nrn_assert(filtered_gids.size());
     step = tstart / dt;
     gids_to_report.reserve(filtered_gids.size());
-    for (it = filtered_gids.begin(); it != filtered_gids.end(); ++it) {
-        gids_to_report.push_back(it->first);
+    for(const auto& gid: filtered_gids) {
+        gids_to_report.push_back(gid.first);
     }
     std::sort(gids_to_report.begin(), gids_to_report.end());
 }
@@ -28,8 +28,8 @@ void ReportEvent::deliver(double t, NetCvode *nc, NrnThread *nt) {
 #pragma omp critical
     {
         // each thread needs to know its own step
-        sonata_record_node_data(step, gids_to_report.size(), &gids_to_report[0], report_path);
-        records_nrec(step, gids_to_report.size(), &gids_to_report[0], report_path);
+        sonata_record_node_data(step, gids_to_report.size(), gids_to_report.data(), report_path);
+        records_nrec(step, gids_to_report.size(), gids_to_report.data(), report_path);
         send(t + dt, nc, nt);
         step++;
     }

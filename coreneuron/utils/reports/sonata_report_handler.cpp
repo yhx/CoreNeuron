@@ -16,19 +16,19 @@ void SonataReportHandler::create_report(double dt, double tstop, double delay) {
     ReportHandler::create_report(dt, tstop, delay);
 }
 #ifdef ENABLE_REPORTING
-void SonataReportHandler::register_soma_report(NrnThread &nt, ReportConfiguration &config, VarsToReport &vars_to_report) {
+void SonataReportHandler::register_soma_report(NrnThread &nt, ReportConfiguration &config, const VarsToReport &vars_to_report) {
     register_report(nt, config, vars_to_report);
 }
 
-void SonataReportHandler::register_compartment_report(NrnThread &nt, ReportConfiguration &config, VarsToReport &vars_to_report) {
+void SonataReportHandler::register_compartment_report(NrnThread &nt, ReportConfiguration &config, const VarsToReport &vars_to_report) {
     register_report(nt, config, vars_to_report);
 }
 
-void SonataReportHandler::register_custom_report(NrnThread &nt, ReportConfiguration &config, VarsToReport &vars_to_report) {
+void SonataReportHandler::register_custom_report(NrnThread &nt, ReportConfiguration &config, const VarsToReport &vars_to_report) {
     register_report(nt, config, vars_to_report);
 }
 
-void SonataReportHandler::register_report(NrnThread &nt, ReportConfiguration &config, VarsToReport &vars_to_report) {
+void SonataReportHandler::register_report(NrnThread &nt, ReportConfiguration &config, const VarsToReport &vars_to_report) {
     sonata_create_report(config.output_path, config.start, config.stop, config.report_dt, config.type_str);
     sonata_set_report_max_buffer_size_hint(config.output_path, config.buffer_size);
 

@@ -13,8 +13,7 @@ ReportEvent::ReportEvent(double dt,
                          double tstart,
                          const VarsToReport& filtered_gids,
                          const char* name)
-    : dt(dt), tstart(tstart) {
-    strcpy(report_path, name);
+    : dt(dt), tstart(tstart), report_path(name) {
     VarsToReport::iterator it;
     nrn_assert(filtered_gids.size());
     step = tstart / dt;
@@ -31,8 +30,8 @@ void ReportEvent::deliver(double t, NetCvode* nc, NrnThread* nt) {
 #pragma omp critical
     {
         // each thread needs to know its own step
-        sonata_record_node_data(step, gids_to_report.size(), gids_to_report.data(), report_path);
-        records_nrec(step, gids_to_report.size(), gids_to_report.data(), report_path);
+        sonata_record_node_data(step, gids_to_report.size(), gids_to_report.data(), report_path.data());
+        records_nrec(step, gids_to_report.size(), gids_to_report.data(), report_path.data());
         send(t + dt, nc, nt);
         step++;
     }

@@ -5,9 +5,6 @@
 #include "coreneuron/nrniv/netcon.h"
 #include "coreneuron/nrniv/netcvode.h"
 
-#define MAX_REPORT_NAME_LEN 256
-#define MAX_FILEPATH_LEN 4096
-
 namespace coreneuron {
 
 #ifdef ENABLE_REPORTING
@@ -32,7 +29,7 @@ class ReportEvent : public DiscreteEvent {
   private:
     double dt;
     double step;
-    char report_path[MAX_FILEPATH_LEN];
+    std::string report_path;
     std::vector<int> gids_to_report;
     double tstart;
 };

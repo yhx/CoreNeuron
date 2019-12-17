@@ -165,7 +165,8 @@ void output_spikes_parallel(const char* outpath) {
         remove(fname.c_str());
     }
 #ifdef ENABLE_REPORTING
-        sonata_write_spikes(spikevec_time.data(), spikevec_time.size(), spikevec_gid.data(), spikevec_gid.size());
+    sonata_write_spikes(spikevec_time.data(), spikevec_time.size(), spikevec_gid.data(),
+                        spikevec_gid.size());
 #endif  // ENABLE_REPORTING
     sort_spikes(spikevec_time, spikevec_gid);
     nrnmpi_barrier();

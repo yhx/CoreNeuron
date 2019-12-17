@@ -5,7 +5,6 @@
 
 namespace coreneuron {
 
-
 void BinaryReportHandler::create_report(double dt, double tstop, double delay) {
 #ifdef ENABLE_REPORTING
     records_set_atomic_step(dt);
@@ -39,30 +38,35 @@ void create_custom_extra(CellMapping* mapping, std::array<int, 5>& extra) {
     extra[0] = std::accumulate(extra.begin() + 1, extra.end(), 0);
 }
 
-void BinaryReportHandler::register_soma_report(NrnThread& nt, ReportConfiguration& config,
-                                                const VarsToReport& vars_to_report) {
-
-    std::function<void(CellMapping* mapping, std::array<int, 5>& extra)> create_extra = create_soma_extra;
+void BinaryReportHandler::register_soma_report(NrnThread& nt,
+                                               ReportConfiguration& config,
+                                               const VarsToReport& vars_to_report) {
+    std::function<void(CellMapping * mapping, std::array<int, 5> & extra)> create_extra =
+        create_soma_extra;
     register_report(nt, config, vars_to_report, create_extra);
 }
 
-void BinaryReportHandler::register_compartment_report(NrnThread& nt, ReportConfiguration& config,
-                                                        const VarsToReport& vars_to_report) {
-
-    std::function<void(CellMapping* mapping, std::array<int, 5>& extra)> create_extra = create_compartment_extra;
+void BinaryReportHandler::register_compartment_report(NrnThread& nt,
+                                                      ReportConfiguration& config,
+                                                      const VarsToReport& vars_to_report) {
+    std::function<void(CellMapping * mapping, std::array<int, 5> & extra)> create_extra =
+        create_compartment_extra;
     register_report(nt, config, vars_to_report, create_extra);
 }
 
-void BinaryReportHandler::register_custom_report(NrnThread& nt, ReportConfiguration& config,
-                                                    const VarsToReport& vars_to_report) {
-
-    std::function<void(CellMapping* mapping, std::array<int, 5>& extra)> create_extra = create_custom_extra;
+void BinaryReportHandler::register_custom_report(NrnThread& nt,
+                                                 ReportConfiguration& config,
+                                                 const VarsToReport& vars_to_report) {
+    std::function<void(CellMapping * mapping, std::array<int, 5> & extra)> create_extra =
+        create_custom_extra;
     register_report(nt, config, vars_to_report, create_extra);
 }
 
-void BinaryReportHandler::register_report(NrnThread &nt, ReportConfiguration &config,
-                                            const VarsToReport &vars_to_report,
-                                            std::function<void(CellMapping* mapping, std::array<int, 5>& extra)>& create_extra) {
+void BinaryReportHandler::register_report(
+    NrnThread& nt,
+    ReportConfiguration& config,
+    const VarsToReport& vars_to_report,
+    std::function<void(CellMapping* mapping, std::array<int, 5>& extra)>& create_extra) {
     int sizemapping = 1;
     int extramapping = 5;
     std::array<int, 1> mapping = {0};
@@ -84,13 +88,14 @@ void BinaryReportHandler::register_report(NrnThread &nt, ReportConfiguration &co
         records_set_report_max_buffer_size_hint(config.output_path, config.buffer_size);
         /** add extra mapping : @todo api changes in reportinglib*/
         records_extra_mapping(config.output_path, gid, 5, extra.data());
-        for (const auto& var: vars) {
+        for (const auto& var : vars) {
             mapping[0] = var.id;
-            records_add_var_with_mapping(config.output_path, gid, var.var_value, sizemapping, mapping.data());
+            records_add_var_with_mapping(config.output_path, gid, var.var_value, sizemapping,
+                                         mapping.data());
         }
     }
 }
 
 #endif  // ENABLE_REPORTING
 
-} // Namespace coreneuron
+}  // Namespace coreneuron

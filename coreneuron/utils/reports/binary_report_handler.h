@@ -25,11 +25,12 @@ class BinaryReportHandler : public ReportHandler {
                                 const VarsToReport& vars_to_report) override;
 
   private:
-    void register_report(
-        NrnThread& nt,
-        ReportConfiguration& config,
-        const VarsToReport& vars_to_report,
-        std::function<void(CellMapping* mapping, std::array<int, 5>& extra)>& create_extra);
+    using create_extra_func =
+        std::function<void(const CellMapping& mapping, std::array<int, 5>& extra)>;
+    void register_report(NrnThread& nt,
+                         ReportConfiguration& config,
+                         const VarsToReport& vars_to_report,
+                         create_extra_func& create_extra);
 #endif  // ENABLE_REPORTING
 };
 

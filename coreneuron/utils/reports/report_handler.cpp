@@ -51,15 +51,15 @@ void ReportHandler::create_report(double dt, double tstop, double delay) {
     }
 #else
     if (nrnmpi_myid == 0) {
-        std::cout << "[WARNING] : Can't enable reports, recompile with ReportingLib! \n";
+        std::cerr << "[WARNING] : Can't enable reports, recompile with ReportingLib! \n";
     }
 #endif  // ENABLE_REPORTING
 }
 
 #ifdef ENABLE_REPORTING
-VarsToReport ReportHandler::get_soma_vars_to_report(NrnThread& nt,
+VarsToReport ReportHandler::get_soma_vars_to_report(const NrnThread& nt,
                                                     const std::set<int>& target,
-                                                    double* report_variable) {
+                                                    double* report_variable) const {
     VarsToReport vars_to_report;
     const auto* mapinfo = static_cast<NrnThreadMappingInfo*>(nt.mapping);
     if (!mapinfo) {
@@ -92,9 +92,9 @@ VarsToReport ReportHandler::get_soma_vars_to_report(NrnThread& nt,
     return vars_to_report;
 }
 
-VarsToReport ReportHandler::get_compartment_vars_to_report(NrnThread& nt,
+VarsToReport ReportHandler::get_compartment_vars_to_report(const NrnThread& nt,
                                                            const std::set<int>& target,
-                                                           double* report_variable) {
+                                                           double* report_variable) const {
     VarsToReport vars_to_report;
     const auto* mapinfo = static_cast<NrnThreadMappingInfo*>(nt.mapping);
     if (!mapinfo) {
@@ -133,9 +133,9 @@ VarsToReport ReportHandler::get_compartment_vars_to_report(NrnThread& nt,
     return vars_to_report;
 }
 
-VarsToReport ReportHandler::get_custom_vars_to_report(NrnThread& nt,
+VarsToReport ReportHandler::get_custom_vars_to_report(const NrnThread& nt,
                                                       ReportConfiguration& report,
-                                                      const std::vector<int>& nodes_to_gids) {
+                                                      const std::vector<int>& nodes_to_gids) const {
     VarsToReport vars_to_report;
     for (int i = 0; i < nt.ncell; i++) {
         int gid = nt.presyns[i].gid_;
@@ -159,18 +159,18 @@ VarsToReport ReportHandler::get_custom_vars_to_report(NrnThread& nt,
             if (is_selected == nullptr) {
                 report_variable = true;
             } else {
-                report_variable = *is_selected;
+                report_variable = *is_selected != 0.;
             }
             if ((nodes_to_gids[ml->nodeindices[j]] == gid) && report_variable) {
                 double* var_value =
                     get_var_location_from_var_name(report.mech_id, report.var_name, ml, j);
-                double* synapse_id =
-                    get_var_location_from_var_name(report.mech_id, SYNAPSE_ID_MOD_NAME, ml, j);
+                const auto synapse_id = static_cast<int>(
+                    *get_var_location_from_var_name(report.mech_id, SYNAPSE_ID_MOD_NAME, ml, j));
                 assert(synapse_id && var_value);
-                to_report.push_back(VarWithMapping((int)*synapse_id, var_value));
+                to_report.emplace_back(synapse_id, var_value);
             }
         }
-        if (to_report.size()) {
+        if (!to_report.empty()) {
             vars_to_report[gid] = to_report;
         }
     }
@@ -178,12 +178,12 @@ VarsToReport ReportHandler::get_custom_vars_to_report(NrnThread& nt,
 }
 
 // map GIDs of every compartment, it consist in a backward sweep then forward sweep algorithm
-std::vector<int> ReportHandler::map_gids(NrnThread& nt) {
+std::vector<int> ReportHandler::map_gids(const NrnThread& nt) const {
     std::vector<int> nodes_gid(nt.end, -1);
     // backward sweep: from presyn compartment propagate back GID to parent
     for (int i = 0; i < nt.n_presyn; i++) {
-        int gid = nt.presyns[i].gid_;
-        int thvar_index = nt.presyns[i].thvar_index_;
+        const int gid = nt.presyns[i].gid_;
+        const int thvar_index = nt.presyns[i].thvar_index_;
         // only for non artificial cells
         if (thvar_index >= 0) {
             // setting all roots gids of the presyns nodes,

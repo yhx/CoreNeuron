@@ -14,26 +14,26 @@ class ReportHandler {
 
     virtual void create_report(double dt, double tstop, double delay);
 #ifdef ENABLE_REPORTING
-    virtual void register_soma_report(NrnThread& nt,
+    virtual void register_soma_report(const NrnThread& nt,
                                       ReportConfiguration& config,
                                       const VarsToReport& vars_to_report) = 0;
-    virtual void register_compartment_report(NrnThread& nt,
+    virtual void register_compartment_report(const NrnThread& nt,
                                              ReportConfiguration& config,
                                              const VarsToReport& vars_to_report) = 0;
-    virtual void register_custom_report(NrnThread& nt,
+    virtual void register_custom_report(const NrnThread& nt,
                                         ReportConfiguration& config,
                                         const VarsToReport& vars_to_report) = 0;
 
-    VarsToReport get_soma_vars_to_report(NrnThread& nt,
+    VarsToReport get_soma_vars_to_report(const NrnThread& nt,
                                          const std::set<int>& target,
-                                         double* report_variable);
-    VarsToReport get_compartment_vars_to_report(NrnThread& nt,
+                                         double* report_variable) const;
+    VarsToReport get_compartment_vars_to_report(const NrnThread& nt,
                                                 const std::set<int>& target,
-                                                double* report_variable);
-    VarsToReport get_custom_vars_to_report(NrnThread& nt,
+                                                double* report_variable) const;
+    VarsToReport get_custom_vars_to_report(const NrnThread& nt,
                                            ReportConfiguration& report,
-                                           const std::vector<int>& nodes_to_gids);
-    std::vector<int> map_gids(NrnThread& nt);
+                                           const std::vector<int>& nodes_to_gids) const;
+    std::vector<int> map_gids(const NrnThread& nt) const;
 #endif  // ENABLE_REPORTING
   protected:
     ReportConfiguration m_report_config;

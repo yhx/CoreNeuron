@@ -16,19 +16,19 @@ void SonataReportHandler::create_report(double dt, double tstop, double delay) {
     ReportHandler::create_report(dt, tstop, delay);
 }
 #ifdef ENABLE_REPORTING
-void SonataReportHandler::register_soma_report(NrnThread& nt,
+void SonataReportHandler::register_soma_report(const NrnThread& nt,
                                                ReportConfiguration& config,
                                                const VarsToReport& vars_to_report) {
     register_report(nt, config, vars_to_report);
 }
 
-void SonataReportHandler::register_compartment_report(NrnThread& nt,
+void SonataReportHandler::register_compartment_report(const NrnThread& nt,
                                                       ReportConfiguration& config,
                                                       const VarsToReport& vars_to_report) {
     register_report(nt, config, vars_to_report);
 }
 
-void SonataReportHandler::register_custom_report(NrnThread& nt,
+void SonataReportHandler::register_custom_report(const NrnThread& nt,
                                                  ReportConfiguration& config,
                                                  const VarsToReport& vars_to_report) {
     register_report(nt, config, vars_to_report);

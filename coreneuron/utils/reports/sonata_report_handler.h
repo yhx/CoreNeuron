@@ -12,13 +12,13 @@ class SonataReportHandler : public ReportHandler {
 
     void create_report(double dt, double tstop, double delay) override;
 #ifdef ENABLE_REPORTING
-    void register_soma_report(NrnThread& nt,
+    void register_soma_report(const NrnThread& nt,
                               ReportConfiguration& config,
                               const VarsToReport& vars_to_report) override;
-    void register_compartment_report(NrnThread& nt,
+    void register_compartment_report(const NrnThread& nt,
                                      ReportConfiguration& config,
                                      const VarsToReport& vars_to_report) override;
-    void register_custom_report(NrnThread& nt,
+    void register_custom_report(const NrnThread& nt,
                                 ReportConfiguration& config,
                                 const VarsToReport& vars_to_report) override;
 

@@ -1,6 +1,6 @@
 #pragma once
-#include <map>
 #include <algorithm>
+#include <map>
 #include <vector>
 #include "coreneuron/nrniv/netcon.h"
 #include "coreneuron/nrniv/netcvode.h"

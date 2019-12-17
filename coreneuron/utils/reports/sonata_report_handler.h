@@ -23,7 +23,7 @@ class SonataReportHandler : public ReportHandler {
                                 const VarsToReport& vars_to_report) override;
 
   private:
-    void register_report(NrnThread& nt,
+    void register_report(const NrnThread& nt,
                          ReportConfiguration& config,
                          const VarsToReport& vars_to_report);
 #endif  // ENABLE_REPORTING

@@ -34,7 +34,7 @@ void SonataReportHandler::register_custom_report(const NrnThread& nt,
     register_report(nt, config, vars_to_report);
 }
 
-void SonataReportHandler::register_report(NrnThread& nt,
+void SonataReportHandler::register_report(const NrnThread& nt,
                                           ReportConfiguration& config,
                                           const VarsToReport& vars_to_report) {
     sonata_create_report(config.output_path, config.start, config.stop, config.report_dt,

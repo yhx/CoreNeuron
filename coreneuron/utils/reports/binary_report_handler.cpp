@@ -59,7 +59,7 @@ void BinaryReportHandler::register_custom_report(const NrnThread& nt,
     register_report(nt, config, vars_to_report, create_extra);
 }
 
-void BinaryReportHandler::register_report(NrnThread& nt,
+void BinaryReportHandler::register_report(const NrnThread& nt,
                                           ReportConfiguration& config,
                                           const VarsToReport& vars_to_report,
                                           create_extra_func& create_extra) {

@@ -15,9 +15,11 @@ then
    if [ $nb_recorded -eq 100 ] && [ $nb_recorded_sonata -eq 101 ]; then
      exit $OK
    else
+     echo "[ERROR] The number of steps recorded doesn't match. Test failed!" >&2
      exit $FAILED
    fi
 else
+   echo "[ERROR] Soma report file doesn't exist. Test failed!" >&2
    exit $FAILED
 fi
 

@@ -31,20 +31,20 @@ then
 
   if [ ! -f out_SONATA.dat ]
   then
-    echo "No SONATA output files. Test failed!"
+    echo "[ERROR] No SONATA output files. Test failed!" >&2
     exit 1
   fi
   diff -w out_SONATA.dat @CMAKE_CURRENT_SOURCE_DIR@/@SIM_NAME@/out.dat.ref > diff_SONATA.dat 2>&1
   if [ -s diff_SONATA.dat ]
   then
-    echo "SONATA Results are different, check the file diff_SONATA.dat. Test failed!"
+    echo "[ERROR] SONATA Results are different, check the file diff_SONATA.dat. Test failed!" >&2
     exit 1
   fi
 fi
 
 if [ ! -f out.dat ]
 then
-  echo "No output files. Test failed!"
+  echo "[ERROR] No output files. Test failed!" >&2
   exit 1
 fi
 
@@ -52,7 +52,7 @@ diff -w out.dat @CMAKE_CURRENT_SOURCE_DIR@/@SIM_NAME@/out.dat.ref > diff.dat 2>&
 
 if [ -s diff.dat ]
 then
-  echo "Results are different, check the file diff.dat. Test failed!"
+  echo "[ERROR] Results are different, check the file diff.dat. Test failed!" >&2
   exit 1
 else
   echo "Results are the same, test passed"

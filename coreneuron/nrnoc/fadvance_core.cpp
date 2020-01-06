@@ -300,12 +300,12 @@ static void* nrn_fixed_step_thread(NrnThread* nth) {
 
         {
             Instrumentor::phase p("setup_tree_matrix");
-            setup_tree_matrix_minimal(nth);
+            //setup_tree_matrix_minimal(nth);
         }
 
         {
             Instrumentor::phase p("matrix-solver");
-            nrn_solve_minimal(nth);
+            //nrn_solve_minimal(nth);
         }
 
         {
@@ -339,7 +339,7 @@ void* nrn_fixed_step_lastpart(NrnThread* nth) {
 #endif
 
         fixed_play_continuous(nth);
-        nonvint(nth);
+        //nonvint(nth);
         nrncore2nrn_send_values(nth);
         nrn_ba(nth, AFTER_SOLVE);
         nrn_ba(nth, BEFORE_STEP);

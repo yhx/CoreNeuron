@@ -59,6 +59,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/nrniv/nrn2core_direct.h"
 #include <string.h>
 #include <climits>
+#include <mpi.h>
 
 extern "C" {
 const char* corenrn_version() {
@@ -146,6 +147,39 @@ int corenrn_embedded_run(int nthread, int have_gaps, int use_mpi, int use_fast_i
 
     return corenrn_embedded;
 }
+}
+
+void print_message(const char* msg, int comm, bool timer_start) {
+
+    static double t = 0;
+
+    // flush any pending msgs
+    fflush(stdout);
+
+    // make sure everyone reached here
+    MPI_Barrier(comm);
+
+    if (timer_start) {
+        t = MPI_Wtime();
+    }
+
+    int rank;
+    // get size
+    MPI_Comm_rank(comm, &rank);
+
+    if(rank == 0) {
+        if (timer_start) {
+            printf("-----%s::start-----(measurement started)\n", msg);
+        } else {
+            printf("-----%s::end-----(elapsed time : %f)\n", msg, MPI_Wtime()-t);
+        }
+    }
+
+    // flush
+    fflush(stdout);
+
+    // just another sync
+    MPI_Barrier(comm);
 }
 
 #if 0
@@ -274,8 +308,10 @@ void nrn_init_and_load_data(int argc,
     n_multisend_interval = nrnopt_get_int("--ms-subintervals");
     use_phase2_ = (nrnopt_get_int("--ms-phases") == 2) ? 1 : 0;
 
+    print_message("nrn_setup", MPI_COMM_WORLD, true);
     // reading *.dat files and setting up the data structures, setting mindelay
     nrn_setup(filesdat.c_str(), is_mapping_needed, nrn_need_byteswap, run_setup_cleanup);
+    print_message("nrn_setup", MPI_COMM_WORLD, false);
 
     // Allgather spike compression and  bin queuing.
     nrn_use_bin_queue_ = nrnopt_get_flag("--binqueue");
@@ -505,12 +541,14 @@ extern "C" int run_solve_core(int argc, char** argv) {
             (*nrn2core_part2_clean_)();
         }
 
+        print_message("nrn_finitialize", MPI_COMM_WORLD, true);
         // TODO : if some ranks are empty then restore will go in deadlock
         // phase (as some ranks won't have restored anything and hence return
         // false in checkpoint_initialize
         if (!checkpoint_initialize()) {
             nrn_finitialize(v != 1000., v);
         }
+        print_message("nrn_finitialize", MPI_COMM_WORLD, false);
 
         report_mem_usage("After nrn_finitialize");
 
@@ -523,6 +561,7 @@ extern "C" int run_solve_core(int argc, char** argv) {
                 min_report_dt = configs[i].report_dt;
             }
         }
+        print_message("setup_report_engine", MPI_COMM_WORLD, true);
         // Set the buffer size if is not the default value. Otherwise use report.conf on
         // register_report
         if (!nrnopt_is_default_value("--report-buffer-size")) {
@@ -530,6 +569,7 @@ extern "C" int run_solve_core(int argc, char** argv) {
         }
         setup_report_engine(min_report_dt, delay);
         configs.clear();
+        print_message("setup_report_engine", MPI_COMM_WORLD, false);
 
         // call prcellstate for prcellgid
         call_prcellstate_for_prcellgid(nrnopt_get_int("--prcellgid"), compute_gpu, 0);
@@ -539,18 +579,22 @@ extern "C" int run_solve_core(int argc, char** argv) {
             handle_forward_skip(nrnopt_get_dbl("--forwardskip"), nrnopt_get_int("--prcellgid"));
         }
 
+        print_message("BBS_netpar_solve", MPI_COMM_WORLD, true);
         /// Solver execution
         Instrumentor::start_profile();
         Instrumentor::phase_begin("simulation");
         BBS_netpar_solve(nrnopt_get_dbl("--tstop"));
         Instrumentor::phase_end("simulation");
         Instrumentor::stop_profile();
+        print_message("BBS_netpar_solve", MPI_COMM_WORLD, false);
         // direct mode and full trajectory gathering on CoreNEURON, send back.
         if (corenrn_embedded) {
             trajectory_return();
         }
         // Report global cell statistics
+        print_message("report_cell_stats", MPI_COMM_WORLD, true);
         report_cell_stats();
+        print_message("report_cell_stats", MPI_COMM_WORLD, false);
 
         // prcellstate after end of solver
         call_prcellstate_for_prcellgid(nrnopt_get_int("--prcellgid"), compute_gpu, 0);
@@ -559,7 +603,9 @@ extern "C" int run_solve_core(int argc, char** argv) {
     // write spike information to outpath
     {
         Instrumentor::phase p("output-spike");
+        print_message("output_spikes", MPI_COMM_WORLD, true);
         output_spikes(output_dir.c_str());
+        print_message("output_spikes", MPI_COMM_WORLD, false);
     }
 
     {
@@ -569,11 +615,15 @@ extern "C" int run_solve_core(int argc, char** argv) {
 
     // must be done after checkpoint (to avoid deleting events)
     if (reports_needs_finalize) {
+        print_message("finalize_report", MPI_COMM_WORLD, true);
         finalize_report();
+        print_message("finalize_report", MPI_COMM_WORLD, false);
     }
 
     // Cleaning the memory
+    print_message("nrn_cleanup", MPI_COMM_WORLD, true);
     nrn_cleanup();
+    print_message("nrn_cleanup", MPI_COMM_WORLD, false);
 
     // tau needs to resume profile
     Instrumentor::start_profile();

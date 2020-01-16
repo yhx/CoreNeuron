@@ -2,6 +2,14 @@ pipeline {
     agent {
         label 'bb5'
     }
+    parameters {
+        string(name: 'sha1', defaultValue: 'master',
+               description: 'What branch of CoreNeuron to test.')
+        string(name: 'SPACK_BRANCH', defaultValue: 'develop',
+               description: 'Which branch of spack to use.')
+        string(name: 'NEURON_SPACK_VERSION', defaultValue: 'develop',
+               description: 'Which branch of neuron to use.')
+    }
     stages {
 
         stage('install Spack'){
@@ -12,7 +20,7 @@ pipeline {
 
         stage('spack install neuron@develop'){
             steps {
-                sh 'sh tests/jenkins/install_neuron.sh ${NEURON_BRANCH}'
+                sh 'sh tests/jenkins/install_neuron.sh ${NEURON_SPACK_VERSION}'
             }
         }
 

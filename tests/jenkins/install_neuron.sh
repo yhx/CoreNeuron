@@ -9,9 +9,9 @@ source /gpfs/bbp.cscs.ch/apps/hpc/jenkins/config/modules.sh
 export PATH=$WORKSPACE/BUILD_HOME/spack/bin:/usr/bin:$PATH
 export MODULEPATH=$SPACK_INSTALL_PREFIX/modules/tcl/$(spack arch):$MODULEPATH
 
-NEURON_BRANCH=${1:-"develop"}
+NEURON_SPACK_VERSION=${1:-"develop"}
 
 unset $(env|awk -F= '/^(PMI|SLURM)_/ {if ($1 != "SLURM_ACCOUNT") print $1}')
 
-spack install neuron@${NEURON_BRANCH}
+spack install neuron@${NEURON_SPACK_VERSION}
 module av neuron

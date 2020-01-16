@@ -33,7 +33,7 @@ install_spack() (
     mkdir -p $BASEDIR && cd $BASEDIR
     rm -rf .spack   # CLEANUP SPACK CONFIGS
     SPACK_REPO=https://github.com/BlueBrain/spack.git
-    SPACK_BRANCH=${SPACK_BRANCH:-"develop"}
+    SPACK_BRANCH=${1:-"develop"}
 
     echo "Installing SPACK. Cloning $SPACK_REPO $SPACK_ROOT --depth 1 -b $SPACK_BRANCH"
     git clone $SPACK_REPO $SPACK_ROOT --depth 1 -b $SPACK_BRANCH
@@ -44,5 +44,5 @@ install_spack() (
 )
 
 
-install_spack
+install_spack $1
 

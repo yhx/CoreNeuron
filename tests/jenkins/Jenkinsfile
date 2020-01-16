@@ -6,13 +6,13 @@ pipeline {
 
         stage('install Spack'){
             steps {
-                sh 'source $WORKSPACE/tests/jenkins/spack_setup.sh'
+                sh 'source $WORKSPACE/tests/jenkins/spack_setup.sh ${SPACK_BRANCH}'
             }
         }
 
         stage('spack install neuron@develop'){
             steps {
-                sh 'sh tests/jenkins/install_neuron.sh'
+                sh 'sh tests/jenkins/install_neuron.sh ${NEURON_BRANCH}'
             }
         }
 

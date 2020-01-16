@@ -525,8 +525,8 @@ extern "C" int run_solve_core(int argc, char** argv) {
             } else if (std::strcmp(configs[i].format, "SONATA") == 0) {
                 report_handler = std::make_unique<SonataReportHandler>(configs[i]);
             }
-            report_handlers.push_back(std::move(report_handler));
             report_handler->create_report(dt, tstop, delay);
+            report_handlers.push_back(std::move(report_handler));
             if (configs[i].report_dt < min_report_dt) {
                 min_report_dt = configs[i].report_dt;
             }

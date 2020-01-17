@@ -10,7 +10,7 @@ sed_apply() (
 
 patch_neuron() (
     if [ "$NEURON_BRANCH" ]; then
-        pkg_file="${SPACK_ROOT}var/spack/repos/builtin/packages/neuron/package.py"
+        pkg_file="${SPACK_ROOT}/var/spack/repos/builtin/packages/neuron/package.py"
         sedexp="/version.*tag=/d"  # Drop tags
         sedexp="$sedexp; /version.*preferred=/d"  # Drop preferred version
         sedexp="$sedexp; s#branch=[^)]*)#branch='$NEURON_BRANCH', preferred=True)#g"  # replace branch

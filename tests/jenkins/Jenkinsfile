@@ -7,7 +7,7 @@ pipeline {
                description: 'What branch of CoreNeuron to test.')
         string(name: 'SPACK_BRANCH', defaultValue: 'develop',
                description: 'Which branch of spack to use.')
-        string(name: 'NEURON_SPACK_VERSION', defaultValue: 'develop',
+        string(name: 'NEURON_BRANCH', defaultValue: 'master',
                description: 'Which branch of neuron to use.')
     }
     stages {

@@ -3,7 +3,7 @@
 sed_apply() (
     f=$1
     sedexp=$2
-    log "PATCHING $f with '$sedexp'"
+    echo "PATCHING $f with '$sedexp'"
     (cd $(dirname $f) && git checkout "$(basename $f)") && sed -i "$sedexp" "$f"
     grep 'version(' "$f"
 )

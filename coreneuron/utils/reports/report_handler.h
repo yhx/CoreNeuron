@@ -38,7 +38,7 @@ class ReportHandler {
   protected:
     ReportConfiguration m_report_config;
 #ifdef ENABLE_REPORTING
-    std::unique_ptr<ReportEvent> m_report_event;
+    std::vector<std::unique_ptr<ReportEvent> > m_report_events;
 #endif  // ENABLE_REPORTING
 };
 

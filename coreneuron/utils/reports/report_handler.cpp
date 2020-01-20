@@ -44,9 +44,10 @@ void ReportHandler::create_report(double dt, double tstop, double delay) {
                 register_custom_report(nt, m_report_config, vars_to_report);
         }
         if (!vars_to_report.empty()) {
-            m_report_event =
+            std::unique_ptr<ReportEvent> report_event =
                 std::make_unique<ReportEvent>(dt, t, vars_to_report, m_report_config.output_path);
-            m_report_event->send(t, net_cvode_instance, &nt);
+            report_event->send(t, net_cvode_instance, &nt);
+            m_report_events.push_back(std::move(report_event));
         }
     }
 #else

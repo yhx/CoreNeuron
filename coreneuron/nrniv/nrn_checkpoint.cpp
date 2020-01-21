@@ -435,17 +435,15 @@ static void write_phase2(NrnThread& nt, FileHandlerWrap& fh) {
         } else {
             pnttype[i] = pnt->_type;
 
-#if 0
             // todo: this seems most natural, but does not work. Perhaps should look
             // into how pntindex determined in nrnbbcore_write.cpp and change there.
-            int ix = pnt->_i_instance;
-            if (ml_pinv[pnt->_type]) {
-                ix = ml_pinv[pnt->_type][ix];
-            }
-#else
+            // int ix = pnt->_i_instance;
+            // if (ml_pinv[pnt->_type]) {
+            //     ix = ml_pinv[pnt->_type][ix];
+            // }
+
             // follow the inverse of nrn_setup.cpp using pnt_offset computed above.
             int ix = (pnt - nt.pntprocs) - pnt_offset[pnt->_type];
-#endif
             pntindex[i] = ix;
         }
         delay[i] = nc.delay_;

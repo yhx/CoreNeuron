@@ -26,7 +26,7 @@ cd @CMAKE_CURRENT_BINARY_DIR@/@SIM_NAME@
 reports=@CORENRN_ENABLE_REPORTING@
 if [ "$reports" = "ON" ]
 then
-  data=$(h5dump -d /spikes/timestamps -d /spikes/node_ids -y -O spikes | tr "," "\n")
+  data=$(h5dump -d /spikes/timestamps -d /spikes/node_ids -y -O out.h5 | tr "," "\n")
   echo $data | awk '{n=NF/2; for (i=1;i<=n;i++) print $i "\t" $(n+i) }' >> out_SONATA.dat
 
   if [ ! -f out_SONATA.dat ]

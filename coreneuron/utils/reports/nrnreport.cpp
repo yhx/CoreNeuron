@@ -358,12 +358,36 @@ std::vector<int> map_gids(NrnThread& nt) {
 // Size in MB of the report buffer
 static int size_report_buffer = 4;
 
+
+#if 0
+
 void nrn_flush_reports(double t) {
 #ifdef ENABLE_REPORTING
     // flush before buffer is full
     records_end_iteration(t);
 #endif
 }
+
+#else
+
+// number of min-delay intervals to buffer
+static int num_min_delay_to_buffer = 200;
+
+/// number of min-delays completed since last flush
+static int num_min_delays_completed = 0;
+
+void nrn_flush_reports(double t) {
+#ifdef ENABLE_REPORTING
+    // flush before buffer is full
+    if (num_min_delays_completed >= (num_min_delay_to_buffer - 2)) {
+        records_flush(t);
+        num_min_delays_completed = 0;
+    }
+    num_min_delays_completed++;
+#endif
+}
+
+#endif
 
 /** in the current implementation, we call flush during every spike exchange
  *  interval. Hence there should be sufficient buffer to hold all reports

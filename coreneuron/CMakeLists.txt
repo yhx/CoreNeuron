@@ -22,6 +22,7 @@ file(GLOB CORENEURON_CODE_FILES
                   "apps/main1.cpp"
                   "gpu/*.cpp"
                   "io/*.cpp"
+                  "io/reports/*.cpp"
                   "mechanism/*.cpp"
                   "mpi/*.cpp"
                   "network/*.cpp"
@@ -164,6 +165,8 @@ add_library(corenrnmech
             ${ENGINEMECH_CODE_FILE}
             ${DIMPLIC_CODE_FILE})
 
+message(STATUS "variables ${reportinglib_LIBRARY}")
+
 target_link_libraries(coreneuron
                       ${MPI_CXX_LIBRARIES}
                       ${reportinglib_LIBRARY}
@@ -205,11 +208,13 @@ add_dependencies(coreneuron scopmath)
 include_directories(${CORENEURON_PROJECT_SOURCE_DIR})
 add_executable(nrniv-core "apps/coreneuron.cpp")
 target_link_libraries(nrniv-core
-        corenrnmech
-        ${MPI_C_LIBRARIES}
-        ${MPI_CXX_LIBRARIES}
-        ${reportinglib_LIBRARY}
-        ${sonatareport_LIBRARY})
+            corenrnmech
+            ${reportinglib_LIBRARY}
+            ${sonatareport_LIBRARY}
+            #sonata::sonata_report
+            ${MPI_C_LIBRARIES}
+            ${MPI_CXX_LIBRARIES})
+
 set_target_properties(nrniv-core PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 # =============================================================================

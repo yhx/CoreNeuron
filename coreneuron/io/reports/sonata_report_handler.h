@@ -1,15 +1,13 @@
 #pragma once
-#include <functional>
-#include <memory>
 #include <vector>
-#include "coreneuron/utils/reports/report_handler.h"
-#include "coreneuron/utils/reports/nrnsection_mapping.h"
+#include <memory>
+#include "report_handler.hpp"
 
 namespace coreneuron {
 
-class BinaryReportHandler : public ReportHandler {
+class SonataReportHandler : public ReportHandler {
   public:
-    BinaryReportHandler(ReportConfiguration& config) : ReportHandler(config) {
+    SonataReportHandler(ReportConfiguration& config) : ReportHandler(config) {
     }
 
     void create_report(double dt, double tstop, double delay) override;
@@ -25,11 +23,9 @@ class BinaryReportHandler : public ReportHandler {
                                 const VarsToReport& vars_to_report) override;
 
   private:
-    using create_extra_func = std::function<void(const CellMapping&, std::array<int, 5>&)>;
     void register_report(const NrnThread& nt,
                          ReportConfiguration& config,
-                         const VarsToReport& vars_to_report,
-                         create_extra_func& create_extra);
+                         const VarsToReport& vars_to_report);
 #endif  // ENABLE_REPORTING
 };
 

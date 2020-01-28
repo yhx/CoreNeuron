@@ -1,4 +1,4 @@
-#include "binary_report_handler.h"
+#include "binary_report_handler.hpp"
 #ifdef ENABLE_REPORTING
 #include "reportinglib/Records.h"
 #endif  // ENABLE_REPORTING

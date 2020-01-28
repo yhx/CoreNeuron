@@ -32,8 +32,10 @@ foreach(link_lib ${CORENRN_LINK_LIBS})
     string(APPEND CORENRN_LINK_DEFS " -l${libname}")
   else()
     string(APPEND CORENRN_LINK_DEFS " ${link_lib}")
+    #string(APPEND CORENRN_LINK_DEFS " -Wl,-rpath,${path} ${link_lib}")
   endif()
 endforeach()
+message(STATUS "link defs: ${CORENRN_LINK_DEFS}")
 
 # PGI compiler add --c++14;-A option for c++14 flag
 string(REPLACE ";"

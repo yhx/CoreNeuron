@@ -1,9 +1,9 @@
 #pragma once
 #include <vector>
 #include <memory>
-#include "coreneuron/utils/reports/nrnreport.h"
-#include "coreneuron/utils/reports/report_event.h"
-#include "coreneuron/nrnoc/multicore.h"
+#include "nrnreport.hpp"
+#include "coreneuron/io/reports/report_event.hpp"
+#include "coreneuron/sim/multicore.hpp"
 
 namespace coreneuron {
 

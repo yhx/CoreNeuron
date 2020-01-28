@@ -11,7 +11,8 @@ add_executable(sdprintf_test_bin ${sdprintf_test_src})
 target_link_libraries(sdprintf_test_bin
                       ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
                       coreneuron
-                      reports_interface)
+                      ${reportinglib_LIBRARY}
+                      sonata::sonata_report)
 
 add_test(NAME sdprintf_test
          COMMAND ${TEST_EXEC_PREFIX} ${CMAKE_CURRENT_BINARY_DIR}/sdprintf_test_bin)

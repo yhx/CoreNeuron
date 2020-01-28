@@ -146,14 +146,9 @@ if(NOT CORENRN_ENABLE_TIMEOUT)
   add_definitions("-DDISABLE_TIMEOUT")
 endif()
 
-add_library(reports_interface INTERFACE)
-
 if(CORENRN_ENABLE_REPORTING)
   find_package(reportinglib REQUIRED)
   find_package(sonata REQUIRED)
-  target_link_libraries(reports_interface INTERFACE
-          ${reportinglib_LIBRARY}
-          sonata::sonata_report)
   include_directories(${reportinglib_INCLUDE_DIR})
   include_directories(${sonatareport_INCLUDE_DIR})
   add_definitions("-DENABLE_REPORTING")
@@ -264,6 +259,8 @@ if(cmake_generator_tolower MATCHES "makefile")
   message(STATUS "Unit Tests          | ${CORENRN_ENABLE_UNIT_TESTS}")
   message(STATUS "ReportingLib        | ${CORENRN_ENABLE_REPORTING}")
   if(CORENRN_ENABLE_REPORTING)
+    message(STATUS "  INC               | ${sonatareport_INCLUDE_DIR}")
+    message(STATUS "  LIB               | ${sonatareport_LIBRARY}")
     message(STATUS "  INC               | ${reportinglib_INCLUDE_DIR}")
     message(STATUS "  LIB               | ${reportinglib_LIBRARY}")
   endif()

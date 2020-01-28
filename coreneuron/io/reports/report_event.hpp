@@ -2,8 +2,8 @@
 #include <algorithm>
 #include <map>
 #include <vector>
-#include "coreneuron/nrniv/netcon.h"
-#include "coreneuron/nrniv/netcvode.h"
+#include "coreneuron/network/netcon.hpp"
+#include "coreneuron/network/netcvode.hpp"
 
 namespace coreneuron {
 

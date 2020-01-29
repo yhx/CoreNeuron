@@ -1,8 +1,8 @@
 #include "sonata_report_handler.h"
-#include "coreneuron/nrniv/netcvode.h"
-#include "coreneuron/nrniv/netcon.h"
-#include "coreneuron/utils/reports/nrnsection_mapping.h"
-#include "coreneuron/nrnoc/mech_mapping.hpp"
+#include "coreneuron/network/netcvode.hpp"
+#include "coreneuron/network/netcon.hpp"
+#include "coreneuron/io/nrnsection_mapping.hpp"
+#include "coreneuron/mechanism/mech_mapping.hpp"
 #ifdef ENABLE_REPORTING
 #include "bbp/sonata/reports.h"
 #endif  // ENABLE_REPORTING

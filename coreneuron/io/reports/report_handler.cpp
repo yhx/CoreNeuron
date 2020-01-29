@@ -1,6 +1,6 @@
-#include "report_handler.h"
-#include "coreneuron/utils/reports/nrnsection_mapping.h"
-#include "coreneuron/nrnoc/mech_mapping.hpp"
+#include "report_handler.hpp"
+#include "coreneuron/io/nrnsection_mapping.hpp"
+#include "coreneuron/mechanism/mech_mapping.hpp"
 
 namespace coreneuron {
 

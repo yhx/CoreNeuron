@@ -34,6 +34,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <cstring>
 #include <climits>
+#include <memory>
 #include <vector>
 
 #include "coreneuron/engine.h"
@@ -52,7 +53,10 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/utils/nrnmutdec.h"
 #include "coreneuron/utils/sdprintf.h"
 #include "coreneuron/utils/nrn_stats.h"
-#include "coreneuron/io/nrnreport.hpp"
+#include "coreneuron/io/reports/nrnreport.hpp"
+#include "coreneuron/io/reports/binary_report_handler.hpp"
+#include "coreneuron/io/reports/report_handler.hpp"
+#include "coreneuron/io/reports/sonata_report_handler.h"
 #include "coreneuron/gpu/nrn_acc_manager.hpp"
 #include "coreneuron/utils/profile/profiler_interface.h"
 #include "coreneuron/network/partrans.hpp"

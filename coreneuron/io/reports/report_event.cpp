@@ -1,6 +1,6 @@
-#include "report_event.h"
-#include "coreneuron/nrnoc/multicore.h"
-#include "coreneuron/nrniv/nrn_assert.h"
+#include "report_event.hpp"
+#include "coreneuron/sim/multicore.hpp"
+#include "coreneuron/utils/nrn_assert.h"
 #ifdef ENABLE_REPORTING
 #include "bbp/sonata/reports.h"
 #include "reportinglib/Records.h"

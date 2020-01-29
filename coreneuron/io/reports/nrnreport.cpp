@@ -36,14 +36,13 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/utils/nrn_assert.h"
 #include "coreneuron/network/netcvode.hpp"
 #include "coreneuron/sim/multicore.hpp"
-#include "coreneuron/io/nrnreport.hpp"
-#include "coreneuron/io/nrnsection_mapping.h"
+#include "coreneuron/io/reports/nrnreport.hpp"
+#include "coreneuron/io/nrnsection_mapping.hpp"
 #include "coreneuron/mechanism/mech_mapping.hpp"
 #include "coreneuron/mechanism/membfunc.hpp"
 #ifdef ENABLE_REPORTING
 #include "bbp/sonata/reports.h"
 #include "reportinglib/Records.h"
-#endif
 #endif
 
 namespace coreneuron {

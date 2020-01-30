@@ -4,3 +4,6 @@
 [submodule "external/nmodl"]
   path = external/nmodl
   url = https://github.com/BlueBrain/nmodl
+[submodule "CMake/hpc-coding-conventions"]
+	path = CMake/hpc-coding-conventions
+	url = https://github.com/BlueBrain/hpc-coding-conventions.git

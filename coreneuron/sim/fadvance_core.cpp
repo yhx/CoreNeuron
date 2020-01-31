@@ -26,6 +26,8 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include <cstdlib>
+#include <string>
 #include "coreneuron/coreneuron.hpp"
 #include "coreneuron/nrnconf.h"
 #include "coreneuron/sim/multicore.hpp"
@@ -39,11 +41,19 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/utils/progressbar/progressbar.h"
 #include "coreneuron/utils/profile/profiler_interface.h"
 #include "coreneuron/io/nrn2core_direct.h"
+#include "coreneuron/io/nrn_checkpoint.hpp"
 
 namespace coreneuron {
 
 static void* nrn_fixed_step_thread(NrnThread*);
 static void* nrn_fixed_step_group_thread(NrnThread*);
+
+// constants
+
+extern int nrn_need_byteswap;
+
+static bool nrn_auto_checkpoint();
+
 
 void dt2thread(double adt) { /* copied from nrnoc/fadvance.c */
     if (adt != nrn_threads[0]._dt) {
@@ -127,6 +137,10 @@ void nrn_fixed_step_group_minimal(int n) {
 #ifdef ENABLE_REPORTING
         nrn_flush_reports(nrn_threads[0]._t);
 #endif
+        if( /*auto_ckeckpointing == */ true) {
+            nrn_auto_checkpoint();
+        }
+
         if (stoprun) {
             break;
         }
@@ -357,4 +371,30 @@ void* nrn_fixed_step_lastpart(NrnThread* nth) {
 
     return (void*)0;
 }
+
+
+///
+/// \brief Does a checkpoint of the simulation in enough time has passed
+/// \return True if a checkpoint was performed. False otherwise (not enough elapsed time)
+static bool nrn_auto_checkpoint() {
+    static time_t previous_time = time(NULL);
+
+    time_t cur_time = time(NULL);
+    int elapsed_secs = difftime(previous_time, cur_time);
+    if (elapsed_secs < /* options->checkpoint_interval*/ 3600) {
+        return false;
+    }
+    Instrumentor::phase p("AUTO Checkpointing...");
+    std::string auto_final = get_checkpoint_path("auto");
+    std::string auto_tmp = get_checkpoint_path("_auto_dirty");
+    write_checkpoint(nrn_threads, nrn_nthread, auto_tmp.c_str(), nrn_need_byteswap);
+    // TODO: Not as Quick & Dirty
+    system(("/bin/rm -rf '" + auto_final + "';"
+            "/bin/mv '" + auto_tmp + "' '" + auto_final + "'").c_str());
+
+    previous_time = cur_time;
+    return true;
+}
+
+
 }  // namespace coreneuron

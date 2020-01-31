@@ -217,6 +217,17 @@ void nrn_init_and_load_data(int argc,
     std::string restore_path = nrnopt_get_str("--restore");
     t = restore_time(restore_path.c_str());
 
+    auto auto_restore = get_checkpoint_path("auto");
+    if (fs_exists(auto_restore.c_str())) {
+        double auto_t = restore_time(auto_restore.c_str());
+        if (auto_t > t) {
+            if (t > 0)
+                std::cout << "Warning: Using AUTO checkpoint instead of user provided"
+                          << std::endl;
+            t = auto_t;
+        }
+    }
+
     if (nrnopt_get_dbl("--dt") != -1000.) {  // command line arg highest precedence
         dt = nrnopt_get_dbl("--dt");
     } else if (dt == -1000.) {  // not on command line and no dt in globals.dat
@@ -275,7 +286,17 @@ void nrn_init_and_load_data(int argc,
     use_phase2_ = (nrnopt_get_int("--ms-phases") == 2) ? 1 : 0;
 
     // reading *.dat files and setting up the data structures, setting mindelay
-    nrn_setup(filesdat.c_str(), is_mapping_needed, nrn_need_byteswap, run_setup_cleanup);
+    double mindelay = nrnopt_get_dbl("--mindelay");
+    nrn_setup(filesdat.c_str(),
+              is_mapping_needed,
+              nrn_need_byteswap,
+              mindelay,  // value (by-ref) gets updated
+              nrnopt_get_str("--datpath"),
+              restore_path,
+              run_setup_cleanup);
+
+    // store to options
+    nrnopt_modify_dbl("--mindelay", mindelay);
 
     // Allgather spike compression and  bin queuing.
     nrn_use_bin_queue_ = nrnopt_get_flag("--binqueue");

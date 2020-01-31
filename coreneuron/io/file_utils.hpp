@@ -41,4 +41,15 @@ THE POSSIBILITY OF SUCH DAMAGE.
  */
 int mkdir_p(const char* path);
 
+/**
+ * @brief Checks whether a path exists
+ */
+bool fs_exists(const char* path);
+
+/**
+ * @brief Checks whether a path is a directory
+ */
+bool fs_isdir(const char* path) ;
+
+
 #endif /* ifndef NRN_FILE_UTILS */

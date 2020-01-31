@@ -54,6 +54,12 @@ bool checkpoint_initialize();
  */
 double restore_time(const char* restore_path);
 
+/**
+ * @return The checkpoint path, optionally with a suffix
+ */
+std::string get_checkpoint_path(const std::string& suffix="");
+
+
 extern int patstimtype;
 
 #ifndef CHKPNTDEBUG

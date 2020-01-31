@@ -677,6 +677,9 @@ void nrn_setup_cleanup() {
 void nrn_setup(const char* filesdat,
                bool is_mapping_needed,
                int byte_swap,
+               double & min_delay,
+               const std::string& datapath,
+               std::string restore_path,
                bool run_setup_cleanup) {
     /// Number of local cell groups
     int ngroup = 0;
@@ -738,9 +741,6 @@ void nrn_setup(const char* filesdat,
 
     FileHandler* file_reader = new FileHandler[ngroup];
 
-    std::string datapath = nrnopt_get_str("--datpath");
-    std::string restore_path = nrnopt_get_str("--restore");
-
     // if not restoring then phase2 files will be read from dataset directory
     if (!restore_path.length()) {
         restore_path = datapath;
@@ -788,8 +788,8 @@ void nrn_setup(const char* filesdat,
     if (is_mapping_needed)
         coreneuron::phase_wrapper<(coreneuron::phase)3>();
 
-    double mindelay = set_mindelay(nrnopt_get_dbl("--mindelay"));
-    nrnopt_modify_dbl("--mindelay", mindelay);
+    // Set and adjust min_delay
+    min_delay = set_mindelay(min_delay);
 
     if (run_setup_cleanup)  // if run_setup_cleanup==false, user must call nrn_setup_cleanup() later
         nrn_setup_cleanup();

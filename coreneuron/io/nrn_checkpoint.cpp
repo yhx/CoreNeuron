@@ -896,4 +896,12 @@ bool checkpoint_initialize() {
 
     return checkpoint_restored_;
 }
+
+
+std::string get_checkpoint_path(const std::string& suffix) {
+    static std::string base_loc = nrnopt_get_str("--outpath");
+    return base_loc + "/checkpoint" + (suffix.empty()? "" : ("_" + suffix));
+}
+
+
 }  // namespace coreneuron

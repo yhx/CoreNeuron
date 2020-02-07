@@ -18,8 +18,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 set(CMAKE_BUILD_TYPE
-        RelWithDebInfo
-        CACHE STRING "Empty or one of Debug, Release, RelWithDebInfo")
+    RelWithDebInfo
+    CACHE STRING "Empty or one of Debug, Release, RelWithDebInfo")
 
 # =============================================================================
 # Settings to enable project as submodule
@@ -33,19 +33,18 @@ endif()
 # =============================================================================
 # HPC Coding Conventions
 # =============================================================================
-set(NMODL_ClangFormat_EXCLUDES_RE ".*/external/.*$$"
-        CACHE STRING "list of regular expressions to exclude C/C++ files from formatting"
-        FORCE)
-set(NMODL_CMakeFormat_EXCLUDES_RE ".*/external/.*$$"
-        CACHE STRING "list of regular expressions to exclude CMake files from formatting"
-        FORCE)
+set(NMODL_ClangFormat_EXCLUDES_RE
+    ".*/external/.*$$"
+    CACHE STRING "list of regular expressions to exclude C/C++ files from formatting" FORCE)
+set(NMODL_CMakeFormat_EXCLUDES_RE
+    ".*/external/.*$$"
+    CACHE STRING "list of regular expressions to exclude CMake files from formatting" FORCE)
 add_subdirectory(CMake/hpc-coding-conventions/cpp)
 
 # =============================================================================
 # Include cmake modules path
 # =============================================================================
-list(APPEND CMAKE_MODULE_PATH
-            ${CORENEURON_PROJECT_SOURCE_DIR}/CMake
+list(APPEND CMAKE_MODULE_PATH ${CORENEURON_PROJECT_SOURCE_DIR}/CMake
             ${CORENEURON_PROJECT_SOURCE_DIR}/CMake/packages
             ${CORENEURON_PROJECT_SOURCE_DIR}/CMake/config)
 
@@ -78,13 +77,21 @@ option(CORENRN_ENABLE_CUDA_UNIFIED_MEMORY "Enable CUDA unified memory support" O
 option(CORENRN_ENABLE_UNIT_TESTS "Enable unit tests execution" ON)
 option(CORENRN_ENABLE_GPU "Enable GPU support using OpenACC" OFF)
 
-set(CORENRN_NMODL_DIR "" CACHE PATH "Path to nmodl source-to-source compiler installation")
-set(LIKWID_DIR "" CACHE PATH "Path to likwid performance analysis suite")
+set(CORENRN_NMODL_DIR
+    ""
+    CACHE PATH "Path to nmodl source-to-source compiler installation")
+set(LIKWID_DIR
+    ""
+    CACHE PATH "Path to likwid performance analysis suite")
 
-set(CORENRN_FRONTEND_C_COMPILER gcc CACHE FILEPATH "C compiler for building mod2c [frontend]")
-set(CORENRN_FRONTEND_CXX_COMPILER g++ CACHE FILEPATH "C++ compiler for building mod2c [frontend]")
+set(CORENRN_FRONTEND_C_COMPILER
+    gcc
+    CACHE FILEPATH "C compiler for building mod2c [frontend]")
+set(CORENRN_FRONTEND_CXX_COMPILER
+    g++
+    CACHE FILEPATH "C++ compiler for building mod2c [frontend]")
 
-if (CORENEURON_AS_SUBPROJECT)
+if(CORENEURON_AS_SUBPROJECT)
   set(CORENRN_ENABLE_UNIT_TESTS OFF)
 endif()
 
@@ -158,7 +165,7 @@ if(NOT CORENRN_ENABLE_TIMEOUT)
   add_definitions("-DDISABLE_TIMEOUT")
 endif()
 
-if ( CORENRN_ENABLE_SONATA AND CORENRN_ENABLE_REPORTINGLIB )
+if(CORENRN_ENABLE_SONATA AND CORENRN_ENABLE_REPORTINGLIB)
   message(FATAL_ERROR "Can't have enabled both SONATA reports and reportinglib")
 endif()
 
@@ -168,9 +175,9 @@ if(CORENRN_ENABLE_REPORTINGLIB)
   add_definitions("-DENABLE_REPORTING")
 endif()
 if(CORENRN_ENABLE_SONATA)
-    find_package(sonata QUIET PATHS ${sonata_DIR}/share/sonata/CMake)
-    include_directories(${sonatareport_INCLUDE_DIR})
-    add_definitions("-DENABLE_SONATA_REPORTS -DENABLE_REPORTING")
+  find_package(sonata QUIET PATHS ${sonata_DIR}/share/sonata/CMake)
+  include_directories(${sonatareport_INCLUDE_DIR})
+  add_definitions("-DENABLE_SONATA_REPORTS -DENABLE_REPORTING")
 endif()
 
 if(MINGW)
@@ -182,7 +189,7 @@ endif()
 # =============================================================================
 if(CORENRN_ENABLE_NMODL)
   find_package(nmodl)
-  if (nmodl_FOUND)
+  if(nmodl_FOUND)
     set(CORENRN_NMODL_BINARY ${nmodl_BINARY})
     set(CORENRN_NMODL_INCLUDE ${nmodl_INCLUDE})
     # path to python interface
@@ -194,14 +201,15 @@ if(CORENRN_ENABLE_NMODL)
     set(CORENRN_NMODL_INCLUDE ${CMAKE_BINARY_DIR}/include)
   endif()
   include_directories(${CORENRN_NMODL_INCLUDE})
-  set(CORENRN_NMODL_FLAGS "" CACHE STRING "Extra NMODL options such as passes")
+  set(CORENRN_NMODL_FLAGS
+      ""
+      CACHE STRING "Extra NMODL options such as passes")
   separate_arguments(NMODL_EXTRA_FLAGS_LIST UNIX_COMMAND "${CORENRN_NMODL_FLAGS}")
 else()
   include(AddMod2cSubmodule)
   set(CORENRN_NMODL_BINARY ${CMAKE_BINARY_DIR}/bin/mod2c_core${CMAKE_EXECUTABLE_SUFFIX})
   set(CORENRN_NMODL_INCLUDE ${CMAKE_BINARY_DIR}/include)
 endif()
-
 
 # =============================================================================
 # Profiler/Instrumentation Options

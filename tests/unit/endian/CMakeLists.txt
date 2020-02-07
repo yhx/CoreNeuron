@@ -15,7 +15,7 @@ foreach(test_src_file ${endian_test_src})
   add_executable(${test_name}_test_bin ${test_src_file})
   target_link_libraries(${test_name}_test_bin ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 
-  add_test(NAME ${test_name}_test
-           COMMAND ${TEST_EXEC_PREFIX} ${CMAKE_CURRENT_BINARY_DIR}/${test_name}_test_bin)
+  add_test(NAME ${test_name}_test COMMAND ${TEST_EXEC_PREFIX}
+                                          ${CMAKE_CURRENT_BINARY_DIR}/${test_name}_test_bin)
 
 endforeach()

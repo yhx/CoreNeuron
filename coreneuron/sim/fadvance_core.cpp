@@ -109,6 +109,7 @@ void finalize_progress_bar() {
 }
 
 void nrn_fixed_single_steps_minimal(int total_steps, double tstop) {
+    const int progressbar_update_interval = 5;
     double updated_tstop;
     static int current_steps = 0;
     initialize_progress_bar(total_steps);
@@ -126,7 +127,7 @@ void nrn_fixed_single_steps_minimal(int total_steps, double tstop) {
             break;
         }
         current_steps++;
-        if (current_steps%5) {
+        if (current_steps%progressbar_update_interval) {
             update_progress_bar(current_steps, nrn_threads[0]._t);
         }
     }

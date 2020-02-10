@@ -576,12 +576,12 @@ void SelfEvent::pr(const char* s, double tt, NetCvode*) {
 }
 
 void ncs2nrn_integrate(double tstop) {
-    int n = (int)((tstop - nrn_threads->_t) / dt + 1e-9);
+    int total_sim_steps = (int)((tstop - nrn_threads->_t) / dt + 1e-9);
 
-    if (n > 3 && !nrn_have_gaps) {
-        nrn_fixed_step_group_minimal(n);
+    if (total_sim_steps > 3 && !nrn_have_gaps) {
+        nrn_fixed_step_group_minimal(total_sim_steps);
     } else {
-        nrn_fixed_single_steps_minimal(n, tstop);
+        nrn_fixed_single_steps_minimal(total_sim_steps, tstop);
     }
 
     // handle all the pending flag=1 self events

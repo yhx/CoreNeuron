@@ -110,7 +110,7 @@ void finalize_progress_bar() {
 
 void nrn_fixed_single_steps_minimal(int total_steps, double tstop) {
     double updated_tstop;
-    static int step = 0;
+    static int current_steps = 0;
     initialize_progress_bar(total_steps);
 #if NRNMPI
     updated_tstop = tstop - dt;
@@ -125,14 +125,16 @@ void nrn_fixed_single_steps_minimal(int total_steps, double tstop) {
         if (stoprun) {
             break;
         }
-        step++;
-        update_progress_bar(step, nrn_threads[0]._t);
+        current_steps++;
+        if (current_steps%5) {
+            update_progress_bar(current_steps, nrn_threads[0]._t);
+        }
     }
     finalize_progress_bar();
 }
 
 void nrn_fixed_step_group_minimal(int total_steps) {
-    static int step = 0;
+    static int current_steps = 0;
     dt2thread(dt);
     nrn_thread_table_check();
     step_group_n = total_steps;
@@ -152,7 +154,7 @@ void nrn_fixed_step_group_minimal(int total_steps) {
         if (stoprun) {
             break;
         }
-        step++;
+        current_steps++;
         step_group_begin = step_group_end;
         update_progress_bar(step_group_end, nrn_threads[0]._t);
     }

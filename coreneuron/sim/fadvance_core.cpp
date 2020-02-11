@@ -126,7 +126,7 @@ void nrn_fixed_single_steps_minimal(int total_sim_steps, double tstop) {
             break;
         }
         current_steps++;
-        if (current_steps%progressbar_update_interval) {
+        if (!(current_steps % progressbar_update_interval)) {
             update_progress_bar(current_steps, nrn_threads[0]._t);
         }
     }

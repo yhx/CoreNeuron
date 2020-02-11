@@ -576,7 +576,7 @@ void SelfEvent::pr(const char* s, double tt, NetCvode*) {
 }
 
 void ncs2nrn_integrate(double tstop) {
-    int total_sim_steps = (int)((tstop - nrn_threads->_t) / dt + 1e-9);
+    int total_sim_steps = static_cast<int>((tstop - nrn_threads->_t) / dt + 1e-9);
 
     if (total_sim_steps > 3 && !nrn_have_gaps) {
         nrn_fixed_step_group_minimal(total_sim_steps);

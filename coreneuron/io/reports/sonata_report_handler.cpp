@@ -3,19 +3,19 @@
 #include "coreneuron/network/netcon.hpp"
 #include "coreneuron/io/nrnsection_mapping.hpp"
 #include "coreneuron/mechanism/mech_mapping.hpp"
-#ifdef ENABLE_REPORTING
+#ifdef ENABLE_SONATA_REPORTS
 #include "bbp/sonata/reports.h"
-#endif  // ENABLE_REPORTING
+#endif  // ENABLE_SONATA_REPORTS
 
 namespace coreneuron {
 
 void SonataReportHandler::create_report(double dt, double tstop, double delay) {
-#ifdef ENABLE_REPORTING
+#ifdef ENABLE_SONATA_REPORTS
     sonata_set_atomic_step(dt);
-#endif  // ENABLE_REPORTING
+#endif  // ENABLE_SONATA_REPORTS
     ReportHandler::create_report(dt, tstop, delay);
 }
-#ifdef ENABLE_REPORTING
+#ifdef ENABLE_SONATA_REPORTS
 void SonataReportHandler::register_soma_report(const NrnThread& nt,
                                                ReportConfiguration& config,
                                                const VarsToReport& vars_to_report) {
@@ -54,5 +54,5 @@ void SonataReportHandler::register_report(const NrnThread& nt,
         }
     }
 }
-#endif  // ENABLE_REPORTING
+#endif  // ENABLE_SONATA_REPORTS
 }  // Namespace coreneuron

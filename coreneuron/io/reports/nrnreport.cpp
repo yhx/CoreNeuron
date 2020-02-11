@@ -40,9 +40,11 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/io/nrnsection_mapping.hpp"
 #include "coreneuron/mechanism/mech_mapping.hpp"
 #include "coreneuron/mechanism/membfunc.hpp"
-#ifdef ENABLE_REPORTING
-#include "bbp/sonata/reports.h"
+#ifdef ENABLE_REPORTINGLIB
 #include "reportinglib/Records.h"
+#endif
+#ifdef ENABLE_SONATA_REPORTS
+#include "bbp/sonata/reports.h"
 #endif
 
 namespace coreneuron {
@@ -51,10 +53,12 @@ namespace coreneuron {
 static int size_report_buffer = 4;
 
 void nrn_flush_reports(double t) {
-#ifdef ENABLE_REPORTING
     // flush before buffer is full
-    sonata_end_iteration(t);
+#ifdef ENABLE_REPORTINGLIB
     records_end_iteration(t);
+#endif
+#ifdef ENABLE_SONATA_REPORTS
+    sonata_end_iteration(t);
 #endif
 }
 
@@ -66,32 +70,36 @@ void nrn_flush_reports(double t) {
  *  mindelay interval and hence adding two extra timesteps to buffer.
  */
 void setup_report_engine(double dt_report, double mindelay) {
-#ifdef ENABLE_REPORTING
-    /** reportinglib setup */
     int min_steps_to_record = static_cast<int>(std::round(mindelay / dt_report));
-    sonata_set_min_steps_to_record(min_steps_to_record);
-    sonata_setup_communicators();
-    sonata_prepare_datasets();
-
+#ifdef ENABLE_REPORTINGLIB
     records_set_min_steps_to_record(min_steps_to_record);
     records_setup_communicator();
     records_finish_and_share();
-#endif  // ENABLE_REPORTING
+#endif
+#ifdef ENABLE_SONATA_REPORTS
+    sonata_set_min_steps_to_record(min_steps_to_record);
+    sonata_setup_communicators();
+    sonata_prepare_datasets();
+#endif
 }
 
 // Size in MB of the report buffers
 void set_report_buffer_size(int n) {
     size_report_buffer = n;
-#ifdef ENABLE_REPORTING
-    sonata_set_max_buffer_size_hint(size_report_buffer);
+#ifdef ENABLE_REPORTINGLIB
     records_set_max_buffer_size_hint(size_report_buffer);
+#endif
+#ifdef ENABLE_SONATA_REPORTS
+    sonata_set_max_buffer_size_hint(size_report_buffer);
 #endif
 }
 
 void finalize_report() {
-#ifdef ENABLE_REPORTING
-    sonata_flush(nrn_threads[0]._t);
+#ifdef ENABLE_REPORTINGLIB
     records_flush(nrn_threads[0]._t);
 #endif
+#ifdef ENABLE_SONATA_REPORTS
+    sonata_flush(nrn_threads[0]._t);
+#endif
 }
-}
+} // Namespace coreneuron

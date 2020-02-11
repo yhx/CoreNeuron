@@ -7,7 +7,7 @@
 
 namespace coreneuron {
 
-#ifdef ENABLE_REPORTING
+#if defined(ENABLE_REPORTINGLIB) || defined(ENABLE_SONATA_REPORTS)
 struct VarWithMapping {
     int id;
     double* var_value;
@@ -33,6 +33,6 @@ class ReportEvent : public DiscreteEvent {
     std::vector<int> gids_to_report;
     double tstart;
 };
-#endif  // ENABLE_REPORTING
+#endif  // defined(ENABLE_REPORTINGLIB) || defined(ENABLE_SONATA_REPORTS)
 
 }  // Namespace coreneuron

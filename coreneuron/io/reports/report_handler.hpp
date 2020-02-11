@@ -13,16 +13,16 @@ class ReportHandler {
     virtual ~ReportHandler() = default;
 
     virtual void create_report(double dt, double tstop, double delay);
-#ifdef ENABLE_REPORTING
+#if defined(ENABLE_REPORTINGLIB) || defined(ENABLE_SONATA_REPORTS)
     virtual void register_soma_report(const NrnThread& nt,
                                       ReportConfiguration& config,
-                                      const VarsToReport& vars_to_report) = 0;
+                                      const VarsToReport& vars_to_report);
     virtual void register_compartment_report(const NrnThread& nt,
                                              ReportConfiguration& config,
-                                             const VarsToReport& vars_to_report) = 0;
+                                             const VarsToReport& vars_to_report);
     virtual void register_custom_report(const NrnThread& nt,
                                         ReportConfiguration& config,
-                                        const VarsToReport& vars_to_report) = 0;
+                                        const VarsToReport& vars_to_report);
 
     VarsToReport get_soma_vars_to_report(const NrnThread& nt,
                                          const std::set<int>& target,
@@ -34,12 +34,12 @@ class ReportHandler {
                                            ReportConfiguration& report,
                                            const std::vector<int>& nodes_to_gids) const;
     std::vector<int> map_gids(const NrnThread& nt) const;
-#endif  // ENABLE_REPORTING
+#endif  // defined(ENABLE_REPORTINGLIB) || defined(ENABLE_SONATA_REPORTS)
   protected:
     ReportConfiguration m_report_config;
-#ifdef ENABLE_REPORTING
+#if defined(ENABLE_REPORTINGLIB) || defined(ENABLE_SONATA_REPORTS)
     std::vector<std::unique_ptr<ReportEvent> > m_report_events;
-#endif  // ENABLE_REPORTING
+#endif  // defined(ENABLE_REPORTINGLIB) || defined(ENABLE_SONATA_REPORTS)
 };
 
-}  // namespace coreneuron
+}  // Namespace coreneuron

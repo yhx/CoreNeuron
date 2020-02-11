@@ -1,19 +1,18 @@
 #include "binary_report_handler.hpp"
-#ifdef ENABLE_REPORTING
+#ifdef ENABLE_REPORTINGLIB
 #include "reportinglib/Records.h"
-#endif  // ENABLE_REPORTING
+#endif  // ENABLE_REPORTINGLIB
 
 namespace coreneuron {
 
 void BinaryReportHandler::create_report(double dt, double tstop, double delay) {
-#ifdef ENABLE_REPORTING
+#ifdef ENABLE_REPORTINGLIB
     records_set_atomic_step(dt);
-#endif  // ENABLE_REPORTING
+#endif  // ENABLE_REPORTINGLIB
     ReportHandler::create_report(dt, tstop, delay);
 }
 
-#ifdef ENABLE_REPORTING
-
+#ifdef ENABLE_REPORTINGLIB
 static void create_soma_extra(const CellMapping& mapping, std::array<int, 5>& extra) {
     extra = {1, 0, 0, 0, 0};
     /* report extra "mask" all infos not written in report: here only soma count is reported */
@@ -91,7 +90,6 @@ void BinaryReportHandler::register_report(const NrnThread& nt,
         }
     }
 }
-
-#endif  // ENABLE_REPORTING
+#endif  // ENABLE_REPORTINGLIB
 
 }  // Namespace coreneuron

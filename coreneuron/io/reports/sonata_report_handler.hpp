@@ -11,7 +11,7 @@ class SonataReportHandler : public ReportHandler {
     }
 
     void create_report(double dt, double tstop, double delay) override;
-#ifdef ENABLE_REPORTING
+#ifdef ENABLE_SONATA_REPORTS
     void register_soma_report(const NrnThread& nt,
                               ReportConfiguration& config,
                               const VarsToReport& vars_to_report) override;
@@ -26,7 +26,7 @@ class SonataReportHandler : public ReportHandler {
     void register_report(const NrnThread& nt,
                          ReportConfiguration& config,
                          const VarsToReport& vars_to_report);
-#endif  // ENABLE_REPORTING
+#endif  // ENABLE_SONATA_REPORTS
 };
 
-}  // namespace coreneuron
+}  // Namespace coreneuron

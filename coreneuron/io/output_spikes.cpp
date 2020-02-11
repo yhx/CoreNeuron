@@ -42,9 +42,9 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/mpi/nrnmpi_impl.h"
 #include "coreneuron/mpi/nrnmpidec.h"
 #include "coreneuron/utils/string_utils.h"
-#ifdef ENABLE_REPORTING
+#ifdef ENABLE_SONATA_REPORTS
 #include "bbp/sonata/reports.h"
-#endif  // ENABLE_REPORTING
+#endif  // ENABLE_SONATA_REPORTS
 
 namespace coreneuron {
 
@@ -164,10 +164,10 @@ void output_spikes_parallel(const char* outpath) {
     if (nrnmpi_myid == 0) {
         remove(fname.c_str());
     }
-#ifdef ENABLE_REPORTING
+#ifdef ENABLE_SONATA_REPORTS
     sonata_write_spikes(spikevec_time.data(), spikevec_time.size(), spikevec_gid.data(),
                         spikevec_gid.size(), outpath);
-#endif  // ENABLE_REPORTING
+#endif  // ENABLE_SONATA_REPORTS
     sort_spikes(spikevec_time, spikevec_gid);
     nrnmpi_barrier();
 

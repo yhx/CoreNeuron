@@ -13,7 +13,7 @@ class BinaryReportHandler : public ReportHandler {
     }
 
     void create_report(double dt, double tstop, double delay) override;
-#ifdef ENABLE_REPORTING
+#ifdef ENABLE_REPORTINGLIB
     void register_soma_report(const NrnThread& nt,
                               ReportConfiguration& config,
                               const VarsToReport& vars_to_report) override;
@@ -30,7 +30,7 @@ class BinaryReportHandler : public ReportHandler {
                          ReportConfiguration& config,
                          const VarsToReport& vars_to_report,
                          create_extra_func& create_extra);
-#endif  // ENABLE_REPORTING
+#endif  // ENABLE_REPORTINGLIB
 };
 
-}  // namespace coreneuron
+}  // Namespace coreneuron

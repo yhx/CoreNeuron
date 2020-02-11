@@ -1,14 +1,16 @@
 #include "report_event.hpp"
 #include "coreneuron/sim/multicore.hpp"
 #include "coreneuron/utils/nrn_assert.h"
-#ifdef ENABLE_REPORTING
-#include "bbp/sonata/reports.h"
+#ifdef ENABLE_REPORTINGLIB
 #include "reportinglib/Records.h"
-#endif  // ENABLE_REPORTING
+#endif  // ENABLE_REPORTINGLIB
+#ifdef ENABLE_SONATA_REPORTS
+#include "bbp/sonata/reports.h"
+#endif  // ENABLE_SONATA_REPORTS
 
 namespace coreneuron {
 
-#ifdef ENABLE_REPORTING
+#if defined(ENABLE_REPORTINGLIB) || defined(ENABLE_SONATA_REPORTS)
 ReportEvent::ReportEvent(double dt,
                          double tstart,
                          const VarsToReport& filtered_gids,
@@ -30,8 +32,12 @@ void ReportEvent::deliver(double t, NetCvode* nc, NrnThread* nt) {
 #pragma omp critical
     {
         // each thread needs to know its own step
-        sonata_record_node_data(step, gids_to_report.size(), gids_to_report.data(), report_path.data());
+#ifdef ENABLE_REPORTINGLIB
         records_nrec(step, gids_to_report.size(), gids_to_report.data(), report_path.data());
+#endif
+#ifdef ENABLE_SONATA_REPORTS
+        sonata_record_node_data(step, gids_to_report.size(), gids_to_report.data(), report_path.data());
+#endif
         send(t + dt, nc, nt);
         step++;
     }
@@ -40,6 +46,6 @@ void ReportEvent::deliver(double t, NetCvode* nc, NrnThread* nt) {
 bool ReportEvent::require_checkpoint() {
     return false;
 }
-#endif  // ENABLE_REPORTING
+#endif  // defined(ENABLE_REPORTINGLIB) || defined(ENABLE_SONATA_REPORTS)
 
 }  // Namespace coreneuron

@@ -5,7 +5,7 @@
 namespace coreneuron {
 
 void ReportHandler::create_report(double dt, double tstop, double delay) {
-#ifdef ENABLE_REPORTING
+#if defined(ENABLE_REPORTINGLIB) || defined(ENABLE_SONATA_REPORTS)
     if (m_report_config.start < t) {
         m_report_config.start = t;
     }
@@ -54,10 +54,31 @@ void ReportHandler::create_report(double dt, double tstop, double delay) {
     if (nrnmpi_myid == 0) {
         std::cerr << "[WARNING] : Can't enable reports, recompile with ReportingLib! \n";
     }
-#endif  // ENABLE_REPORTING
+#endif  // defined(ENABLE_REPORTINGLIB) || defined(ENABLE_SONATA_REPORTS)
 }
 
-#ifdef ENABLE_REPORTING
+#if defined(ENABLE_REPORTINGLIB) || defined(ENABLE_SONATA_REPORTS)
+void ReportHandler::register_soma_report(const NrnThread& nt,
+                                         ReportConfiguration& config,
+                                         const VarsToReport& vars_to_report) {
+    if (nrnmpi_myid == 0) {
+        std::cerr << "[WARNING] : Report '" << config.output_path << "' not supported!\n";
+    }
+}
+void ReportHandler::register_compartment_report(const NrnThread& nt,
+                                                ReportConfiguration& config,
+                                                const VarsToReport& vars_to_report) {
+    if (nrnmpi_myid == 0) {
+        std::cerr << "[WARNING] : Report '" << config.output_path << "' not supported!\n";
+    }
+}
+void ReportHandler::register_custom_report(const NrnThread& nt,
+                                           ReportConfiguration& config,
+                                           const VarsToReport& vars_to_report) {
+    if (nrnmpi_myid == 0) {
+        std::cerr << "[WARNING] : Report '" << config.output_path << "' not supported!\n";
+    }
+}
 VarsToReport ReportHandler::get_soma_vars_to_report(const NrnThread& nt,
                                                     const std::set<int>& target,
                                                     double* report_variable) const {
@@ -204,6 +225,6 @@ std::vector<int> ReportHandler::map_gids(const NrnThread& nt) const {
     }
     return nodes_gid;
 }
-#endif  // ENABLE_REPORTING
+#endif  // defined(ENABLE_REPORTINGLIB) || defined(ENABLE_SONATA_REPORTS)
 
 }  // Namespace coreneuron

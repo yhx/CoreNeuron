@@ -56,7 +56,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/io/reports/nrnreport.hpp"
 #include "coreneuron/io/reports/binary_report_handler.hpp"
 #include "coreneuron/io/reports/report_handler.hpp"
-#include "coreneuron/io/reports/sonata_report_handler.h"
+#include "coreneuron/io/reports/sonata_report_handler.hpp"
 #include "coreneuron/gpu/nrn_acc_manager.hpp"
 #include "coreneuron/utils/profile/profiler_interface.h"
 #include "coreneuron/network/partrans.hpp"

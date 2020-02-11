@@ -1,4 +1,4 @@
-#include "sonata_report_handler.h"
+#include "sonata_report_handler.hpp"
 #include "coreneuron/network/netcvode.hpp"
 #include "coreneuron/network/netcon.hpp"
 #include "coreneuron/io/nrnsection_mapping.hpp"

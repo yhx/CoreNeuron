@@ -526,7 +526,7 @@ extern "C" int run_solve_core(int argc, char** argv) {
             std::unique_ptr<ReportHandler> report_handler;
             if (std::strcmp(configs[i].format, "Bin") == 0) {
                 report_handler = std::make_unique<BinaryReportHandler>(configs[i]);
-            } else if (std::strcmp(configs[i].format, "SONATA") == 0) {
+            } else if (std::strcmp(configs[i].format, "SONATA") == 0 || std::strcmp(configs[i].format, "hdf5") == 0) {
                 report_handler = std::make_unique<SonataReportHandler>(configs[i]);
             }
             report_handler->create_report(dt, tstop, delay);

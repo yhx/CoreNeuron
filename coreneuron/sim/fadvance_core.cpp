@@ -47,8 +47,7 @@ static void* nrn_fixed_step_group_thread(NrnThread*);
 
 void dt2thread(double adt) { /* copied from nrnoc/fadvance.c */
     if (adt != nrn_threads[0]._dt) {
-        int i;
-        for (i = 0; i < nrn_nthread; ++i) {
+        for (int i = 0; i < nrn_nthread; ++i) {
             NrnThread* nt = nrn_threads + i;
             nt->_t = t;
             nt->_dt = dt;
@@ -109,11 +108,36 @@ void finalize_progress_bar() {
     }
 }
 
-void nrn_fixed_step_group_minimal(int n) {
-    static int step = 0;
+void nrn_fixed_single_steps_minimal(int total_sim_steps, double tstop) {
+    const int progressbar_update_interval = 5;
+    static int current_steps = 0;
+    initialize_progress_bar(total_sim_steps);
+#if NRNMPI
+    double updated_tstop = tstop - dt;
+    nrn_assert(nrn_threads->_t <= tstop);
+    // It may very well be the case that we do not advance at all
+    while (nrn_threads->_t <= updated_tstop) {
+#else
+    double updated_tstop = tstop - .5 * dt;
+    while (nrn_threads->_t < updated_tstop) {
+#endif
+        nrn_fixed_step_minimal();
+        if (stoprun) {
+            break;
+        }
+        current_steps++;
+        if (!(current_steps % progressbar_update_interval)) {
+            update_progress_bar(current_steps, nrn_threads[0]._t);
+        }
+    }
+    finalize_progress_bar();
+}
+
+void nrn_fixed_step_group_minimal(int total_sim_steps) {
+    static int current_steps = 0;
     dt2thread(dt);
     nrn_thread_table_check();
-    step_group_n = n;
+    step_group_n = total_sim_steps;
     step_group_begin = 0;
     step_group_end = 0;
     initialize_progress_bar(step_group_n);
@@ -130,7 +154,7 @@ void nrn_fixed_step_group_minimal(int n) {
         if (stoprun) {
             break;
         }
-        step++;
+        current_steps++;
         step_group_begin = step_group_end;
         update_progress_bar(step_group_end, nrn_threads[0]._t);
     }
@@ -139,33 +163,31 @@ void nrn_fixed_step_group_minimal(int n) {
 }
 
 static void* nrn_fixed_step_group_thread(NrnThread* nth) {
-    int i;
     nth->_stop_stepping = 0;
-    for (i = step_group_begin; i < step_group_n; ++i) {
+    for (int i = step_group_begin; i < step_group_n; ++i) {
         nrn_fixed_step_thread(nth);
         if (nth->_stop_stepping) {
             if (nth->id == 0) {
                 step_group_end = i + 1;
             }
             nth->_stop_stepping = 0;
-            return (void*)0;
+            return nullptr;
         }
     }
     if (nth->id == 0) {
         step_group_end = step_group_n;
     }
-    return (void*)0;
+    return nullptr;
 }
 
 void update(NrnThread* _nt) {
-    int i, i1, i2;
-    i1 = 0;
-    i2 = _nt->end;
+    double* vec_v = &(VEC_V(0));
+    double* vec_rhs = &(VEC_RHS(0));
+    int i2 = _nt->end;
+
 #if defined(_OPENACC)
     int stream_id = _nt->stream_id;
 #endif
-    double* vec_v = &(VEC_V(0));
-    double* vec_rhs = &(VEC_RHS(0));
 
     /* do not need to worry about linmod or extracellular*/
     if (secondorder) {
@@ -174,7 +196,7 @@ void update(NrnThread* _nt) {
             vec_v[0:i2], vec_rhs[0:i2])             \
             if (_nt->compute_gpu) async(stream_id)
         // clang-format on
-        for (i = i1; i < i2; ++i) {
+        for (int i = 0; i < i2; ++i) {
             vec_v[i] += 2. * vec_rhs[i];
         }
     } else {
@@ -183,7 +205,7 @@ void update(NrnThread* _nt) {
                 vec_v[0:i2], vec_rhs[0:i2])             \
                 if (_nt->compute_gpu) async(stream_id)
         // clang-format on
-        for (i = i1; i < i2; ++i) {
+        for (int i = 0; i < i2; ++i) {
             vec_v[i] += vec_rhs[i];
         }
     }
@@ -200,7 +222,6 @@ void update(NrnThread* _nt) {
 }
 
 void nonvint(NrnThread* _nt) {
-    NrnThreadMembList* tml;
     if (nrn_have_gaps) {
         Instrumentor::phase p("gap-v-transfer");
         nrnthread_v_transfer(_nt);
@@ -208,7 +229,7 @@ void nonvint(NrnThread* _nt) {
     errno = 0;
 
     Instrumentor::phase_begin("state-update");
-    for (tml = _nt->tml; tml; tml = tml->next)
+    for (auto tml = _nt->tml; tml; tml = tml->next)
         if (corenrn.get_memb_func(tml->index).state) {
             mod_f_t s = corenrn.get_memb_func(tml->index).state;
             std::string ss("state-");
@@ -227,8 +248,7 @@ void nonvint(NrnThread* _nt) {
 }
 
 void nrn_ba(NrnThread* nt, int bat) {
-    NrnThreadBAList* tbl;
-    for (tbl = nt->tbl[bat]; tbl; tbl = tbl->next) {
+    for (auto tbl = nt->tbl[bat]; tbl; tbl = tbl->next) {
         mod_f_t f = tbl->bam->f;
         int type = tbl->bam->type;
         Memb_list* ml = tbl->ml;
@@ -325,7 +345,7 @@ static void* nrn_fixed_step_thread(NrnThread* nth) {
         nrn_fixed_step_lastpart(nth);
     }
     Instrumentor::phase_end("timestep");
-    return (void*)0;
+    return nullptr;
 }
 
 void* nrn_fixed_step_lastpart(NrnThread* nth) {
@@ -355,6 +375,6 @@ void* nrn_fixed_step_lastpart(NrnThread* nth) {
         nrn_deliver_events(nth); /* up to but not past texit */
     }
 
-    return (void*)0;
+    return nullptr;
 }
 }  // namespace coreneuron

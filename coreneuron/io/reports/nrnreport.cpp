@@ -58,7 +58,7 @@ void nrn_flush_reports(double t) {
     records_end_iteration(t);
 #endif
 #ifdef ENABLE_SONATA_REPORTS
-    sonata_end_iteration(t);
+    sonata_check_and_flush(t);
 #endif
 }
 

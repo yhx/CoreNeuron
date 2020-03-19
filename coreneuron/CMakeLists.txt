@@ -202,7 +202,9 @@ add_custom_command(TARGET coreneuron
                    BYPRODUCTS ${CMAKE_BINARY_DIR}/bin/${CMAKE_SYSTEM_PROCESSOR}/special-core
                    COMMENT "Running nrnivmodl-core with halfgap.mod")
 add_dependencies(coreneuron scopmath)
-
+if(CORENRN_ENABLE_NMODL)
+  add_dependencies(coreneuron _nmodl)
+endif()
 # =============================================================================
 # create nrnivmodl-core
 # =============================================================================

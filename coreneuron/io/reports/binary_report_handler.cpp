@@ -20,7 +20,6 @@ static void create_soma_extra(const CellMapping& mapping, std::array<int, 5>& ex
 }
 
 static void create_compartment_extra(const CellMapping& mapping, std::array<int, 5>& extra) {
-    extra = {1, 0, 0, 0, 1};
     extra[1] = mapping.get_seclist_section_count("soma");
     extra[2] = mapping.get_seclist_section_count("axon");
     extra[3] = mapping.get_seclist_section_count("dend");
@@ -31,7 +30,6 @@ static void create_compartment_extra(const CellMapping& mapping, std::array<int,
 static void create_custom_extra(const CellMapping& mapping, std::array<int, 5>& extra) {
     extra = {1, 0, 0, 0, 1};
     extra[1] = mapping.get_seclist_section_count("soma");
-    // todo: axon seems masked on neurodamus side, need to check
     // extra[2] and extra[3]
     extra[4] = mapping.get_seclist_section_count("apic");
     extra[0] = std::accumulate(extra.begin() + 1, extra.end(), 0);
@@ -81,7 +79,6 @@ void BinaryReportHandler::register_report(const NrnThread& nt,
                            config.unit);
 
         records_set_report_max_buffer_size_hint(config.output_path, config.buffer_size);
-        /** add extra mapping : @todo api changes in reportinglib*/
         records_extra_mapping(config.output_path, gid, 5, extra.data());
         for (const auto& var : vars) {
             mapping[0] = var.id;

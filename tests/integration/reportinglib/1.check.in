@@ -13,16 +13,17 @@ then
   then
      #checking something with @reportinglib_BIN_DIR@/dump test_1.bbp
      # for ascii files that will be using grep for instance.
-     nb_recorded=$(@reportinglib_LIB_DIR@/../usr/local/bin/somaDump test_1.bbp 1| wc -l)
+     nb_recorded=$(@reportinglib_somaDump@ test_1.bbp 1| wc -l)
      # 101 because a white space
      if [ $nb_recorded -eq 100 ]; then
        exit $OK
      else
-       echo "[ERROR] The number of steps recorded doesn't match. Test failed!" >&2
+       echo "[ERROR] The number of steps recorded by ReportingLib doesn't match.
+             Found $nb_recorded, expected 100. Test failed!" >&2
        exit $FAILED
      fi
   else
-     echo "[ERROR] reportinglib soma file doesn't exist. Test failed!" >&2
+     echo "[ERROR] Expected ReportingLib soma file 'test_1.bbp' is missing. Test failed!" >&2
      exit $FAILED
   fi
 fi
@@ -33,16 +34,17 @@ then
   then
      #checking something with @reportinglib_BIN_DIR@/dump test_1.bbp
      # for ascii files that will be using grep for instance.
-     nb_recorded_sonata=$(h5dump -d /report/data -y -O test_2.h5 | wc -l)
+     nb_recorded_sonata=$(@H5DUMP_EXECUTABLE@ -d /report/data -y -O test_2.h5 | wc -l)
      # 101 because a white space
      if [ $nb_recorded_sonata -eq 101 ]; then
        exit $OK
      else
-       echo "[ERROR] The number of steps recorded doesn't match. Test failed!" >&2
+       echo "[ERROR] The number of steps recorded by SONATA doesn't match.
+            Found $nb_recorded, expected 101. Test failed!" >&2
        exit $FAILED
      fi
   else
-     echo "[ERROR] SONATA reports soma file doesn't exist. Test failed!" >&2
+     echo "[ERROR] Expected SONATA soma file 'test_2.h5' doesn't exist. Test failed!" >&2
      exit $FAILED
   fi
 fi

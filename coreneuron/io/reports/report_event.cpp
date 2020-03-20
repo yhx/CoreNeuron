@@ -28,7 +28,7 @@ ReportEvent::ReportEvent(double dt,
 
 /** on deliver, call ReportingLib and setup next event */
 void ReportEvent::deliver(double t, NetCvode* nc, NrnThread* nt) {
-/** @todo: reportinglib is not thread safe */
+/* reportinglib is not thread safe */
 #pragma omp critical
     {
         // each thread needs to know its own step

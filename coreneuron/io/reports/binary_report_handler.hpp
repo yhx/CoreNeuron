@@ -2,6 +2,7 @@
 #include <functional>
 #include <memory>
 #include <vector>
+#include <array>
 #include "report_handler.hpp"
 #include "coreneuron/io/nrnsection_mapping.hpp"
 

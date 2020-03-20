@@ -424,6 +424,22 @@ static void trajectory_return() {
     }
 }
 
+std::unique_ptr<ReportHandler> create_report_handler(ReportConfiguration& config) {
+    std::unique_ptr<ReportHandler> report_handler;
+    if (std::strcmp(config.format, "Bin") == 0) {
+        report_handler = std::make_unique<BinaryReportHandler>(config);
+    } else if (std::strcmp(config.format, "SONATA") == 0) {
+        report_handler = std::make_unique<SonataReportHandler>(config);
+    }
+    else {
+        if (nrnmpi_myid == 0) {
+            printf(" WARNING : Report name '%s' has unknown format: '%s'.\n", config.name, config.format);
+        }
+        return nullptr;
+    }
+    return report_handler;
+}
+
 }  // namespace coreneuron
 
 /// The following high-level functions are marked as "extern C"
@@ -523,14 +539,11 @@ extern "C" int run_solve_core(int argc, char** argv) {
         double min_report_dt = INT_MAX;
         int report_buffer_size = nrnopt_get_int("--report-buffer-size");
         for (size_t i = 0; i < configs.size(); i++) {
-            std::unique_ptr<ReportHandler> report_handler;
-            if (std::strcmp(configs[i].format, "Bin") == 0) {
-                report_handler = std::make_unique<BinaryReportHandler>(configs[i]);
-            } else if (std::strcmp(configs[i].format, "SONATA") == 0) {
-                report_handler = std::make_unique<SonataReportHandler>(configs[i]);
+            std::unique_ptr<ReportHandler> report_handler = create_report_handler(configs[i]);
+            if(report_handler) {
+                report_handler->create_report(dt, tstop, delay);
+                report_handlers.push_back(std::move(report_handler));
             }
-            report_handler->create_report(dt, tstop, delay);
-            report_handlers.push_back(std::move(report_handler));
             if (configs[i].report_dt < min_report_dt) {
                 min_report_dt = configs[i].report_dt;
             }

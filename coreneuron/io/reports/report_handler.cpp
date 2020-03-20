@@ -44,7 +44,7 @@ void ReportHandler::create_report(double dt, double tstop, double delay) {
                 register_custom_report(nt, m_report_config, vars_to_report);
         }
         if (!vars_to_report.empty()) {
-            std::unique_ptr<ReportEvent> report_event =
+            auto report_event =
                 std::make_unique<ReportEvent>(dt, t, vars_to_report, m_report_config.output_path);
             report_event->send(t, net_cvode_instance, &nt);
             m_report_events.push_back(std::move(report_event));
@@ -52,7 +52,7 @@ void ReportHandler::create_report(double dt, double tstop, double delay) {
     }
 #else
     if (nrnmpi_myid == 0) {
-        std::cerr << "[WARNING] : Can't enable reports, recompile with ReportingLib! \n";
+        std::cerr << "[WARNING] : Reporting is disabled. Please recompile with either libsonata or reportinglib. \n";
     }
 #endif  // defined(ENABLE_REPORTINGLIB) || defined(ENABLE_SONATA_REPORTS)
 }
@@ -98,7 +98,7 @@ VarsToReport ReportHandler::get_soma_vars_to_report(const NrnThread& nt,
             CellMapping* m = mapinfo->get_cell_mapping(gid);
             if (m == nullptr) {
                 std::cerr << "[SOMA] Error : Soma mapping information is missing for gid " << gid
-                          << "\n";
+                          << '\n';
                 nrn_abort(1);
             }
             /** get  section list mapping for soma */
@@ -121,7 +121,7 @@ VarsToReport ReportHandler::get_compartment_vars_to_report(const NrnThread& nt,
     const auto* mapinfo = static_cast<NrnThreadMappingInfo*>(nt.mapping);
     if (!mapinfo) {
         std::cerr << "[COMPARTMENTS] Error : mapping information is missing for a Cell group "
-                  << nt.ncell << "\n";
+                  << nt.ncell << '\n';
         nrn_abort(1);
     }
 
@@ -132,7 +132,7 @@ VarsToReport ReportHandler::get_compartment_vars_to_report(const NrnThread& nt,
             if (cell_mapping == nullptr) {
                 std::cerr
                     << "[COMPARTMENTS] Error : Compartment mapping information is missing for gid "
-                    << gid << "\n";
+                    << gid << '\n';
                 nrn_abort(1);
             }
             std::vector<VarWithMapping> to_report;

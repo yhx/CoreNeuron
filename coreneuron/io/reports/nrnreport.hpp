@@ -60,7 +60,7 @@ struct ReportConfiguration {
     char mech_name[REPORT_MAX_NAME_LEN];    // mechanism name
     char var_name[REPORT_MAX_NAME_LEN];     // variable name
     char unit[REPORT_MAX_NAME_LEN];         // unit of the report
-    char format[REPORT_MAX_NAME_LEN];       // format of the report (bin, hdf5)
+    char format[REPORT_MAX_NAME_LEN];       // format of the report (Bin, hdf5, SONATA)
     char type_str[REPORT_MAX_NAME_LEN];     // type of report string
     ReportType type;                        // type of the report
     int mech_id;                            // mechanism

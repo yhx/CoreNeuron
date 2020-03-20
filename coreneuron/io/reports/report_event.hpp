@@ -1,7 +1,8 @@
 #pragma once
 #include <algorithm>
-#include <map>
+#include <unordered_map>
 #include <vector>
+#include <string>
 #include "coreneuron/network/netcon.hpp"
 #include "coreneuron/network/netcvode.hpp"
 
@@ -16,15 +17,15 @@ struct VarWithMapping {
 };
 
 // mapping the set of variables pointers to report to its gid
-typedef std::map<int, std::vector<VarWithMapping> > VarsToReport;
+using VarsToReport = std::unordered_map<int, std::vector<VarWithMapping>>;
 
 class ReportEvent : public DiscreteEvent {
   public:
     ReportEvent(double dt, double tstart, const VarsToReport& filtered_gids, const char* name);
 
     /** on deliver, call ReportingLib and setup next event */
-    virtual void deliver(double t, NetCvode* nc, NrnThread* nt);
-    virtual bool require_checkpoint();
+    void deliver(double t, NetCvode* nc, NrnThread* nt) override;
+    bool require_checkpoint() override;
 
   private:
     double dt;

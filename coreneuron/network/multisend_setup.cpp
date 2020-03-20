@@ -21,7 +21,7 @@ namespace coreneuron {
 typedef std::map<int, InputPreSyn*> Gid2IPS;
 typedef std::map<int, PreSyn*> Gid2PS;
 
-#if 0
+#if DEBUG
 template <typename T>
 static void celldebug(const char* p, T& map) {
     FILE* f;
@@ -72,7 +72,7 @@ static void alltoalldebug(const char*, int*, int*, int*, int*, int*, int*) {
 }
 #endif
 
-#if 0
+#if DEBUG
 void phase1debug(int* targets_phase1) {
     FILE* f;
     char fname[100];
@@ -288,7 +288,7 @@ to not use any PreSyn information.
 static int setup_target_lists(int, int**);
 static void fill_multisend_lists(int, int, int*, int*&, int*&);
 
-void nrn_multisend_setup_targets(int use_phase2, int*& targets_phase1, int*& targets_phase2) {
+void nrn_multisend_setup_targets(bool use_phase2, int*& targets_phase1, int*& targets_phase2) {
     int* r;
     int sz = setup_target_lists(use_phase2, &r);
 

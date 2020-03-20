@@ -15,7 +15,7 @@
 #include <openacc.h>
 #endif
 namespace coreneuron {
-int use_interleave_permute;
+int interleave_permute_type;
 InterleaveInfo* interleave_info;  // nrn_nthread array
 
 
@@ -103,11 +103,6 @@ static void print_quality2(int iwarp, InterleaveInfo& ii, int* p) {
     int nodebegin = ii.lastnode[iwarp];
     int* stride = ii.stride + ii.stridedispl[iwarp];
     int ncycle = ii.cellsize[iwarp];
-
-#if 0
-  int nodeend = ii.lastnode[iwarp+1];
-  int nnode = ii.lastnode[ii.nwarp];
-#endif
 
     int inode = nodebegin;
 
@@ -299,7 +294,7 @@ int* interleave_order(int ith, int ncell, int nnode, int* parent) {
         ii.firstnode = firstnode;
         ii.lastnode = lastnode;
         ii.cellsize = cellsize;
-        if (0 && ith == 0 && use_interleave_permute == 1) {
+        if (0 && ith == 0 && interleave_permute_type == 1) {
             printf("ith=%d nstride=%d ncell=%d nnode=%d\n", ith, nstride, ncell, nnode);
             for (int i = 0; i < ncell; ++i) {
                 printf("icell=%d cellsize=%d first=%d last=%d\n", i, cellsize[i], firstnode[i],
@@ -324,10 +319,10 @@ int* interleave_order(int ith, int ncell, int nnode, int* parent) {
             ii.cache_access = new size_t[nwarp];
             ii.child_race = new size_t[nwarp];
             for (int i = 0; i < nwarp; ++i) {
-                if (use_interleave_permute == 1) {
+                if (interleave_permute_type == 1) {
                     print_quality1(i, interleave_info[ith], ncell, p);
                 }
-                if (use_interleave_permute == 2) {
+                if (interleave_permute_type == 2) {
                     print_quality2(i, interleave_info[ith], p);
                 }
             }
@@ -406,7 +401,6 @@ void mk_cell_indices() {
 }
 #endif  // INTERLEAVE_DEBUG
 
-#if 1
 #define GPU_V(i) nt->_actual_v[i]
 #define GPU_A(i) nt->_actual_a[i]
 #define GPU_B(i) nt->_actual_b[i]
@@ -571,11 +565,6 @@ void solve_interleaved2(int ith) {
 #endif
 
     int ncore = nwarp * warpsize;
-#if 0 && defined(ENABLE_CUDA_INTERFACE)  // not implemented
-    NrnThread* d_nt = (NrnThread*) acc_deviceptr(nt);
-    InterleaveInfo* d_info = (InterleaveInfo*) acc_deviceptr(interleave_info+ith);
-    solve_interleaved2_launcher(d_nt, d_info);
-#else
 #ifdef _OPENACC
 // clang-format off
     #pragma acc parallel loop present(                  \
@@ -608,7 +597,6 @@ void solve_interleaved2(int ith) {
     }
 #ifdef _OPENACC
 #pragma acc wait(nt->stream_id)
-#endif
 #endif
     if (foo == 1) {
         return;
@@ -661,11 +649,10 @@ void solve_interleaved1(int ith) {
 }
 
 void solve_interleaved(int ith) {
-    if (use_interleave_permute != 1) {
+    if (interleave_permute_type != 1) {
         solve_interleaved2(ith);
     } else {
         solve_interleaved1(ith);
     }
 }
 }  // namespace coreneuron
-#endif

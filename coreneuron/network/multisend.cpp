@@ -42,8 +42,8 @@ of spikes sent is equal to the number of spikes sent.
 // which has the greatest amount of overlap between computation
 // and communication.
 namespace coreneuron {
-int use_multisend_;
-int use_phase2_;
+bool use_multisend_;
+bool use_phase2_;
 int n_multisend_interval = 2;
 
 #if NRN_MULTISEND
@@ -352,7 +352,7 @@ static int multisend_advance() {
 
 #if NRN_MULTISEND
 void nrn_multisend_advance() {
-    if (use_multisend_ == 1) {
+    if (use_multisend_) {
         multisend_advance();
 #if ENQUEUE == 2
         multisend_receive_buffer[current_rbuf]->enqueue();
@@ -368,18 +368,10 @@ void nrn_multisend_receive(NrnThread* nt) {
     int ncons = 0;
     int& s = multisend_receive_buffer[current_rbuf]->nsend_;
     int& r = multisend_receive_buffer[current_rbuf]->nrecv_;
-#if 0 && ENQUEUE == 2
-    unsigned long tfind, tsend;
-#endif
 //	w1 = nrn_wtime();
 #if NRN_MULTISEND & 1
-    if (use_multisend_ == 1) {
+    if (use_multisend_) {
         nrn_multisend_advance();
-#if 0 && ENQUEUE == 2
-    // want the overlap with computation, not conserve
-    tfind = enq2_find_time_;
-    tsend = enq2_enqueue_time_ - enq2_find_time_;
-#endif
         nrnmpi_barrier();
         nrn_multisend_advance();
         // with two phase we expect conservation to hold and ncons should
@@ -437,7 +429,7 @@ void nrn_multisend_cleanup() {
 
 void nrn_multisend_setup() {
     nrn_multisend_cleanup();
-    if (use_multisend_ == 0) {
+    if (!use_multisend_) {
         return;
     }
     nrnmpi_multisend_comm();

@@ -5,18 +5,19 @@
 # =============================================================================
 
 cmake_minimum_required(VERSION 3.7 FATAL_ERROR)
-project(coreneuron)
+project(coreneuron VERSION 0.18.0)
+
+# It is a bad idea having floating point versions, since macros cant handle them
+# We therefore, have version as an int, which is pretty much standard
+math(EXPR CORENEURON_VERSION_COMBINED
+  "${coreneuron_VERSION_MAJOR} * 100 + ${coreneuron_VERSION_MINOR}")
 
 # =============================================================================
 # CMake common project settings
 # =============================================================================
-set(VERSION_MAJOR "0")
-set(VERSION_MINOR "16")
-set(VERSION_PATCH "0")
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-set(VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 set(CMAKE_BUILD_TYPE
         RelWithDebInfo
         CACHE STRING "Empty or one of Debug, Release, RelWithDebInfo")
@@ -46,6 +47,9 @@ include(ReleaseDebugAutoFlags)
 include(CrayPortability)
 include(SetRpath)
 include(CTest)
+include(AddRandom123Submodule)
+include(AddCLI11Submodule)
+add_subdirectory(${CORENEURON_PROJECT_SOURCE_DIR}/external/CLI11)
 
 # =============================================================================
 # Build options
@@ -81,6 +85,11 @@ endif()
 # =============================================================================
 include(OpenAccHelper)
 include(ClangFormatHelper)
+
+# =============================================================================
+# ISPC should compile with --pic by default
+# =============================================================================
+set(CMAKE_ISPC_FLAGS "--pic ${CMAKE_ISPC_FLAGS}")
 
 # =============================================================================
 # Common build options
@@ -191,9 +200,16 @@ if(CORENRN_ENABLE_NMODL)
     include(AddNmodlSubmodule)
     set(CORENRN_NMODL_BINARY ${CMAKE_BINARY_DIR}/bin/nmodl${CMAKE_EXECUTABLE_SUFFIX})
     set(CORENRN_NMODL_INCLUDE ${CMAKE_BINARY_DIR}/include)
+    set(ENV{PYTHONPATH} "$ENV{PYTHONPATH}")
+    set(CORENRN_NMODL_PYTHONPATH $ENV{PYTHONPATH})
   endif()
   include_directories(${CORENRN_NMODL_INCLUDE})
-  set(CORENRN_NMODL_FLAGS "" CACHE STRING "Extra NMODL options such as passes")
+  # set correct arguments for nmodl for cpu/gpu target
+  if(CORENRN_ENABLE_GPU)
+    set(CORENRN_NMODL_FLAGS "acc --oacc" CACHE STRING "Extra NMODL options such as passes")
+  else()
+    set(CORENRN_NMODL_FLAGS "" CACHE STRING "Extra NMODL options such as passes")
+  endif()
   separate_arguments(NMODL_EXTRA_FLAGS_LIST UNIX_COMMAND "${CORENRN_NMODL_FLAGS}")
 else()
   include(AddMod2cSubmodule)
@@ -237,6 +253,15 @@ endif()
 install(FILES CMake/coreneuron-config.cmake DESTINATION share/cmake)
 install(EXPORT coreneuron DESTINATION share/cmake)
 
+# just for printing the compiler flags in the build status
+string(TOUPPER ${CMAKE_BUILD_TYPE} BUILD_TYPE_UPPER)
+if(BUILD_TYPE_UPPER MATCHES "CUSTOM")
+  set(COMPILER_FLAGS "${CMAKE_CXX_FLAGS}")
+else()
+  set(COMPILER_FLAGS "${CMAKE_CXX_FLAGS_${BUILD_TYPE_UPPER}}")
+endif()
+
+
 # =============================================================================
 # Build status
 # =============================================================================
@@ -254,6 +279,7 @@ if(cmake_generator_tolower MATCHES "makefile")
   message(STATUS " Build option       | Status")
   message(STATUS "--------------------+--------------------------------------------------------")
 
+  message(STATUS "COMPILE FLAGS       | ${COMPILER_FLAGS} ${CMAKE_CXX_FLAGS}")
   message(STATUS "MPI                 | ${CORENRN_ENABLE_MPI}")
   if(CORENRN_ENABLE_MPI)
     message(STATUS "  INC               | ${MPI_C_INCLUDE_PATH}")
@@ -263,11 +289,16 @@ if(cmake_generator_tolower MATCHES "makefile")
   if(CORENRN_ENABLE_NMODL)
     message(STATUS "  PATH              | ${CORENRN_NMODL_BINARY}")
     message(STATUS "  ISPC              | ${CORENRN_ENABLE_ISPC}")
+    message(STATUS "  FLAGS             | ${CORENRN_NMODL_FLAGS}")
   else()
     message(STATUS "MOD2C               | ${MOD2C_PROJ}")
   endif()
   message(STATUS "GPU Support         | ${CORENRN_ENABLE_GPU}")
-  message(STATUS "CUDA Unified Memory | ${CORENRN_ENABLE_CUDA_UNIFIED_MEMORY}")
+  if(CORENRN_ENABLE_GPU)
+    message(STATUS "  CUDA              | ${CUDA_TOOLKIT_ROOT_DIR}")
+    message(STATUS "  Unified Memory    | ${CORENRN_ENABLE_CUDA_UNIFIED_MEMORY}")
+    message(STATUS "  HOST COMPILER     | ${CUDA_HOST_COMPILER}")
+  endif()
   message(STATUS "Auto Timeout        | ${CORENRN_ENABLE_TIMEOUT}")
   message(STATUS "Wrap exp()          | ${CORENRN_ENABLE_HOC_EXP}")
   message(STATUS "SplayTree Queue     | ${CORENRN_ENABLE_SPLAYTREE_QUEUING}")

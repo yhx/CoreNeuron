@@ -61,7 +61,7 @@ extern void nrnmpi_checkbufleak();
 static int nrnmpi_under_nrncontrol_;
 
 void nrnmpi_init(int nrnmpi_under_nrncontrol, int* pargc, char*** pargv) {
-    nrnmpi_use = 1;
+    nrnmpi_use = true;
     nrnmpi_under_nrncontrol_ = nrnmpi_under_nrncontrol;
     if (nrnmpi_under_nrncontrol_) {
 #if !ALWAYS_CALL_MPI_INIT
@@ -78,7 +78,7 @@ void nrnmpi_init(int nrnmpi_under_nrncontrol, int* pargc, char*** pargv) {
                 b = true;
                 break;
             }
-            if (strcmp("-mpi", (*pargv)[i]) == 0) {
+            if (strcmp("--mpi", (*pargv)[i]) == 0) {
                 b = true;
                 break;
             }
@@ -87,7 +87,7 @@ void nrnmpi_init(int nrnmpi_under_nrncontrol, int* pargc, char*** pargv) {
             b = true;
         }
         if (!b) {
-            nrnmpi_use = 0;
+            nrnmpi_use = false;
             nrnmpi_under_nrncontrol_ = 0;
             return;
         }
@@ -153,7 +153,7 @@ void nrnmpi_terminate() {
         if (nrnmpi_under_nrncontrol_) {
             MPI_Finalize();
         }
-        nrnmpi_use = 0;
+        nrnmpi_use = false;
 #if nrnmpidebugleak
         nrnmpi_checkbufleak();
 #endif
@@ -222,5 +222,41 @@ int nrnmpi_initialized() {
 #endif
     return flag;
 }
+
+/**
+ * Return local mpi rank within a shared memory node
+ *
+ * When performing certain operations, we need to know the rank of mpi
+ * process on a given node. This function uses MPI 3 MPI_Comm_split_type
+ * function and MPI_COMM_TYPE_SHARED key to find out the local rank.
+ */
+int nrnmpi_local_rank() {
+    int local_rank = 0;
+#if NRNMPI
+    MPI_Comm local_comm;
+    MPI_Comm_split_type(MPI_COMM_WORLD, MPI_COMM_TYPE_SHARED, nrnmpi_myid_world, MPI_INFO_NULL, &local_comm);
+    MPI_Comm_rank(local_comm, &local_rank);
+    MPI_Comm_free(&local_comm);
+#endif
+    return local_rank;
+}
+
+/**
+ * Return number of ranks running on single shared memory node
+ *
+ * We use MPI 3 MPI_Comm_split_type function and MPI_COMM_TYPE_SHARED key to
+ * determine number of mpi ranks within a shared memory node.
+ */
+int nrnmpi_local_size() {
+    int local_size = 1;
+#if NRNMPI
+    MPI_Comm local_comm;
+    MPI_Comm_split_type(MPI_COMM_WORLD, MPI_COMM_TYPE_SHARED, nrnmpi_myid_world, MPI_INFO_NULL, &local_comm);
+    MPI_Comm_size(local_comm, &local_size);
+    MPI_Comm_free(&local_comm);
+#endif
+    return local_size;
+}
+
 
 }  // namespace coreneuron

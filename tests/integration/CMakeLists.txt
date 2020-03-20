@@ -4,39 +4,36 @@
 # See top-level LICENSE file for details.
 # =============================================================================
 
-set(COMMON_ARGS "--tstop 100. --celsius 6.3 -mpi")
+set(COMMON_ARGS "--tstop 100. --celsius 6.3 --mpi")
 set(RING_DATASET_DIR "${CMAKE_CURRENT_SOURCE_DIR}/ring")
 set(RING_COMMON_ARGS "--datpath ${RING_DATASET_DIR} ${COMMON_ARGS}")
 set(RING_GAP_COMMON_ARGS "--datpath ${CMAKE_CURRENT_SOURCE_DIR}/ring_gap ${COMMON_ARGS}")
-set(PERMUTE1_ARGS "--cell-permute 1 --nwarp 8")
-set(PERMUTE2_ARGS "--cell-permute 2 --nwarp 16")
+set(PERMUTE1_ARGS "--cell-permute 1")
+set(PERMUTE2_ARGS "--cell-permute 2")
 if(CORENRN_ENABLE_GPU)
-  set(GPU_ARGS "--nwarp 8 --gpu")
+  set(GPU_ARGS "--gpu")
 endif()
 
 # List of tests with arguments
-set(
-  TEST_CASES_WITH_ARGS
-  "ring!${RING_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring"
-  "ring_binqueue!${RING_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_binqueue --binqueue"
-  "ring_multisend!${RING_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_multisend --multisend"
-  "ring_spike_buffer!${RING_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_spike_buffer -b 1"
-  "ring_duplicate!${RING_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_duplicate -z 3"
-  "ring_permute1!${RING_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_permute1 ${PERMUTE1_ARGS}"
-  "ring_permute2!${RING_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_permute2 ${PERMUTE2_ARGS}"
-  "ring_gap!${RING_GAP_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_gap"
-  "ring_gap_binqueue!${RING_GAP_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_gap_binqueue --binqueue"
-  "ring_gap_multisend!${RING_GAP_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_gap_multisend --multisend"
-  "ring_gap_permute1!${RING_GAP_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_gap_permute1 ${PERMUTE1_ARGS}"
-  "ring_gap_permute2!${RING_GAP_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_gap_permute2 ${PERMUTE2_ARGS}"
-  )
+set(TEST_CASES_WITH_ARGS
+    "ring!${RING_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring"
+    "ring_binqueue!${RING_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_binqueue --binqueue"
+    "ring_multisend!${RING_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_multisend --multisend"
+    "ring_spike_buffer!${RING_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_spike_buffer --spikebuf 1"
+    "ring_duplicate!${RING_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_duplicate --multiple 3"
+    "ring_permute1!${RING_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_permute1 ${PERMUTE1_ARGS}"
+    "ring_permute2!${RING_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_permute2 ${PERMUTE2_ARGS}"
+    "ring_gap!${RING_GAP_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_gap"
+    "ring_gap_binqueue!${RING_GAP_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_gap_binqueue --binqueue"
+    "ring_gap_multisend!${RING_GAP_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_gap_multisend --multisend"
+    "ring_gap_permute1!${RING_GAP_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_gap_permute1 ${PERMUTE1_ARGS}"
+    "ring_gap_permute2!${RING_GAP_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_gap_permute2 ${PERMUTE2_ARGS}"
+)
 
-set(
-  NEGATIVE_TEST_CASES_WITH_ARGS
-  "ring_different_seed!${RING_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_different_seed --seed 123456"
-  )
+set(NEGATIVE_TEST_CASES_WITH_ARGS "ring_different_seed!${RING_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_different_seed --seed 123456")
 
-# There are no directories for permute and multisend related tests, create them and copy ref spikes
+# There are no directories for permute and multisend related tests,
+# create them and copy ref spikes
 foreach(data_dir "ring" "ring_gap")
   foreach(test_suffix
           "multisend"
@@ -49,19 +46,26 @@ foreach(data_dir "ring" "ring_gap")
     file(COPY
          "${CMAKE_CURRENT_SOURCE_DIR}/${data_dir}/out.dat.ref"
          DESTINATION
-         "${CMAKE_CURRENT_SOURCE_DIR}/${data_dir}_${test_suffix}/")
+         "${CMAKE_CURRENT_BINARY_DIR}/${data_dir}_${test_suffix}/")
   endforeach()
 endforeach()
 
+# base tests : ring, ring with gap and ring duplication
+foreach(data_dir "ring" "ring_gap" "ring_duplicate")
+  file(COPY
+         "${CMAKE_CURRENT_SOURCE_DIR}/${data_dir}/out.dat.ref"
+         DESTINATION
+         "${CMAKE_CURRENT_BINARY_DIR}/${data_dir}/")
+endforeach()
+
+# test for small spike buffer
 file(COPY
      "${CMAKE_CURRENT_SOURCE_DIR}/ring/out.dat.ref"
      DESTINATION
-     "${CMAKE_CURRENT_SOURCE_DIR}/ring_spike_buffer/")
-
-file(GLOB INPUT_FILES "${CMAKE_CURRENT_SOURCE_DIR}/ring/*.dat")
+     "${CMAKE_CURRENT_BINARY_DIR}/ring_spike_buffer/")
 
 # Configure test scripts
-foreach(args_line ${TEST_CASES_WITH_ARGS})
+foreach(args_line ${TEST_CASES})
   string(REPLACE "!"
                  ";"
                  string_line
@@ -81,7 +85,7 @@ foreach(args_line ${TEST_CASES_WITH_ARGS})
            WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/${TEST_NAME}")
 endforeach()
 
-foreach(args_line ${NEGATIVE_TEST_CASES_WITH_ARGS})
+foreach(args_line ${NEGATIVE_TEST_CASES})
   string(REPLACE "!"
                  ";"
                  string_line

@@ -26,6 +26,8 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include <functional>
+
 #include "coreneuron/coreneuron.hpp"
 #include "coreneuron/nrnconf.h"
 #include "coreneuron/sim/multicore.hpp"
@@ -36,6 +38,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/network/netcvode.hpp"
 #include "coreneuron/network/netpar.hpp"
 #include "coreneuron/network/partrans.hpp"
+#include "coreneuron/utils/nrnoc_aux.hpp"
 #include "coreneuron/utils/progressbar/progressbar.h"
 #include "coreneuron/utils/profile/profiler_interface.h"
 #include "coreneuron/io/nrn2core_direct.h"
@@ -43,7 +46,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 namespace coreneuron {
 
 static void* nrn_fixed_step_thread(NrnThread*);
-static void* nrn_fixed_step_group_thread(NrnThread*);
+static void* nrn_fixed_step_group_thread(NrnThread*, int, int, int&);
 
 void dt2thread(double adt) { /* copied from nrnoc/fadvance.c */
     if (adt != nrn_threads[0]._dt) {
@@ -84,9 +87,6 @@ void nrn_fixed_step_minimal() { /* not so minimal anymore with gap junctions */
 integration interval before joining
 */
 /// --> Coreneuron
-static int step_group_n;
-static int step_group_begin;
-static int step_group_end;
 static progressbar* progress;
 
 void initialize_progress_bar(int nstep) {
@@ -137,13 +137,13 @@ void nrn_fixed_step_group_minimal(int total_sim_steps) {
     static int current_steps = 0;
     dt2thread(dt);
     nrn_thread_table_check();
-    step_group_n = total_sim_steps;
-    step_group_begin = 0;
-    step_group_end = 0;
+    int step_group_n = total_sim_steps;
+    int step_group_begin = 0;
+    int step_group_end = 0;
     initialize_progress_bar(step_group_n);
 
     while (step_group_end < step_group_n) {
-        nrn_multithread_job(nrn_fixed_step_group_thread);
+        nrn_multithread_job(nrn_fixed_step_group_thread, step_group_n, step_group_begin, step_group_end);
 #if NRNMPI
         nrn_spike_exchange(nrn_threads);
 #endif
@@ -162,9 +162,9 @@ void nrn_fixed_step_group_minimal(int total_sim_steps) {
     finalize_progress_bar();
 }
 
-static void* nrn_fixed_step_group_thread(NrnThread* nth) {
+static void* nrn_fixed_step_group_thread(NrnThread* nth, int step_group_max, int step_group_begin, int& step_group_end) {
     nth->_stop_stepping = 0;
-    for (int i = step_group_begin; i < step_group_n; ++i) {
+    for (int i = step_group_begin; i < step_group_max; ++i) {
         nrn_fixed_step_thread(nth);
         if (nth->_stop_stepping) {
             if (nth->id == 0) {
@@ -175,7 +175,7 @@ static void* nrn_fixed_step_group_thread(NrnThread* nth) {
         }
     }
     if (nth->id == 0) {
-        step_group_end = step_group_n;
+        step_group_end = step_group_max;
     }
     return nullptr;
 }
@@ -184,7 +184,6 @@ void update(NrnThread* _nt) {
     double* vec_v = &(VEC_V(0));
     double* vec_rhs = &(VEC_RHS(0));
     int i2 = _nt->end;
-
 #if defined(_OPENACC)
     int stream_id = _nt->stream_id;
 #endif
@@ -240,7 +239,7 @@ void nonvint(NrnThread* _nt) {
             }
 #ifdef DEBUG
             if (errno) {
-                hoc_warning("errno set during calculation of states", (char*)0);
+                hoc_warning("errno set during calculation of states", nullptr);
             }
 #endif
         }

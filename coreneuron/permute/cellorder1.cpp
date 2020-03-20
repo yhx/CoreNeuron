@@ -8,7 +8,7 @@
 #include "coreneuron/permute/cellorder.hpp"
 #include "coreneuron/network/tnode.hpp"
 
-// just for use_interleave_permute
+// just for interleave_permute_type
 #include "coreneuron/nrniv/nrniv_decl.h"
 #include "coreneuron/utils/memory.h"
 
@@ -156,13 +156,13 @@ static void quality(VecTNode& nodevec, size_t max = 32) {
 
     // print result
     qcnt = 0;
-#if 0
-  for (map<size_t, size_t>::iterator it = qual.begin(); it != qual.end(); ++it) {
-    qcnt += it->second;
-    printf("%6ld %6ld\n", it->first, it->second);
+#if DEBUG
+  for (const auto& q: qual) {
+    qcnt += q.second;
+    printf("%6ld %6ld\n", q.first, q.second);
   }
 #endif
-#if 0
+#if DEBUG
   printf("qual.size=%ld  qual total nodes=%ld  nodevec.size=%ld\n",
     qual.size(), qcnt, nodevec.size());
 #endif
@@ -195,7 +195,7 @@ static void quality(VecTNode& nodevec, size_t max = 32) {
             }
         }
     }
-#if 0
+#if DEBUG
   printf("nrace = %ld (parent in same group of %ld nodes)\n", nrace1, max);
   printf("nrace = %ld (parent used more than once by same group of %ld nodes)\n", nrace2, max);
 #endif
@@ -261,24 +261,6 @@ static void set_groupindex(VecTNode& nodevec) {
     }
 }
 
-#if 0
-#define MSS MSS_ident_stat
-typedef map<size_t, size_t> MSS;
-static bool vsmss_comp(const pair<size_t, MSS*>& a, const pair<size_t, MSS*>& b) {
-  bool result = false;
-  const MSS::iterator& aa = a.second->begin();
-  const MSS::iterator& bb = b.second->begin();
-  if (aa->first < bb->first) {
-    result = true;
-  }else if (aa->first == bb->first) {
-    if (aa->second < bb->second) {
-      result = true;
-    }
-  }
-  return result;
-}
-#endif
-
 // how many identical trees and their levels
 // print when more than one instance of a type
 // reverse the sense of levels (all leaves are level 0) to get a good
@@ -304,34 +286,6 @@ static void ident_statistic(VecTNode& nodevec, size_t ncell) {
         }
         printf("\n");
     }
-
-#if 0
-  typedef map<size_t, MSS> MSMSS;
-  typedef vector<pair<size_t, MSS*> > VSMSS;
-  MSMSS info;
-  for (size_t i=0; i < nodevec.size(); ++i) {
-    TNode* nd = nodevec[i];
-    info[nd->hash][nd->level]++;
-  }
-
-  VSMSS vinfo;
-  for (MSMSS::iterator i = info.begin(); i != info.end(); ++i) {
-    vinfo.push_back(pair<size_t, MSS*>(i->first, &(i->second)));
-  }
-  std::sort(vinfo.begin(), vinfo.end(), vsmss_comp);
-
-  for (VSMSS::iterator i = vinfo.begin(); i < vinfo.end(); ++i) {
-    MSS* ival = i->second;
-    if (ival->size() > 1 || ival->begin()->second > 8) {
-      printf("hash %ld", i->first);
-      for (MSS::iterator j = ival->begin(); j != ival->end(); ++j) {
-        printf(" (%ld, %ld)", j->first, j->second);
-      }
-      printf("\n");
-    }
-  }
-  printf("max level = %ld\n", maxlevel);
-#endif
 }
 #undef MSS
 
@@ -353,8 +307,6 @@ int* node_order(int ncell,
                 int*& cellsize,
                 int*& stridedispl) {
     VecTNode nodevec;
-    if (0)
-        prtree(nodevec);  // avoid unused warning
 
     // nodevec[0:ncell] in increasing size, with identical trees together,
     // and otherwise nodeindex order
@@ -366,14 +318,14 @@ int* node_order(int ncell,
     level_from_root(nodevec);
 
     // nodevec[ncell:nnode] cells are interleaved in nodevec[0:ncell] cell order
-    if (use_interleave_permute == 1) {
+    if (interleave_permute_type == 1) {
         node_interleave_order(ncell, nodevec);
     } else {
         group_order2(nodevec, groupsize, ncell);
     }
     check(nodevec);
 
-#if 0
+#if DEBUG
   for (int i=0; i < ncell; ++i) {
     TNode& nd = *nodevec[i];
     printf("%d size=%ld hash=%ld ix=%d\n", i, nd.treesize, nd.hash, nd.nodeindex);
@@ -392,7 +344,7 @@ int* node_order(int ncell,
     }
 
     // administrative statistics for gauss elimination
-    if (use_interleave_permute == 1) {
+    if (interleave_permute_type == 1) {
         admin1(ncell, nodevec, nwarp, nstride, stride, firstnode, lastnode, cellsize);
     } else {
         //  admin2(ncell, nodevec, nwarp, nstride, stridedispl, stride, rootbegin, nodebegin,
@@ -510,7 +462,7 @@ void node_interleave_order(int ncell, VecTNode& nodevec) {
     //  std::sort(nodevec.begin() + ncell, nodevec.end(), contig_comp);
     std::sort(nodevec.begin() + ncell, nodevec.end(), interleave_comp);
 
-#if 0
+#if DEBUG
   for (size_t i=0; i < nodevec.size(); ++i) {
     TNode& nd = *nodevec[i];
     printf("%ld cell=%ld ix=%d\n",  i, nd.cellindex, nd.nodeindex);
@@ -663,7 +615,7 @@ static void admin2(int ncell,
         }
     }
 
-#if 0
+#if DEBUG
 printf("warp rootbegin nodebegin stridedispl\n");
 for (int i = 0; i <= nwarp; ++i){
   printf("%4d %4d %4d %4d\n", i, rootbegin[i], nodebegin[i], stridedispl[i]);

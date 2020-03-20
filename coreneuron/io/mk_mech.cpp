@@ -38,7 +38,6 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/mechanism/register_mech.hpp"
 #include "coreneuron/nrniv/nrniv_decl.h"
 #include "coreneuron/utils/nrn_assert.h"
-#include "coreneuron/utils/sdprintf.h"
 #include "coreneuron/mechanism/mech/cfile/cabvars.h"
 #include "coreneuron/io/nrn2core_direct.h"
 #include "coreneuron/coreneuron.hpp"
@@ -52,16 +51,16 @@ int nrn_nobanner_;
 // NB: this should go away
 extern const char* nrn_version(int);
 
-int nrn_need_byteswap;
+bool nrn_need_byteswap;
 // following copied (except for nrn_need_byteswap line) from NEURON ivocvect.cpp
 #define BYTEHEADER   \
     uint32_t _II__;  \
     char* _IN__;     \
     char _OUT__[16]; \
-    int BYTESWAP_FLAG = 0;
+    bool BYTESWAP_FLAG = false;
 #define BYTESWAP(_X__, _TYPE__)                                 \
     BYTESWAP_FLAG = nrn_need_byteswap;                          \
-    if (BYTESWAP_FLAG == 1) {                                   \
+    if (BYTESWAP_FLAG) {                                        \
         _IN__ = (char*)&(_X__);                                 \
         for (_II__ = 0; _II__ < sizeof(_TYPE__); _II__++) {     \
             _OUT__[_II__] = _IN__[sizeof(_TYPE__) - _II__ - 1]; \
@@ -85,39 +84,42 @@ void mk_mech(const char* datpath) {
         mk_mech();
         return;
     }
-    char fnamebuf[1024];
-    sd_ptr fname = sdprintf(fnamebuf, sizeof(fnamebuf), "%s/%s", datpath, "bbcore_mech.dat");
-    std::ifstream fs(fname);
+    {
+        std::string fname = std::string(datpath) + "/bbcore_mech.dat";
+        std::ifstream fs(fname);
 
-    if (!fs.good()) {
-        fprintf(stderr, "Error: couldn't find bbcore_mech.dat file in the dataset directory \n");
-        fprintf(
-            stderr,
-            "       Make sure to pass full directory path of dataset using -d DIR or --datpath=DIR \n");
+        if (!fs.good()) {
+            fprintf(stderr, "Error: couldn't find bbcore_mech.dat file in the dataset directory \n");
+            fprintf(
+                stderr,
+                "       Make sure to pass full directory path of dataset using -d DIR or --datpath=DIR \n");
+        }
+
+        nrn_assert(fs.good());
+        mk_mech(fs);
+        fs.close();
     }
 
-    nrn_assert(fs.good());
-    mk_mech(fs);
-    fs.close();
-
-    fname = sdprintf(fnamebuf, sizeof(fnamebuf), "%s/%s", datpath, "byteswap1.dat");
-    FILE* f = fopen(fname, "r");
-    if (!f) {
-        fprintf(stderr, "Error: couldn't find byteswap1.dat file in the dataset directory \n");
+    {
+        std::string fname = std::string(datpath) + "/byteswap1.dat";
+        FILE* f = fopen(fname.c_str(), "r");
+        if (!f) {
+            fprintf(stderr, "Error: couldn't find byteswap1.dat file in the dataset directory \n");
+        }
+        nrn_assert(f);
+        // file consists of int32_t binary 1 . After reading can decide if
+        // binary info in files needs to be byteswapped.
+        int32_t x;
+        nrn_assert(fread(&x, sizeof(int32_t), 1, f) == 1);
+        nrn_need_byteswap = false;
+        if (x != 1) {
+            BYTEHEADER;
+            nrn_need_byteswap = true;
+            BYTESWAP(x, int32_t);
+            nrn_assert(x == 1);
+        }
+        fclose(f);
     }
-    nrn_assert(f);
-    // file consists of int32_t binary 1 . After reading can decide if
-    // binary info in files needs to be byteswapped.
-    int32_t x;
-    nrn_assert(fread(&x, sizeof(int32_t), 1, f) == 1);
-    nrn_need_byteswap = 0;
-    if (x != 1) {
-        BYTEHEADER;
-        nrn_need_byteswap = 1;
-        BYTESWAP(x, int32_t);
-        nrn_assert(x == 1);
-    }
-    fclose(f);
 }
 
 // we are embedded in NEURON, get info as stringstream from nrnbbcore_write.cpp
@@ -126,7 +128,7 @@ static void mk_mech() {
     if (already_called) {
         return;
     }
-    nrn_need_byteswap = 0;
+    nrn_need_byteswap = false;
     std::stringstream ss;
     nrn_assert(nrn2core_mkmech_info_);
     (*nrn2core_mkmech_info_)(ss);

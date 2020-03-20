@@ -43,7 +43,6 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/utils/memory.h"
 #include "coreneuron/io/nrn_setup.hpp"
 #include "coreneuron/network/partrans.hpp"
-#include "coreneuron/io/nrnoptarg.hpp"
 #include "coreneuron/io/nrn_checkpoint.hpp"
 #include "coreneuron/permute/node_permute.h"
 #include "coreneuron/permute/cellorder.hpp"
@@ -57,7 +56,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 
 
 /// --> Coreneuron
-int corenrn_embedded;
+bool corenrn_embedded;
 int corenrn_embedded_nthread;
 
 void (*nrn2core_group_ids_)(int*);
@@ -292,14 +291,14 @@ static void store_phase_args(int ngroup,
                              FileHandler* file_reader,
                              const char* path,
                              const char* restore_path,
-                             int byte_swap) {
+                             bool byte_swap) {
     ngroup_w = ngroup;
     gidgroups_w = gidgroups;
     imult_w = imult;
     file_reader_w = file_reader;
     path_w = path;
     restore_path_w = restore_path;
-    byte_swap_w = (bool)byte_swap;
+    byte_swap_w = byte_swap;
 }
 
 /* read files.dat file and distribute cellgroups to all mpi ranks */
@@ -334,7 +333,7 @@ void nrn_read_filesdat(int& ngrp, int*& grp, int multiple, int*& imult, const ch
     // being backward compatible
     if (iNumFiles == -1) {
         nrn_assert(fscanf(fp, "%d\n", &iNumFiles) == 1);
-        nrn_have_gaps = 1;
+        nrn_have_gaps = true;
         if (nrnmpi_myid == 0) {
             printf("Model uses gap junctions\n");
         }
@@ -673,8 +672,11 @@ void nrn_setup_cleanup() {
 
 void nrn_setup(const char* filesdat,
                bool is_mapping_needed,
-               int byte_swap,
-               bool run_setup_cleanup) {
+               bool byte_swap,
+               bool run_setup_cleanup,
+               const char* datpath,
+               const char* restore_path,
+               double* mindelay) {
     /// Number of local cell groups
     int ngroup = 0;
 
@@ -700,9 +702,7 @@ void nrn_setup(const char* filesdat,
     // Note that rank with 0 dataset/cellgroup works fine
     nrn_threads_create(ngroup <= 1 ? 2 : ngroup);
 
-#if 1 || CHKPNTDEBUG  // only required for NrnThreadChkpnt.file_id
     nrnthread_chkpnt = new NrnThreadChkpnt[nrn_nthread];
-#endif
 
     if (nrn_nthread > 1) {
         // NetCvode construction assumed one thread. Need nrn_nthread instances
@@ -735,17 +735,9 @@ void nrn_setup(const char* filesdat,
 
     FileHandler* file_reader = new FileHandler[ngroup];
 
-    std::string datapath = nrnopt_get_str("--datpath");
-    std::string restore_path = nrnopt_get_str("--restore");
-
-    // if not restoring then phase2 files will be read from dataset directory
-    if (!restore_path.length()) {
-        restore_path = datapath;
-    }
-
     /* nrn_multithread_job supports serial, pthread, and openmp. */
-    store_phase_args(ngroup, gidgroups, imult, file_reader, datapath.c_str(), restore_path.c_str(),
-                     byte_swap);
+    store_phase_args(ngroup, gidgroups, imult, file_reader, datpath,
+            strlen(restore_path) != 0 ? restore_path : datpath, byte_swap);
 
     // gap junctions
     if (nrn_have_gaps) {
@@ -785,8 +777,7 @@ void nrn_setup(const char* filesdat,
     if (is_mapping_needed)
         coreneuron::phase_wrapper<(coreneuron::phase)3>();
 
-    double mindelay = set_mindelay(nrnopt_get_dbl("--mindelay"));
-    nrnopt_modify_dbl("--mindelay", mindelay);
+    *mindelay = set_mindelay(*mindelay);
 
     if (run_setup_cleanup)  // if run_setup_cleanup==false, user must call nrn_setup_cleanup() later
         nrn_setup_cleanup();
@@ -856,9 +847,9 @@ void read_phasegap(FileHandler& F, int imult, NrnThread& nt) {
 
     F.checkpoint(chkpntsave);
 
-#if 0
+#if DEBUG
   printf("%d read_phasegap tid=%d type=%d %s ix_vpre=%d nsrc=%d ntar=%d\n",
-    nrnmpi_myid, nt.id, si.type, memb_func[si.type].sym, si.ix_vpre,
+    nrnmpi_myid, nt.id, si.type, corenrn.get_memb_func(si.type).sym, si.ix_vpre,
     si.nsrc, si.ntar);
   for (int i=0; i < si.nsrc; ++i) {
     printf("sid_src %d %d\n", si.sid_src[i], si.v_indices[i]);
@@ -1008,9 +999,6 @@ void nrn_cleanup(bool clean_ion_global_map) {
         delete[] nrnthread_chkpnt;
         nrnthread_chkpnt = nullptr;
     }
-
-    // clean ezOpt parser allocated memory (if any)
-    nrnopt_delete();
 
     // clean ions global maps
     if (clean_ion_global_map) {
@@ -1199,15 +1187,13 @@ void delete_trajectory_requests(NrnThread& nt) {
 }
 
 void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
-    bool direct = corenrn_embedded ? true : false;
+    bool direct = corenrn_embedded;
     if (!direct) {
         assert(!F.fail());  // actually should assert that it is open
     }
     nrn_assert(imult >= 0);  // avoid imult unused warning
-#if 1 || CHKPNTDEBUG
     NrnThreadChkpnt& ntc = nrnthread_chkpnt[nt.id];
     ntc.file_id = gidgroups_w[nt.id];
-#endif
 
     int n_outputgid, ndiam, nmech, *tml_index, *ml_nodecount;
     if (direct) {
@@ -1507,7 +1493,7 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
         }
     }
 
-    if (nrn_have_gaps == 1) {
+    if (nrn_have_gaps) {
         nrn_partrans::gap_thread_setup(nt);
     }
 
@@ -1591,7 +1577,7 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
        vectors will be read and will need to be permuted as well in subsequent
        sections of this function.
     */
-    if (use_interleave_permute) {
+    if (interleave_permute_type) {
         nt._permute = interleave_order(nt.id, nt.ncell, nt.end, nt._v_parent_index);
     }
     if (nt._permute) {
@@ -1608,7 +1594,7 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
         permute_ptr(nt._v_parent_index, nt.end, p);
         node_permute(nt._v_parent_index, nt.end, p);
 
-#if 0
+#if DEBUG
 for (int i=0; i < nt.end; ++i) {
   printf("parent[%d] = %d\n", i, nt._v_parent_index[i]);
 }
@@ -1638,7 +1624,7 @@ for (int i=0; i < nt.end; ++i) {
         }
     }
 
-    if (nrn_have_gaps == 1 && use_interleave_permute) {
+    if (nrn_have_gaps && interleave_permute_type) {
         nrn_partrans::gap_indices_permute(nt);
     }
 
@@ -2200,9 +2186,9 @@ static size_t memb_list_size(NrnThreadMembList* tml) {
     nbyte += corenrn.get_prop_dparam_size()[tml->index] * tml->ml->nodecount * sizeof(Datum);
 #ifdef DEBUG
     int i = tml->index;
-    printf("%s %d psize=%d ppsize=%d cnt=%d nbyte=%ld\n", memb_func[i].sym, i,
-           crnrn.get_prop_param_size()[i],
-           crnrn.get_prop_dparam_size()[i], tml->ml->nodecount, nbyte);
+    printf("%s %d psize=%d ppsize=%d cnt=%d nbyte=%ld\n", corenrn.get_memb_func(i).sym, i,
+           corenrn.get_prop_param_size()[i],
+           corenrn.get_prop_dparam_size()[i], tml->ml->nodecount, nbyte);
 #endif
     return nbyte;
 }
@@ -2227,7 +2213,7 @@ size_t input_presyn_size(void) {
     size_t nbyte =
         sizeof(gid2in) + sizeof(int) * gid2in.size() + sizeof(InputPreSyn*) * gid2in.size();
 #ifdef DEBUG
-    printf(" gid2in table bytes=~%ld size=%d\n", nbyte, gid2in->size());
+    printf(" gid2in table bytes=~%ld size=%d\n", nbyte, gid2in.size());
 #endif
     return nbyte;
 }

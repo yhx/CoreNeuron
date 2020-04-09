@@ -198,7 +198,7 @@ if(CORENRN_ENABLE_NMODL)
   # set correct arguments for nmodl for cpu/gpu target
   set(CORENRN_NMODL_FLAGS "" CACHE STRING "Extra NMODL options such as passes")
   if(CORENRN_ENABLE_GPU)
-    string(APPEND ${CORENRN_NMODL_FLAGS} " acc --oacc")
+    string(APPEND CORENRN_NMODL_FLAGS " acc --oacc")
   endif()
   separate_arguments(NMODL_EXTRA_FLAGS_LIST UNIX_COMMAND "${CORENRN_NMODL_FLAGS}")
 else()

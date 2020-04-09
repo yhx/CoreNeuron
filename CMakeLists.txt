@@ -109,6 +109,7 @@ endif()
 # =============================================================================
 if(${CMAKE_C_COMPILER_ID} STREQUAL "PGI")
   add_definitions(-DSWAP_ENDIAN_DISABLE_ASM)
+  add_definitions(-DEIGEN_DONT_VECTORIZE=1)
 endif()
 
 if(CORENRN_ENABLE_ISPC)

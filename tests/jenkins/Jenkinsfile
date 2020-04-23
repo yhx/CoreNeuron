@@ -159,7 +159,7 @@ pipeline {
                         sh 'sh tests/jenkins/nrnivmodl.sh tqperf'
                     }
                 }
-                stage('nrnivmodl tqperf'){
+                stage('nrnivmodl nrntraub'){
                     steps{
                         sh 'sh tests/jenkins/nrnivmodl.sh nrntraub'
                     }

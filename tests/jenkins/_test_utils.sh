@@ -9,9 +9,9 @@ bb5_run() (
 
     N=${N:-1}
     if [ -n "$n" ]; then
-        SALLOC_OPTS="$SALLOC_OPTS --ntasks-per-node=$n --exclusive --mem=0"
+        SALLOC_OPTS="$SALLOC_OPTS --ntasks-per-node=$n"
     else
-        SALLOC_OPTS="$SALLOC_OPTS --ntasks-per-node=36 --exclusive --mem=0"
+        SALLOC_OPTS="$SALLOC_OPTS --ntasks-per-node=36"
     fi
 
     cmd_base="time salloc -N$N $SALLOC_OPTS -Aproj16 --hint=compute_bound -Ccpu|nvme --time 1:00:00 srun dplace "

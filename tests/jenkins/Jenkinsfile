@@ -423,7 +423,7 @@ pipeline {
                         }
                         stage('neuron + corenrn SoA'){
                             steps{
-                                sh 'sh tests/jenkins/run_corenrn.sh SoA 4 9'
+                                sh 'sh tests/jenkins/run_nrntraub.sh SoA 4 9'
                             }
                         }
                     }

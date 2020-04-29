@@ -416,12 +416,17 @@ pipeline {
                 }
                 stage('nrntraub'){
                     stages{
-                        stage('neuron + corenrn AoS'){
+                        stage('neuron'){
+                            steps{
+                                sh 'sh tests/jenkins/run_neuron.sh nrntraub nrntraub 36'
+                            }
+                        }
+                        stage('corenrn AoS'){
                             steps{
                                 sh 'sh tests/jenkins/run_nrntraub.sh AoS 4 9'
                             }
                         }
-                        stage('neuron + corenrn SoA'){
+                        stage('corenrn SoA'){
                             steps{
                                 sh 'sh tests/jenkins/run_nrntraub.sh SoA 4 9'
                             }

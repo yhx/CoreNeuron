@@ -1,17 +1,16 @@
 #!/usr/bin/bash
 
 set -e
+set -x
 
 source ${JENKINS_DIR:-.}/_env_setup.sh
 
-# Install reportinglib with spack to run reportinglib tests
-spack install reportinglib%intel
 reportinglib_dir=$(spack cd -i reportinglib%intel && pwd)
 
 CORENRN_TYPE="$1"
 
 if [ "${CORENRN_TYPE}" = "GPU-non-unified" ] || [ "${CORENRN_TYPE}" = "GPU-unified" ]; then
-    module load pgi/19.4 cuda hpe-mpi cmake boost
+    module load pgi/19.10 cuda hpe-mpi cmake boost
 
     mkdir build_${CORENRN_TYPE}
 else

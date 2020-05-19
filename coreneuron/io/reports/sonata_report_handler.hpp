@@ -1,6 +1,8 @@
 #pragma once
-#include <vector>
+
 #include <memory>
+#include <vector>
+
 #include "report_handler.hpp"
 
 namespace coreneuron {

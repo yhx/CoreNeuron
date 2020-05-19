@@ -1,6 +1,8 @@
 #pragma once
-#include <vector>
+
 #include <memory>
+#include <vector>
+
 #include "nrnreport.hpp"
 #include "coreneuron/io/reports/report_event.hpp"
 #include "coreneuron/sim/multicore.hpp"
@@ -13,7 +15,7 @@ class ReportHandler {
     virtual ~ReportHandler() = default;
 
     virtual void create_report(double dt, double tstop, double delay);
-#if defined(ENABLE_REPORTINGLIB) || defined(ENABLE_SONATA_REPORTS)
+#if defined(ENABLE_BIN_REPORTS) || defined(ENABLE_SONATA_REPORTS)
     virtual void register_soma_report(const NrnThread& nt,
                                       ReportConfiguration& config,
                                       const VarsToReport& vars_to_report);
@@ -34,12 +36,12 @@ class ReportHandler {
                                            ReportConfiguration& report,
                                            const std::vector<int>& nodes_to_gids) const;
     std::vector<int> map_gids(const NrnThread& nt) const;
-#endif  // defined(ENABLE_REPORTINGLIB) || defined(ENABLE_SONATA_REPORTS)
+#endif  // defined(ENABLE_BIN_REPORTS) || defined(ENABLE_SONATA_REPORTS)
   protected:
     ReportConfiguration m_report_config;
-#if defined(ENABLE_REPORTINGLIB) || defined(ENABLE_SONATA_REPORTS)
+#if defined(ENABLE_BIN_REPORTS) || defined(ENABLE_SONATA_REPORTS)
     std::vector<std::unique_ptr<ReportEvent> > m_report_events;
-#endif  // defined(ENABLE_REPORTINGLIB) || defined(ENABLE_SONATA_REPORTS)
+#endif  // defined(ENABLE_BIN_REPORTS) || defined(ENABLE_SONATA_REPORTS)
 };
 
 }  // Namespace coreneuron

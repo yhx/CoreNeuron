@@ -1,8 +1,10 @@
 #pragma once
+
 #include <algorithm>
 #include <unordered_map>
 #include <vector>
 #include <string>
+
 #include "coreneuron/network/netcon.hpp"
 #include "coreneuron/network/netcvode.hpp"
 

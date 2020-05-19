@@ -1,16 +1,16 @@
 #include "report_event.hpp"
 #include "coreneuron/sim/multicore.hpp"
 #include "coreneuron/utils/nrn_assert.h"
-#ifdef ENABLE_REPORTINGLIB
+#ifdef ENABLE_BIN_REPORTS
 #include "reportinglib/Records.h"
-#endif  // ENABLE_REPORTINGLIB
+#endif  // ENABLE_BIN_REPORTS
 #ifdef ENABLE_SONATA_REPORTS
 #include "bbp/sonata/reports.h"
 #endif  // ENABLE_SONATA_REPORTS
 
 namespace coreneuron {
 
-#if defined(ENABLE_REPORTINGLIB) || defined(ENABLE_SONATA_REPORTS)
+#if defined(ENABLE_BIN_REPORTS) || defined(ENABLE_SONATA_REPORTS)
 ReportEvent::ReportEvent(double dt,
                          double tstart,
                          const VarsToReport& filtered_gids,
@@ -32,7 +32,7 @@ void ReportEvent::deliver(double t, NetCvode* nc, NrnThread* nt) {
 #pragma omp critical
     {
         // each thread needs to know its own step
-#ifdef ENABLE_REPORTINGLIB
+#ifdef ENABLE_BIN_REPORTS
         records_nrec(step, gids_to_report.size(), gids_to_report.data(), report_path.data());
 #endif
 #ifdef ENABLE_SONATA_REPORTS
@@ -46,6 +46,6 @@ void ReportEvent::deliver(double t, NetCvode* nc, NrnThread* nt) {
 bool ReportEvent::require_checkpoint() {
     return false;
 }
-#endif  // defined(ENABLE_REPORTINGLIB) || defined(ENABLE_SONATA_REPORTS)
+#endif  // defined(ENABLE_BIN_REPORTS) || defined(ENABLE_SONATA_REPORTS)
 
 }  // Namespace coreneuron

@@ -148,7 +148,7 @@ void nrn_fixed_step_group_minimal(int total_sim_steps) {
         nrn_spike_exchange(nrn_threads);
 #endif
 
-#if defined(ENABLE_REPORTINGLIB) || defined(ENABLE_SONATA_REPORTS)
+#if defined(ENABLE_BIN_REPORTS) || defined(ENABLE_SONATA_REPORTS)
         nrn_flush_reports(nrn_threads[0]._t);
 #endif
         if (stoprun) {

@@ -165,6 +165,7 @@ void output_spikes_parallel(const char* outpath) {
         remove(fname.c_str());
     }
 #ifdef ENABLE_SONATA_REPORTS
+    // TODO: Move population_name as input parameter
     const char* population_name = "All";
     sonata_write_spikes(population_name, spikevec_time.data(), spikevec_time.size(), spikevec_gid.data(),
                         spikevec_gid.size(), outpath);

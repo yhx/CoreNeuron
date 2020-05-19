@@ -1,8 +1,10 @@
 #pragma once
+
 #include <functional>
 #include <memory>
 #include <vector>
 #include <array>
+
 #include "report_handler.hpp"
 #include "coreneuron/io/nrnsection_mapping.hpp"
 
@@ -14,7 +16,7 @@ class BinaryReportHandler : public ReportHandler {
     }
 
     void create_report(double dt, double tstop, double delay) override;
-#ifdef ENABLE_REPORTINGLIB
+#ifdef ENABLE_BIN_REPORTS
     void register_soma_report(const NrnThread& nt,
                               ReportConfiguration& config,
                               const VarsToReport& vars_to_report) override;
@@ -31,7 +33,7 @@ class BinaryReportHandler : public ReportHandler {
                          ReportConfiguration& config,
                          const VarsToReport& vars_to_report,
                          create_extra_func& create_extra);
-#endif  // ENABLE_REPORTINGLIB
+#endif  // ENABLE_BIN_REPORTS
 };
 
 }  // Namespace coreneuron

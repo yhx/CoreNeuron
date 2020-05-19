@@ -15,6 +15,7 @@ void SonataReportHandler::create_report(double dt, double tstop, double delay) {
 #endif  // ENABLE_SONATA_REPORTS
     ReportHandler::create_report(dt, tstop, delay);
 }
+
 #ifdef ENABLE_SONATA_REPORTS
 void SonataReportHandler::register_soma_report(const NrnThread& nt,
                                                ReportConfiguration& config,

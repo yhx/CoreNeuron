@@ -5,9 +5,9 @@
 OK=0
 FAILED=1
 sonata_reports=@ENABLE_SONATA_REPORTS@
-reportinglib=@ENABLE_REPORTINGLIB@
+bin_reports=@ENABLE_BIN_REPORTS@
 
-if [ "$reportinglib" = "ON" ]
+if [ "$bin_reports" = "ON" ]
 then
   if [ -f test_1.bbp ]
   then

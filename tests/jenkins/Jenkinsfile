@@ -135,7 +135,7 @@ pipeline {
                 stage('nrntraub'){
                     steps{
                         dir('nrntraub'){
-                            git branch: 'icei', url: 'https://github.com/iomaganaris/nrntraub.git'
+                            git branch: 'icei', url: 'https://github.com/pramodk/nrntraub.git'
                         }
                     }
                 }

@@ -17,7 +17,7 @@ N=1
 
 export OMP_NUM_THREADS=${THREADS}
 
-n=${MPI_RANKS} bb5_run ./${CORENRN_TYPE}/special-core --mpi -d coredat --voltage=1000
+n=${MPI_RANKS} bb5_run ./x86_64/special -mpi -c mytstop=100 -c use_coreneuron=1 init.hoc
 
 sort -n -k'1,1' -k2 < out.dat | awk 'NR==1 { print; next } { printf "%.3f\t%d\n", $1, $2 }' > out_cn_${CORENRN_TYPE}.sorted
 

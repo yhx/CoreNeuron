@@ -49,8 +49,7 @@ void SonataReportHandler::register_report(const NrnThread& nt,
         if (!vars.size())
             continue;
 
-        // Transform 1-based gids from the simulation to 0-based node_ids in SONATA format
-        sonata_add_node(config.output_path, population_name, gid-1);
+        sonata_add_node(config.output_path, population_name, gid);
         sonata_set_report_max_buffer_size_hint(config.output_path, config.buffer_size);
         for (const auto& variable : vars) {
             sonata_add_element(config.output_path, population_name, gid, variable.id, variable.var_value);

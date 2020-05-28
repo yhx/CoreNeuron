@@ -7,5 +7,7 @@ module load neuron/develop
 set -x
 TEST_DIR="$1"
 
+which nrnivmodl
+
 cd $WORKSPACE/${TEST_DIR}
 nrnivmodl mod

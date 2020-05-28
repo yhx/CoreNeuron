@@ -18,7 +18,8 @@ if [ "${TEST_DIR}" = "testcorenrn" ]; then
     rm out${TEST}.dat
 elif [ "${TEST_DIR}" = "ringtest" ]; then
     mkdir ${TEST}
-    mpirun -n 6 ./x86_64/special ringtest.py -mpi
+    echo $PYTHONPATH
+    mpirun -n 6 ./x86_64/special -python -mpi ringtest.py
     cat coredat/spk6.std | sort -k 1n,1n -k 2n,2n > ${TEST}/out_nrn_${TEST}.spk
 elif [ "${TEST_DIR}" = "tqperf" ]; then
     mkdir ${TEST}

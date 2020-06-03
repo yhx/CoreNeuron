@@ -4,18 +4,47 @@
 
 OK=0
 FAILED=1
+sonata_reports=@ENABLE_SONATA_REPORTS@
+bin_reports=@ENABLE_BIN_REPORTS@
 
-if [ -f test_1.bbp ] 
+if [ "$bin_reports" = "ON" ]
 then
-   #checking something with @reportinglib_BIN_DIR@/dump test_1.bbp
-   # for ascii files that will be using grep for instance.
-   nb_recorded=$(@reportinglib_somaDump@ test_1.bbp 1| wc -l)
-   if [ $nb_recorded -eq 100 ]; then
-     exit $OK
-   else
+  if [ -f test_1.bbp ]
+  then
+     #checking something with @reportinglib_BIN_DIR@/dump test_1.bbp
+     # for ascii files that will be using grep for instance.
+     nb_recorded=$(@reportinglib_somaDump@ test_1.bbp 1| wc -l)
+     # 101 because a white space
+     if [ $nb_recorded -eq 100 ]; then
+       exit $OK
+     else
+       echo "[ERROR] The number of steps recorded by ReportingLib doesn't match.
+             Found $nb_recorded, expected 100. Test failed!" >&2
+       exit $FAILED
+     fi
+  else
+     echo "[ERROR] Expected ReportingLib soma file 'test_1.bbp' is missing. Test failed!" >&2
      exit $FAILED
-   fi
-else
-   exit $FAILED
+  fi
 fi
 
+if [ "$sonata_reports" = "ON" ]
+then
+  if [ -f test_2.h5 ]
+  then
+     #checking something with @reportinglib_BIN_DIR@/dump test_1.bbp
+     # for ascii files that will be using grep for instance.
+     nb_recorded_sonata=$(@H5DUMP_EXECUTABLE@ -d /report/data -y -O test_2.h5 | wc -l)
+     # 101 because a white space
+     if [ $nb_recorded_sonata -eq 101 ]; then
+       exit $OK
+     else
+       echo "[ERROR] The number of steps recorded by SONATA doesn't match.
+            Found $nb_recorded, expected 101. Test failed!" >&2
+       exit $FAILED
+     fi
+  else
+     echo "[ERROR] Expected SONATA soma file 'test_2.h5' doesn't exist. Test failed!" >&2
+     exit $FAILED
+  fi
+fi

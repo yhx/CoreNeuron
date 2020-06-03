@@ -24,9 +24,29 @@ fi
 # diff outputed files with reference
 cd @CMAKE_CURRENT_BINARY_DIR@/@SIM_NAME@
 
+# We convert spikes to out.dat format
+reports=@ENABLE_SONATA_REPORTS@
+if [ "$reports" = "ON" ]
+then
+  data=$(@H5DUMP_EXECUTABLE@ -d /spikes/timestamps -d /spikes/node_ids -y -O spikes | tr "," "\n")
+  echo $data | awk '{n=NF/2; for (i=1;i<=n;i++) print $i "\t" $(n+i) }' >> out_SONATA.dat
+
+  if [ ! -f out_SONATA.dat ]
+  then
+    echo "[ERROR] No SONATA output files. Test failed!" >&2
+    exit 1
+  fi
+  diff -w out_SONATA.dat @CMAKE_CURRENT_SOURCE_DIR@/@SIM_NAME@/out.dat.ref > diff_SONATA.dat 2>&1
+  if [ ! -s diff_SONATA.dat ]
+  then
+    echo "[ERROR] Results are identical for SONATA file when they should not, check the file out_SONATA.dat. Test failed!" >&2
+    exit 1
+  fi
+fi
+
 if [ ! -f out.dat ]
 then
-  echo "No output files. Test failed!"
+  echo "[ERROR] No output files. Test failed!" >&2
   exit 1
 fi
 
@@ -39,6 +59,6 @@ then
   rm -f *.dat
   exit 0
 else
-  echo "Results are identical when they should not, check the file diff.dat. Test failed!"
+  echo "[ERROR] Results are identical when they should not, check the file diff.dat. Test failed!" >&2
   exit 1
 fi

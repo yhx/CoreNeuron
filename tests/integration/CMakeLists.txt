@@ -105,7 +105,7 @@ foreach(args_line ${NEGATIVE_TEST_CASES})
            WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/${TEST_NAME}")
 endforeach()
 
-if(CORENRN_ENABLE_REPORTINGLIB)
+if(CORENRN_ENABLE_REPORTING)
   foreach(TEST_NAME "1")
     set(SIM_NAME "reporting_${TEST_NAME}")
     set(CONFIG_ARG "${TEST_NAME}")

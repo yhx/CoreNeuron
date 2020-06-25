@@ -12,6 +12,8 @@ void ReportHandler::create_report(double dt, double tstop, double delay) {
     m_report_config.stop = std::min(m_report_config.stop, tstop);
 
     m_report_config.mech_id = nrn_get_mechtype(m_report_config.mech_name);
+    std::cout << "mech_id: " << m_report_config.mech_id << std::endl;
+    std::cout << "mech_name: " << m_report_config.mech_name << std::endl;
     if (m_report_config.type == SynapseReport && m_report_config.mech_id == -1) {
         std::cerr << "[ERROR] mechanism to report: " << m_report_config.mech_name
                   << " is not mapped in this simulation, cannot report on it \n";
@@ -40,6 +42,7 @@ void ReportHandler::create_report(double dt, double tstop, double delay) {
                 register_compartment_report(nt, m_report_config, vars_to_report);
                 break;
             case IClampReport:
+                std::cout << "Creating IClampReport" << std::endl;
                 vars_to_report = get_custom_vars_to_report(nt, m_report_config, nodes_to_gid);
                 register_custom_report(nt, m_report_config, vars_to_report);
                 break;
@@ -162,6 +165,7 @@ VarsToReport ReportHandler::get_compartment_vars_to_report(const NrnThread& nt,
 VarsToReport ReportHandler::get_custom_vars_to_report(const NrnThread& nt,
                                                       ReportConfiguration& report,
                                                       const std::vector<int>& nodes_to_gids) const {
+    std::cout << "Running get_custom_vars_to_report" << std::endl;
     VarsToReport vars_to_report;
     for (int i = 0; i < nt.ncell; i++) {
         int gid = nt.presyns[i].gid_;

@@ -39,6 +39,10 @@ void ReportHandler::create_report(double dt, double tstop, double delay) {
                                                                 nt.nrn_fast_imem->nrn_sav_rhs);
                 register_compartment_report(nt, m_report_config, vars_to_report);
                 break;
+            case IClampReport:
+                vars_to_report = get_custom_vars_to_report(nt, m_report_config, nodes_to_gid);
+                register_custom_report(nt, m_report_config, vars_to_report);
+                break;
             default:
                 vars_to_report = get_custom_vars_to_report(nt, m_report_config, nodes_to_gid);
                 register_custom_report(nt, m_report_config, vars_to_report);

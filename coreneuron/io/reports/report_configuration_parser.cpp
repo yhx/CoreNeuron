@@ -95,7 +95,7 @@ std::vector<ReportConfiguration> create_report_configurations(const char* conf_f
                 nrn_use_fast_imem = true;
                 report.type = IMembraneReport;
             } else if (strcmp(report_on, "IClamp") == 0) {
-                report.type = IClamp;
+                report.type = IClampReport;
             } else if (is_soma)
                 report.type = SomaReport;
             else

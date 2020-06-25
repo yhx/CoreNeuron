@@ -94,6 +94,8 @@ std::vector<ReportConfiguration> create_report_configurations(const char* conf_f
             if (strcmp(report_on, "i_membrane") == 0) {
                 nrn_use_fast_imem = true;
                 report.type = IMembraneReport;
+            } else if (strcmp(report_on, "IClamp") == 0) {
+                report.type = IClamp;
             } else if (is_soma)
                 report.type = SomaReport;
             else
@@ -105,7 +107,7 @@ std::vector<ReportConfiguration> create_report_configurations(const char* conf_f
             abort();
         }
 
-        if (report.type == SynapseReport)
+        if (report.type == SynapseReport || report.type == IClampReport)
             parse_filter_string(report_on, report);
 
         if (report.num_gids) {

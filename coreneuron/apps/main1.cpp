@@ -430,6 +430,9 @@ extern "C" void mk_mech_init(int argc, char** argv) {
 #if NRNMPI
     nrnmpi_init(1, &argc, &argv);
 #endif
+#ifdef _OPENACC
+    init_gpu();
+#endif
     // read command line parameters and parameter config files
 
     try {

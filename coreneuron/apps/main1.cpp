@@ -35,6 +35,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <cstring>
 #include <climits>
 #include <memory>
+#include <regex>
 #include <vector>
 
 #include "coreneuron/engine.h"
@@ -102,6 +103,11 @@ char* prepare_args(int& argc, char**& argv, int use_mpi, const char* arg) {
     args.append(" --skip-mpi-finalize ");
     if (use_mpi) {
         args.append(" --mpi ");
+    } else if(args.find(" --mpi ") != std::string::npos ) {
+        printf(
+            " WARNING : you asked for MPI, but NEURON was built without it. Removing \"--mpi\"\n");
+        std::regex pattern(" --mpi ");
+        args = std::regex_replace(args, pattern, " ");
     }
 
     // we can't modify string with strtok, make copy

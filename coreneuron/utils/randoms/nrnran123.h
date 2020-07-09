@@ -60,7 +60,7 @@ http://www.deshawresearch.com/resources_random123.html
 #include <inttypes.h>
 
 #ifdef __CUDACC__
-#define DEVICE __device__
+#define DEVICE __device__ __host__
 #define GLOBAL __global__
 #else
 #define DEVICE

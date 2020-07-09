@@ -83,6 +83,7 @@ void nrn_finitialize(int setv, double v) {
         for (auto tml = nt->tml; tml; tml = tml->next) {
             mod_f_t s = corenrn.get_memb_func(tml->index).initialize;
             if (s) {
+                printf("%s\n", nrn_get_mechname(tml->index));
                 (*s)(nt, tml->ml, tml->index);
             }
         }

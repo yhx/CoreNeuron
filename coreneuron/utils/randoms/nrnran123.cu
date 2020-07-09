@@ -33,7 +33,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 namespace coreneuron {
 /* global data structure per process */
 __device__ static const double SHIFT32 = 1.0 / 4294967297.0; /* 1/(2^32 + 1) */
-__device__ static philox4x32_key_t k = {{0}};
+__managed__ static philox4x32_key_t k = {{0}};
 __device__ static unsigned int instance_count_ = 0;
 __device__ size_t nrnran123_instance_count() {
     return instance_count_;
@@ -68,12 +68,12 @@ __global__ void nrnran123_cuda_deletestream(nrnran123_State* s) {
     atomicSub(&instance_count_, 1);
 }
 
-__device__ void nrnran123_getseq(nrnran123_State* s, uint32_t* seq, unsigned char* which) {
+__host__ __device__ void nrnran123_getseq(nrnran123_State* s, uint32_t* seq, unsigned char* which) {
     *seq = s->c.v[0];
     *which = s->which_;
 }
 
-__device__ void nrnran123_setseq(nrnran123_State* s, uint32_t seq, unsigned char which) {
+__host__ __device__ void nrnran123_setseq(nrnran123_State* s, uint32_t seq, unsigned char which) {
     if (which > 3) {
         s->which_ = 0;
     } else {
@@ -83,18 +83,18 @@ __device__ void nrnran123_setseq(nrnran123_State* s, uint32_t seq, unsigned char
     s->r = philox4x32(s->c, k);
 }
 
-__device__ void nrnran123_getids(nrnran123_State* s, uint32_t* id1, uint32_t* id2) {
+__host__ __device__ void nrnran123_getids(nrnran123_State* s, uint32_t* id1, uint32_t* id2) {
     *id1 = s->c.v[2];
     *id2 = s->c.v[3];
 }
 
-__device__ void nrnran123_getids3(nrnran123_State* s, uint32_t* id1, uint32_t* id2, uint32_t* id3) {
+__host__ __device__ void nrnran123_getids3(nrnran123_State* s, uint32_t* id1, uint32_t* id2, uint32_t* id3) {
     *id3 = s->c.v[1];
     *id1 = s->c.v[2];
     *id2 = s->c.v[3];
 }
 
-__device__ uint32_t nrnran123_ipick(nrnran123_State* s) {
+__host__ __device__ uint32_t nrnran123_ipick(nrnran123_State* s) {
     uint32_t rval;
     unsigned char which = s->which_;
     rval = s->r.v[which++];
@@ -107,17 +107,17 @@ __device__ uint32_t nrnran123_ipick(nrnran123_State* s) {
     return rval;
 }
 
-__device__ double nrnran123_dblpick(nrnran123_State* s) {
+__host__ __device__ double nrnran123_dblpick(nrnran123_State* s) {
     return nrnran123_uint2dbl(nrnran123_ipick(s));
 }
 
-__device__ double nrnran123_negexp(nrnran123_State* s) {
+__host__ __device__ double nrnran123_negexp(nrnran123_State* s) {
     /* min 2.3283064e-10 to max 22.18071 */
     return -log(nrnran123_dblpick(s));
 }
 
 /* at cost of a cached  value we could compute two at a time. */
-__device__ double nrnran123_normal(nrnran123_State* s) {
+__host__ __device__ double nrnran123_normal(nrnran123_State* s) {
     double w, x, y;
     double u1, u2;
 
@@ -134,7 +134,7 @@ __device__ double nrnran123_normal(nrnran123_State* s) {
     return x;
 }
 
-__device__ double nrnran123_uint2dbl(uint32_t u) {
+__host__ __device__ double nrnran123_uint2dbl(uint32_t u) {
     /* 0 to 2^32-1 transforms to double value in open (0,1) interval */
     /* min 2.3283064e-10 to max (1 - 2.3283064e-10) */
     return ((double)u + 1.0) * SHIFT32;
@@ -148,7 +148,7 @@ nrnran123_State* nrnran123_newstream(uint32_t id1, uint32_t id2) {
 nrnran123_State* nrnran123_newstream3(uint32_t id1, uint32_t id2, uint32_t id3) {
     nrnran123_State* s;
 
-    cudaMalloc((void**)&s, sizeof(nrnran123_State));
+    cudaMallocManaged((void**)&s, sizeof(nrnran123_State));
     cudaMemset((void*)s, 0, sizeof(nrnran123_State));
 
     nrnran123_setup_cuda_newstream<<<1, 1>>>(s, id1, id2, id3);

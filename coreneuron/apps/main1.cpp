@@ -149,7 +149,7 @@ void nrn_init_and_load_data(int argc,
 
 // mpi initialisation
 #if NRNMPI
-    nrnmpi_init(nrnmpi_under_nrncontrol ? 1 : 0, &argc, &argv);
+//    nrnmpi_init(nrnmpi_under_nrncontrol ? 1 : 0, &argc, &argv);
 #endif
 
     // memory footprint after mpi initialisation
@@ -428,7 +428,7 @@ using namespace coreneuron;
 
 extern "C" void mk_mech_init(int argc, char** argv) {
 #if NRNMPI
-    nrnmpi_init(1, &argc, &argv);
+    //nrnmpi_init(1, &argc, &argv);
 #endif
 #ifdef _OPENACC
     init_gpu();

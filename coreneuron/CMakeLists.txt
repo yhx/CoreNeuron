@@ -123,6 +123,8 @@ if(CORENRN_ENABLE_GPU)
   cuda_add_library("cudacoreneuron"
                    ${CORENEURON_CUDA_FILES}
                    OPTIONS
+                   -g
+                   -std=c++11
                    -arch=sm_30
                    -gencode=arch=compute_30,code=sm_30
                    -gencode=arch=compute_50,code=sm_50

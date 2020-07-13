@@ -30,11 +30,14 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdlib.h>
 #include <math.h>
 #include "coreneuron/utils/randoms/nrnran123.h"
+//#include "coreneuron/nrnconf.h"
+#include "coreneuron/utils/nrnmutdec.h"
+#include "coreneuron/utils/nrnoc_aux.hpp"
 namespace coreneuron {
 /* global data structure per process */
-__device__ static const double SHIFT32 = 1.0 / 4294967297.0; /* 1/(2^32 + 1) */
-__managed__ static philox4x32_key_t k = {{0}};
-__device__ static unsigned int instance_count_ = 0;
+__device__ __managed__ static double SHIFT32 = 1.0 / 4294967297.0; /* 1/(2^32 + 1) */
+__device__ __managed__ static philox4x32_key_t k = {{0}};
+__device__ __managed__ static unsigned int instance_count_ = 0;
 __device__ size_t nrnran123_instance_count() {
     return instance_count_;
 }
@@ -74,13 +77,17 @@ __host__ __device__ void nrnran123_getseq(nrnran123_State* s, uint32_t* seq, uns
 }
 
 __host__ __device__ void nrnran123_setseq(nrnran123_State* s, uint32_t seq, unsigned char which) {
+    printf("start cu_nrnran123_setseq\n");
     if (which > 3) {
         s->which_ = 0;
     } else {
         s->which_ = which;
     }
+    printf("which done\n");
     s->c.v[0] = seq;
+    printf("seq done\n");
     s->r = philox4x32(s->c, k);
+    printf("philox done\n");
 }
 
 __host__ __device__ void nrnran123_getids(nrnran123_State* s, uint32_t* id1, uint32_t* id2) {
@@ -146,13 +153,41 @@ nrnran123_State* nrnran123_newstream(uint32_t id1, uint32_t id2) {
 }
 
 nrnran123_State* nrnran123_newstream3(uint32_t id1, uint32_t id2, uint32_t id3) {
+    int nDevices;
+
+    cudaGetDeviceCount(&nDevices);
     nrnran123_State* s;
-
     cudaMallocManaged((void**)&s, sizeof(nrnran123_State));
-    cudaMemset((void*)s, 0, sizeof(nrnran123_State));
+    // if no GPU found, can't run on GPU
+    if (nDevices == 0) {
+        printf("CPU run\n");
+        fflush(stdout);
+//        s = (nrnran123_State*)ecalloc(sizeof(nrnran123_State), 1);
+        s->c.v[0] = 0;
+        s->c.v[1] = id3;
+        s->c.v[2] = id1;
+        s->c.v[3] = id2;
+        s->r = {{}};
+        printf("Calling nrnran123_setseq(s, 0, 0);\n");
+        fflush(stdout);
+        nrnran123_setseq(s, 0, 0);
+        printf("Return from nrnran123_setseq(s, 0, 0);\n");
+        fflush(stdout);
+        MUTLOCK
+        ++instance_count_;
+        MUTUNLOCK
+        printf("Updated instance_count_\n");
+        fflush(stdout);
+    } else {
+        printf("GPU run");
+//        cudaMalloc((void**)&s, sizeof(nrnran123_State));
+        cudaMemset((void*)s, 0, sizeof(nrnran123_State));
 
-    nrnran123_setup_cuda_newstream<<<1, 1>>>(s, id1, id2, id3);
-    cudaDeviceSynchronize();
+        nrnran123_setup_cuda_newstream<<<1, 1>>>(s, id1, id2, id3);
+        cudaDeviceSynchronize();
+    }
+    printf("Endif\n");
+    fflush(stdout);
 
     return s;
 }

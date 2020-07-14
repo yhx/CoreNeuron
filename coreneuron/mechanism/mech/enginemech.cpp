@@ -7,6 +7,7 @@
  * models via in-memory transfer.
  */
 
+#include <cstdio>
 #include <cstdlib>
 #include <coreneuron/engine.h>
 

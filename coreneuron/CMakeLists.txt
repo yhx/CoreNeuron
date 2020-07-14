@@ -165,7 +165,7 @@ add_dependencies(coreneuron kin_deriv_header)
 add_library(scopmath STATIC ${CORENEURON_HEADER_FILES} ${SCOPMATH_CODE_FILES})
 
 # minimal main and dimplic file for nrnivmodl-core workflow
-add_library(corenrnmech
+add_library(corenrnmech_default
             ${COMPILE_LIBRARY_TYPE}
             ${CORENEURON_HEADER_FILES}
             ${ENGINEMECH_CODE_FILE}
@@ -184,9 +184,9 @@ target_include_directories(coreneuron SYSTEM PRIVATE
         ${CORENEURON_PROJECT_SOURCE_DIR}/external/Random123/include)
 target_include_directories(coreneuron SYSTEM PRIVATE ${CORENEURON_PROJECT_SOURCE_DIR}/external/CLI11/include)
 
-target_link_libraries(corenrnmech scopmath coreneuron)
+target_link_libraries(corenrnmech_default scopmath coreneuron)
 
-set_target_properties(coreneuron corenrnmech scopmath ${link_cudacoreneuron}
+set_target_properties(coreneuron corenrnmech_default scopmath ${link_cudacoreneuron}
                       PROPERTIES ARCHIVE_OUTPUT_DIRECTORY
                                  ${CMAKE_BINARY_DIR}/lib
                                  LIBRARY_OUTPUT_DIRECTORY
@@ -214,7 +214,7 @@ include_directories(${CORENEURON_PROJECT_SOURCE_DIR})
 add_executable(nrniv-core "apps/coreneuron.cpp")
 
 target_link_libraries(nrniv-core
-            corenrnmech
+            corenrnmech_default
             ${reportinglib_LIBRARY}
             ${sonatareport_LIBRARY}
             ${MPI_C_LIBRARIES}
@@ -268,7 +268,7 @@ file(COPY apps/coreneuron.cpp DESTINATION ${CMAKE_BINARY_DIR}/share/coreneuron)
 # =============================================================================
 
 # coreneuron main libraries
-install(TARGETS coreneuron corenrnmech ${link_cudacoreneuron}
+install(TARGETS coreneuron corenrnmech_default ${link_cudacoreneuron}
         EXPORT coreneuron
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib

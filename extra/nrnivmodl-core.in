@@ -99,6 +99,6 @@ if [ "$params_DESTDIR" ]; then
 fi
 
 echo "[INFO] Running make with params: ${make_params[@]}"
-make -j$PARALLELISM -f "${ROOTDIR}/share/coreneuron/nrnivmodl_core_makefile" "${make_params[@]}"
+make -j$PARALLELISM -f "${ROOTDIR}/share/coreneuron/nrnivmodl_core_makefile" "${make_params[@]}" VERBOSE=1
 
 echo "[INFO] mods built successfully."

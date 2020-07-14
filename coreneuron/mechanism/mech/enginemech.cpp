@@ -21,6 +21,7 @@ namespace coreneuron {
 extern void modl_reg();
 #else
 void modl_reg() {
+    fprintf(stderr, "\n USING EMPTY INTERNAL MODL REG \n");
 }
 #endif
 

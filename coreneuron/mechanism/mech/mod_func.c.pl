@@ -27,8 +27,9 @@ s/\.mod$// foreach @mods;
 if(!@mods) {
     print STDERR "mod_func.c.pl: No mod files provided";
     print "// No mod files provided
+#include <cstdio>
 namespace coreneuron {
-  void modl_reg() {}
+  void modl_reg() {fprintf(stderr, \"\\nEMPTY MOD FILES\\n\");}
 }
 ";
     exit 0;
@@ -42,6 +43,7 @@ extern int nrn_nobanner_;
 extern int @{[join ",\n  ", map{"_${_}_reg(void)"} @mods]};
 
 void modl_reg() {
+    fprintf(stderr, "\\n HAVE MOD FILES \\n");
     if (!nrn_nobanner_ && nrnmpi_myid < 1) {
         fprintf(stderr, " Additional mechanisms from files\\n");
         @{[join "\n        ",

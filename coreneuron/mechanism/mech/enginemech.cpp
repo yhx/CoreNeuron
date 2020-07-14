@@ -20,7 +20,9 @@ namespace coreneuron {
  */
 #ifdef ADDITIONAL_MECHS
 extern void modl_reg();
+#warning "ADDITIONAL_MECHS is NOW DEFINED"
 #else
+#warning "NO NO ADDITIONAL_MECHS is DEFINED"
 void modl_reg() {
     fprintf(stderr, "\n USING EMPTY INTERNAL MODL REG \n");
 }

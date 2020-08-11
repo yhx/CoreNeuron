@@ -33,16 +33,16 @@ THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
 
-#include <cstdio>
-#include <climits>
-#include <vector>
-#include "coreneuron/apps/corenrn_parameters.hpp"
 #include "coreneuron/utils/nrn_stats.h"
+#include "coreneuron/apps/corenrn_parameters.hpp"
+#include "coreneuron/io/output_spikes.hpp"
 #include "coreneuron/mpi/nrnmpi.h"
-#include "coreneuron/sim/multicore.hpp"
 #include "coreneuron/network/netcvode.hpp"
 #include "coreneuron/network/partrans.hpp"
-#include "coreneuron/io/output_spikes.hpp"
+#include "coreneuron/sim/multicore.hpp"
+#include <climits>
+#include <cstdio>
+#include <vector>
 namespace coreneuron {
 extern NetCvode* net_cvode_instance;
 extern corenrn_parameters corenrn_param;
@@ -57,18 +57,18 @@ void report_cell_stats(void) {
     long stat_array[NUM_STATS] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, gstat_array[NUM_STATS];
 
     for (int ith = 0; ith < nrn_nthread; ++ith) {
-        stat_array[0] += (long)nrn_threads[ith].ncell;           // number of cells
-        stat_array[10] += (long)nrn_threads[ith].end;            // number of compartments
-        stat_array[1] += (long)nrn_threads[ith].n_presyn;        // number of presyns
-        stat_array[2] += (long)nrn_threads[ith].n_input_presyn;  // number of input presyns
-        stat_array[3] += (long)nrn_threads[ith].n_netcon;        // number of netcons, synapses
-        stat_array[4] += (long)nrn_threads[ith].n_pntproc;       // number of point processes
+        stat_array[0] += (long) nrn_threads[ith].ncell;           // number of cells
+        stat_array[10] += (long) nrn_threads[ith].end;            // number of compartments
+        stat_array[1] += (long) nrn_threads[ith].n_presyn;        // number of presyns
+        stat_array[2] += (long) nrn_threads[ith].n_input_presyn;  // number of input presyns
+        stat_array[3] += (long) nrn_threads[ith].n_netcon;        // number of netcons, synapses
+        stat_array[4] += (long) nrn_threads[ith].n_pntproc;       // number of point processes
         if (nrn_partrans::transfer_thread_data_) {
             int ntar = nrn_partrans::transfer_thread_data_[ith].ntar;
-            stat_array[11] += (long)ntar;  // number of transfer (gap) targets
+            stat_array[11] += (long) ntar;  // number of transfer (gap) targets
         }
     }
-    stat_array[5] = (long)spikevec_gid.size();  // number of spikes
+    stat_array[5] = (long) spikevec_gid.size();  // number of spikes
 
     int spikevec_positive_gid_size = 0;
     for (std::size_t i = 0; i < spikevec_gid.size(); ++i) {
@@ -77,16 +77,18 @@ void report_cell_stats(void) {
         }
     }
 
-    stat_array[6] = (long)spikevec_positive_gid_size;  // number of non-negative gid spikes
+    stat_array[6] = (long) spikevec_positive_gid_size;  // number of non-negative gid spikes
 
 /// Event queuing statistics
 #if COLLECT_TQueue_STATISTICS
     //    long que_stat[3] = {0, 0, 0}, gmax_que_stat[3];
     /// Number of events for each thread, enqueued and spike enqueued
-    std::vector<long>
-        thread_vec_events[NUM_EVENT_TYPES];  // Number of events throughout the simulation
-    std::vector<std::pair<double, long> >
-        thread_vec_max_num_events[NUM_EVENT_TYPES];  // Time and the maximum number of events
+    std::vector<long> thread_vec_events[NUM_EVENT_TYPES];  // Number of events throughout the
+                                                           // simulation
+    std::vector<std::pair<double, long>> thread_vec_max_num_events[NUM_EVENT_TYPES];  // Time and
+                                                                                      // the maximum
+                                                                                      // number of
+                                                                                      // events
     std::vector<long> thread_vec_event_times[NUM_EVENT_TYPES];  // Number of time intervals for
                                                                 // events in the simulation
     for (int type = 0; type < NUM_EVENT_TYPES; ++type) {
@@ -100,7 +102,7 @@ void report_cell_stats(void) {
     for (int ith = 0; ith < nrn_nthread; ++ith) {
         for (int type = 0; type < NUM_EVENT_TYPES; ++type) {
             thread_vec_event_times[type][ith] +=
-                (long)net_cvode_instance->p[ith].tqe_->time_map_events[type].size();
+                (long) net_cvode_instance->p[ith].tqe_->time_map_events[type].size();
             thread_vec_max_num_events[type][ith].second = 0;
             auto mapit = net_cvode_instance->p[ith].tqe_->time_map_events[type].begin();
             for (; mapit != net_cvode_instance->p[ith].tqe_->time_map_events[type].end(); ++mapit) {

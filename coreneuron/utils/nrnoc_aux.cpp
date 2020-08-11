@@ -29,9 +29,9 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <cstdlib>
 #include <cstring>
 
-#include "coreneuron/sim/multicore.hpp"
-#include "coreneuron/mpi/nrnmpi.h"
 #include "coreneuron/coreneuron.hpp"
+#include "coreneuron/mpi/nrnmpi.h"
+#include "coreneuron/sim/multicore.hpp"
 #include "coreneuron/utils/nrnoc_aux.hpp"
 
 namespace coreneuron {
@@ -63,7 +63,7 @@ void hoc_warning(const char* s1, const char* s2) {
 }
 
 double* makevector(size_t size) {
-    return (double*)ecalloc(size, sizeof(char));
+    return (double*) ecalloc(size, sizeof(char));
 }
 
 void freevector(double* p) {
@@ -73,8 +73,8 @@ void freevector(double* p) {
 }
 
 double** makematrix(size_t nrows, size_t ncols) {
-    double** matrix = (double**)emalloc(nrows * sizeof(double*));
-    *matrix = (double*)emalloc(nrows * ncols * sizeof(double));
+    double** matrix = (double**) emalloc(nrows * sizeof(double*));
+    *matrix = (double*) emalloc(nrows * ncols * sizeof(double));
     for (size_t i = 1; i < nrows; i++)
         matrix[i] = matrix[i - 1] + ncols;
     return (matrix);
@@ -97,8 +97,7 @@ void* emalloc(size_t size) {
 void* hoc_Emalloc(size_t size) {
     return emalloc(size);
 }
-void hoc_malchk(void) {
-}
+void hoc_malchk(void) {}
 
 void* ecalloc(size_t n, size_t size) {
     if (n == 0) {
@@ -155,7 +154,8 @@ void check_bbcore_write_version(const char* version) {
         if (nrnmpi_myid == 0)
             fprintf(stderr,
                     "Error: Incompatible binary input dataset version (expected %s, input %s)\n",
-                    bbcore_write_version, version);
+                    bbcore_write_version,
+                    version);
         abort();
     }
 }

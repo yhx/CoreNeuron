@@ -1,8 +1,8 @@
-#include "coreneuron/coreneuron.hpp"
 #include "coreneuron/permute/data_layout.hpp"
+#include "coreneuron/coreneuron.hpp"
 #include "coreneuron/mechanism/mechanism.hpp"
-#include "coreneuron/permute/node_permute.h"
 #include "coreneuron/mechanism/membfunc.hpp"
+#include "coreneuron/permute/node_permute.h"
 
 namespace coreneuron {
 /*

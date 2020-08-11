@@ -2,10 +2,10 @@
 #include <vector>
 
 #include "coreneuron/coreneuron.hpp"
-#include "coreneuron/nrnconf.h"
-#include "coreneuron/sim/multicore.hpp"
 #include "coreneuron/mpi/nrnmpi.h"
 #include "coreneuron/network/partrans.hpp"
+#include "coreneuron/nrnconf.h"
+#include "coreneuron/sim/multicore.hpp"
 
 namespace coreneuron {
 using namespace coreneuron::nrn_partrans;
@@ -127,8 +127,17 @@ void nrn_partrans::gap_mpi_setup(int ngroup) {
     sgid_t* send_to_want;
     sgid_t* recv_from_have;
 
-    have_to_want(have, src2data_size, want, tar2data_size, send_to_want, outsrccnt_, outsrcdspl_,
-                 recv_from_have, insrccnt_, insrcdspl_, default_rendezvous);
+    have_to_want(have,
+                 src2data_size,
+                 want,
+                 tar2data_size,
+                 send_to_want,
+                 outsrccnt_,
+                 outsrcdspl_,
+                 recv_from_have,
+                 insrccnt_,
+                 insrcdspl_,
+                 default_rendezvous);
 
     int nhost = nrnmpi_numprocs;
 
@@ -145,11 +154,15 @@ void nrn_partrans::gap_mpi_setup(int ngroup) {
     }
 
 #if DEBUG
-  printf("%d mpi outsrccnt_, outsrcdspl_, insrccnt, insrcdspl_\n", nrnmpi_myid);
-  for (int i = 0; i < nrnmpi_numprocs; ++i) {
-    printf("%d : %d %d %d %d\n", nrnmpi_myid, outsrccnt_[i], outsrcdspl_[i],
-      insrccnt_[i], insrcdspl_[i]);
-  }
+    printf("%d mpi outsrccnt_, outsrcdspl_, insrccnt, insrcdspl_\n", nrnmpi_myid);
+    for (int i = 0; i < nrnmpi_numprocs; ++i) {
+        printf("%d : %d %d %d %d\n",
+               nrnmpi_myid,
+               outsrccnt_[i],
+               outsrcdspl_[i],
+               insrccnt_[i],
+               insrcdspl_[i]);
+    }
 #endif
 
     // clean up a little
@@ -211,23 +224,24 @@ void nrn_partrans::gap_mpi_setup(int ngroup) {
     }
 
 #if DEBUG
-  // things look ok so far?
-  for (int tid=0; tid < ngroup; ++tid) {
-    nrn_partrans::SetupInfo& si = setup_info_[tid];
-    nrn_partrans::TransferThreadData& ttd = transfer_thread_data_[tid];
-    for (int i=0; i < si.nsrc; ++i) {
-      printf("%d %d src sid=%d v_index=%d\n", nrnmpi_myid, tid, si.sid_src[i], si.v_indices[i]);
+    // things look ok so far?
+    for (int tid = 0; tid < ngroup; ++tid) {
+        nrn_partrans::SetupInfo& si = setup_info_[tid];
+        nrn_partrans::TransferThreadData& ttd = transfer_thread_data_[tid];
+        for (int i = 0; i < si.nsrc; ++i) {
+            printf(
+                "%d %d src sid=%d v_index=%d\n", nrnmpi_myid, tid, si.sid_src[i], si.v_indices[i]);
+        }
+        for (int i = 0; i < si.ntar; ++i) {
+            printf("%d %d tar sid=%d i=%d\n", nrnmpi_myid, tid, si.sid_target[i], i);
+        }
+        for (int i = 0; i < ttd.nsrc; ++i) {
+            printf("%d %d src i=%d v_index=%d\n", nrnmpi_myid, tid, i, ttd.v_indices[i]);
+        }
+        for (int i = 0; i < ttd.ntar; ++i) {
+            printf("%d %d tar i=%d insrc_index=%d\n", nrnmpi_myid, tid, i, ttd.insrc_indices[i]);
+        }
     }
-    for (int i=0; i < si.ntar; ++i) {
-      printf("%d %d tar sid=%d i=%d\n", nrnmpi_myid, tid, si.sid_target[i], i);
-    }
-    for (int i=0; i < ttd.nsrc; ++i) {
-      printf("%d %d src i=%d v_index=%d\n", nrnmpi_myid, tid, i, ttd.v_indices[i]);
-    }
-    for (int i=0; i < ttd.ntar; ++i) {
-      printf("%d %d tar i=%d insrc_index=%d\n", nrnmpi_myid, tid, i, ttd.insrc_indices[i]);
-    }
-  }
 #endif
 
     // cleanup

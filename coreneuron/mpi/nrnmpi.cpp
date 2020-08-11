@@ -29,10 +29,10 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <cstring>
 #include <sys/time.h>
 
-#include "coreneuron/mpi/mpispike.hpp"
-#include "coreneuron/mpi/nrnmpi.h"
-#include "coreneuron/mpi/nrnmpi_def_cinc.h"
 #include "coreneuron/nrnconf.h"
+#include "coreneuron/mpi/nrnmpi.h"
+#include "coreneuron/mpi/mpispike.hpp"
+#include "coreneuron/mpi/nrnmpi_def_cinc.h"
 #include "coreneuron/utils/nrn_assert.h"
 #if _OPENMP
 #include <omp.h>
@@ -124,7 +124,8 @@ void nrnmpi_init(int nrnmpi_under_nrncontrol, int* pargc, char*** pargv) {
 
     if (nrnmpi_myid == 0) {
 #if defined(_OPENMP)
-        printf(" num_mpi=%d\n num_omp_thread=%d\n\n", nrnmpi_numprocs_world, omp_get_max_threads());
+        printf(" num_mpi=%d\n num_omp_thread=%d\n\n", nrnmpi_numprocs_world,
+               omp_get_max_threads());
 #else
         printf(" num_mpi=%d\n\n", nrnmpi_numprocs_world);
 #endif
@@ -233,8 +234,7 @@ int nrnmpi_local_rank() {
     int local_rank = 0;
 #if NRNMPI
     MPI_Comm local_comm;
-    MPI_Comm_split_type(
-        MPI_COMM_WORLD, MPI_COMM_TYPE_SHARED, nrnmpi_myid_world, MPI_INFO_NULL, &local_comm);
+    MPI_Comm_split_type(MPI_COMM_WORLD, MPI_COMM_TYPE_SHARED, nrnmpi_myid_world, MPI_INFO_NULL, &local_comm);
     MPI_Comm_rank(local_comm, &local_rank);
     MPI_Comm_free(&local_comm);
 #endif
@@ -251,8 +251,7 @@ int nrnmpi_local_size() {
     int local_size = 1;
 #if NRNMPI
     MPI_Comm local_comm;
-    MPI_Comm_split_type(
-        MPI_COMM_WORLD, MPI_COMM_TYPE_SHARED, nrnmpi_myid_world, MPI_INFO_NULL, &local_comm);
+    MPI_Comm_split_type(MPI_COMM_WORLD, MPI_COMM_TYPE_SHARED, nrnmpi_myid_world, MPI_INFO_NULL, &local_comm);
     MPI_Comm_size(local_comm, &local_size);
     MPI_Comm_free(&local_comm);
 #endif

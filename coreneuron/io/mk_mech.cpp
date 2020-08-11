@@ -27,21 +27,21 @@ THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include <cstring>
-#include <fstream>
-#include <iostream>
 #include <map>
+#include <iostream>
+#include <fstream>
 #include <sstream>
 
-#include "coreneuron/coreneuron.hpp"
-#include "coreneuron/io/nrn2core_direct.h"
-#include "coreneuron/mechanism//eion.hpp"
-#include "coreneuron/mechanism/mech/cfile/cabvars.h"
-#include "coreneuron/mechanism/register_mech.hpp"
-#include "coreneuron/membrane_definitions.h"
 #include "coreneuron/nrnconf.h"
-#include "coreneuron/nrniv/nrniv_decl.h"
 #include "coreneuron/sim/multicore.hpp"
+#include "coreneuron/membrane_definitions.h"
+#include "coreneuron/mechanism/register_mech.hpp"
+#include "coreneuron/nrniv/nrniv_decl.h"
 #include "coreneuron/utils/nrn_assert.h"
+#include "coreneuron/mechanism/mech/cfile/cabvars.h"
+#include "coreneuron/io/nrn2core_direct.h"
+#include "coreneuron/coreneuron.hpp"
+#include "coreneuron/mechanism//eion.hpp"
 
 static char banner[] = "Duke, Yale, and the BlueBrain Project -- Copyright 1984-2020";
 
@@ -61,11 +61,11 @@ bool nrn_need_byteswap;
 #define BYTESWAP(_X__, _TYPE__)                                 \
     BYTESWAP_FLAG = nrn_need_byteswap;                          \
     if (BYTESWAP_FLAG) {                                        \
-        _IN__ = (char*) &(_X__);                                \
+        _IN__ = (char*)&(_X__);                                 \
         for (_II__ = 0; _II__ < sizeof(_TYPE__); _II__++) {     \
             _OUT__[_II__] = _IN__[sizeof(_TYPE__) - _II__ - 1]; \
         }                                                       \
-        (_X__) = *((_TYPE__*) &_OUT__);                         \
+        (_X__) = *((_TYPE__*)&_OUT__);                          \
     }
 
 std::map<std::string, int> mech2type;
@@ -89,11 +89,10 @@ void mk_mech(const char* datpath) {
         std::ifstream fs(fname);
 
         if (!fs.good()) {
-            fprintf(stderr,
-                    "Error: couldn't find bbcore_mech.dat file in the dataset directory \n");
-            fprintf(stderr,
-                    "       Make sure to pass full directory path of dataset using -d DIR or "
-                    "--datpath=DIR \n");
+            fprintf(stderr, "Error: couldn't find bbcore_mech.dat file in the dataset directory \n");
+            fprintf(
+                stderr,
+                "       Make sure to pass full directory path of dataset using -d DIR or --datpath=DIR \n");
         }
 
         nrn_assert(fs.good());
@@ -159,9 +158,9 @@ static void mk_mech(std::istream& s) {
         printf("%s %d %d %d %d %d %d\n", mname, type, pnttype, is_art, is_ion, dsize, pdsize);
 #endif
         std::string str(mname);
-        corenrn.get_memb_func(type).sym = (Symbol*) strdup(mname);
+        corenrn.get_memb_func(type).sym = (Symbol*)strdup(mname);
         mech2type[str] = type;
-        corenrn.get_pnt_map()[type] = (char) pnttype;
+        corenrn.get_pnt_map()[type] = (char)pnttype;
         corenrn.get_prop_param_size()[type] = dsize;
         corenrn.get_prop_dparam_size()[type] = pdsize;
         corenrn.get_is_artificial()[type] = is_art;

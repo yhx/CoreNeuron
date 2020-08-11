@@ -1,5 +1,5 @@
-#include <algorithm>
 #include <functional>
+#include <algorithm>
 #include <queue>
 
 #include "coreneuron/nrnconf.h"  // for size_t

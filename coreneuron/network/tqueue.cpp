@@ -26,13 +26,13 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include <cstdarg>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <cstdarg>
 
-#include "coreneuron/network/tqueue.hpp"
 #include "coreneuron/sim/multicore.hpp"
+#include "coreneuron/network/tqueue.hpp"
 
 #if COLLECT_TQueue_STATISTICS
 #define STAT(arg) ++arg;
@@ -100,7 +100,7 @@ void BinQ::resize(int size) {
     qpt_ = 0;
 }
 void BinQ::enqueue(double td, TQItem* q) {
-    int idt = (int) ((td - tt_) * rev_dt + 1.e-10);
+    int idt = (int)((td - tt_) * rev_dt + 1.e-10);
     assert(idt >= 0);
     if (idt >= nbin_) {
         resize(idt + 1000);

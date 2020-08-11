@@ -1,8 +1,8 @@
 #include "sonata_report_handler.hpp"
+#include "coreneuron/network/netcvode.hpp"
+#include "coreneuron/network/netcon.hpp"
 #include "coreneuron/io/nrnsection_mapping.hpp"
 #include "coreneuron/mechanism/mech_mapping.hpp"
-#include "coreneuron/network/netcon.hpp"
-#include "coreneuron/network/netcvode.hpp"
 #ifdef ENABLE_SONATA_REPORTS
 #include "bbp/sonata/reports.h"
 #endif  // ENABLE_SONATA_REPORTS
@@ -38,11 +38,11 @@ void SonataReportHandler::register_custom_report(const NrnThread& nt,
 void SonataReportHandler::register_report(const NrnThread& nt,
                                           ReportConfiguration& config,
                                           const VarsToReport& vars_to_report) {
-    sonata_create_report(
-        config.output_path, config.start, config.stop, config.report_dt, config.type_str);
+    sonata_create_report(config.output_path, config.start, config.stop, config.report_dt,
+                         config.type_str);
     sonata_set_report_max_buffer_size_hint(config.output_path, config.buffer_size);
 
-    for (const auto& kv: vars_to_report) {
+    for (const auto& kv : vars_to_report) {
         int gid = kv.first;
         const std::vector<VarWithMapping>& vars = kv.second;
         if (!vars.size())
@@ -50,9 +50,8 @@ void SonataReportHandler::register_report(const NrnThread& nt,
 
         sonata_add_node(config.output_path, config.population_name, gid);
         sonata_set_report_max_buffer_size_hint(config.output_path, config.buffer_size);
-        for (const auto& variable: vars) {
-            sonata_add_element(
-                config.output_path, config.population_name, gid, variable.id, variable.var_value);
+        for (const auto& variable : vars) {
+            sonata_add_element(config.output_path, config.population_name, gid, variable.id, variable.var_value);
         }
     }
 }

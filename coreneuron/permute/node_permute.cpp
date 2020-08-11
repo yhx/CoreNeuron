@@ -62,15 +62,15 @@ so pdata_m(k, isz) = inew + data_t
 
 */
 
-#include <algorithm>
-#include <utility>
 #include <vector>
+#include <utility>
+#include <algorithm>
 
-#include "coreneuron/coreneuron.hpp"
+#include "coreneuron/sim/multicore.hpp"
 #include "coreneuron/io/nrn_setup.hpp"
 #include "coreneuron/nrniv/nrniv_decl.h"
-#include "coreneuron/sim/multicore.hpp"
 #include "coreneuron/utils/nrn_assert.h"
+#include "coreneuron/coreneuron.hpp"
 namespace coreneuron {
 template <typename T>
 void permute(T* data, int cnt, int sz, int layout, int* p) {
@@ -266,19 +266,19 @@ int nrn_index_permute(int ix, int type, Memb_list* ml) {
 
 #if DEBUG
 static void pr(const char* s, int* x, int n) {
-    printf("%s:", s);
-    for (int i = 0; i < n; ++i) {
-        printf("  %d %d", i, x[i]);
-    }
-    printf("\n");
+  printf("%s:", s);
+  for (int i=0; i < n; ++i) {
+    printf("  %d %d", i, x[i]);
+  }
+  printf("\n");
 }
 
 static void pr(const char* s, double* x, int n) {
-    printf("%s:", s);
-    for (int i = 0; i < n; ++i) {
-        printf("  %d %g", i, x[i]);
-    }
-    printf("\n");
+  printf("%s:", s);
+  for (int i=0; i < n; ++i) {
+    printf("  %d %g", i, x[i]);
+  }
+  printf("\n");
 }
 #endif
 
@@ -299,7 +299,7 @@ static bool nrn_index_sort_cmp(const std::pair<int, int>& a, const std::pair<int
 }
 
 int* nrn_index_sort(int* values, int n) {
-    std::vector<std::pair<int, int>> vi(n);
+    std::vector<std::pair<int, int> > vi(n);
     for (int i = 0; i < n; ++i) {
         vi[i].first = values[i];
         vi[i].second = i;

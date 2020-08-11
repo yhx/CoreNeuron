@@ -25,24 +25,23 @@ void ReportHandler::create_report(double dt, double tstop, double delay) {
         const std::vector<int>& nodes_to_gid = map_gids(nt);
         VarsToReport vars_to_report;
         switch (m_report_config.type) {
-        case SomaReport:
-            vars_to_report = get_soma_vars_to_report(nt, m_report_config.target, nt._actual_v);
-            register_soma_report(nt, m_report_config, vars_to_report);
-            break;
-        case CompartmentReport:
-            vars_to_report =
-                get_compartment_vars_to_report(nt, m_report_config.target, nt._actual_v);
-            register_compartment_report(nt, m_report_config, vars_to_report);
-            break;
-        case IMembraneReport:
-            vars_to_report = get_compartment_vars_to_report(nt,
-                                                            m_report_config.target,
-                                                            nt.nrn_fast_imem->nrn_sav_rhs);
-            register_compartment_report(nt, m_report_config, vars_to_report);
-            break;
-        default:
-            vars_to_report = get_custom_vars_to_report(nt, m_report_config, nodes_to_gid);
-            register_custom_report(nt, m_report_config, vars_to_report);
+            case SomaReport:
+                vars_to_report = get_soma_vars_to_report(nt, m_report_config.target, nt._actual_v);
+                register_soma_report(nt, m_report_config, vars_to_report);
+                break;
+            case CompartmentReport:
+                vars_to_report =
+                    get_compartment_vars_to_report(nt, m_report_config.target, nt._actual_v);
+                register_compartment_report(nt, m_report_config, vars_to_report);
+                break;
+            case IMembraneReport:
+                vars_to_report = get_compartment_vars_to_report(nt, m_report_config.target,
+                                                                nt.nrn_fast_imem->nrn_sav_rhs);
+                register_compartment_report(nt, m_report_config, vars_to_report);
+                break;
+            default:
+                vars_to_report = get_custom_vars_to_report(nt, m_report_config, nodes_to_gid);
+                register_custom_report(nt, m_report_config, vars_to_report);
         }
         if (!vars_to_report.empty()) {
             auto report_event =
@@ -53,8 +52,7 @@ void ReportHandler::create_report(double dt, double tstop, double delay) {
     }
 #else
     if (nrnmpi_myid == 0) {
-        std::cerr << "[WARNING] : Reporting is disabled. Please recompile with either libsonata or "
-                     "reportinglib. \n";
+        std::cerr << "[WARNING] : Reporting is disabled. Please recompile with either libsonata or reportinglib. \n";
     }
 #endif  // defined(ENABLE_BIN_REPORTSLIB) || defined(ENABLE_SONATA_REPORTS)
 }
@@ -64,24 +62,21 @@ void ReportHandler::register_soma_report(const NrnThread& nt,
                                          ReportConfiguration& config,
                                          const VarsToReport& vars_to_report) {
     if (nrnmpi_myid == 0) {
-        std::cerr << "[WARNING] : Format '" << config.format << "' in report '"
-                  << config.output_path << "' not supported.\n";
+        std::cerr << "[WARNING] : Format '" << config.format << "' in report '" << config.output_path << "' not supported.\n";
     }
 }
 void ReportHandler::register_compartment_report(const NrnThread& nt,
                                                 ReportConfiguration& config,
                                                 const VarsToReport& vars_to_report) {
     if (nrnmpi_myid == 0) {
-        std::cerr << "[WARNING] : Format '" << config.format << "' in report '"
-                  << config.output_path << "' not supported.\n";
+        std::cerr << "[WARNING] : Format '" << config.format << "' in report '" << config.output_path << "' not supported.\n";
     }
 }
 void ReportHandler::register_custom_report(const NrnThread& nt,
                                            ReportConfiguration& config,
                                            const VarsToReport& vars_to_report) {
     if (nrnmpi_myid == 0) {
-        std::cerr << "[WARNING] : Format '" << config.format << "' in report '"
-                  << config.output_path << "' not supported.\n";
+        std::cerr << "[WARNING] : Format '" << config.format << "' in report '" << config.output_path << "' not supported.\n";
     }
 }
 VarsToReport ReportHandler::get_soma_vars_to_report(const NrnThread& nt,
@@ -143,11 +138,11 @@ VarsToReport ReportHandler::get_compartment_vars_to_report(const NrnThread& nt,
             std::vector<VarWithMapping> to_report;
             to_report.reserve(cell_mapping->size());
             const auto& secmapvec = cell_mapping->secmapvec;
-            for (const auto& s: secmapvec) {
-                for (auto& sm: s->secmap) {
+            for (const auto& s : secmapvec) {
+                for (auto& sm : s->secmap) {
                     int compartment_id = sm.first;
                     auto& vec = sm.second;
-                    for (const auto& idx: vec) {
+                    for (const auto& idx : vec) {
                         /** corresponding voltage in coreneuron voltage array */
                         double* variable = report_variable + idx;
                         to_report.push_back(VarWithMapping(compartment_id, variable));

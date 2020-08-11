@@ -1,19 +1,19 @@
 #pragma once
 
-#include <array>
 #include <functional>
 #include <memory>
 #include <vector>
+#include <array>
 
-#include "coreneuron/io/nrnsection_mapping.hpp"
 #include "report_handler.hpp"
+#include "coreneuron/io/nrnsection_mapping.hpp"
 
 namespace coreneuron {
 
-class BinaryReportHandler: public ReportHandler {
+class BinaryReportHandler : public ReportHandler {
   public:
-    BinaryReportHandler(ReportConfiguration& config)
-        : ReportHandler(config) {}
+    BinaryReportHandler(ReportConfiguration& config) : ReportHandler(config) {
+    }
 
     void create_report(double dt, double tstop, double delay) override;
 #ifdef ENABLE_BIN_REPORTS

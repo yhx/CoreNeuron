@@ -1,18 +1,18 @@
-#include <algorithm>
-#include <cmath>
 #include <iostream>
+#include <vector>
+#include <algorithm>
 #include <map>
 #include <set>
-#include <vector>
+#include <cmath>
 
-#include "coreneuron/io/nrnsection_mapping.hpp"
-#include "coreneuron/io/reports/nrnreport.hpp"
-#include "coreneuron/mechanism/mech_mapping.hpp"
-#include "coreneuron/mechanism/membfunc.hpp"
 #include "coreneuron/network/netcon.hpp"
+#include "coreneuron/utils/nrn_assert.h"
 #include "coreneuron/network/netcvode.hpp"
 #include "coreneuron/sim/multicore.hpp"
-#include "coreneuron/utils/nrn_assert.h"
+#include "coreneuron/io/reports/nrnreport.hpp"
+#include "coreneuron/io/nrnsection_mapping.hpp"
+#include "coreneuron/mechanism/mech_mapping.hpp"
+#include "coreneuron/mechanism/membfunc.hpp"
 #ifdef ENABLE_BIN_REPORTS
 #include "reportinglib/Records.h"
 #endif
@@ -75,4 +75,4 @@ void finalize_report() {
     sonata_flush(nrn_threads[0]._t);
 #endif
 }
-}  // Namespace coreneuron
+} // Namespace coreneuron

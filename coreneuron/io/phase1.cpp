@@ -1,9 +1,9 @@
 #include <cassert>
 #include <mutex>
 
-#include "coreneuron/io/phase1.hpp"
 #include "coreneuron/nrniv/nrniv_decl.h"
 #include "coreneuron/sim/multicore.hpp"
+#include "coreneuron/io/phase1.hpp"
 #include "coreneuron/utils/nrnoc_aux.hpp"
 
 int (*nrn2core_get_dat1_)(int tid,
@@ -31,7 +31,8 @@ void Phase1::read_direct(int thread_id) {
     int n_netcon;
 
     // TODO : check error codes for NEURON - CoreNEURON communication
-    int valid = (*nrn2core_get_dat1_)(thread_id, n_presyn, n_netcon, output_gids, netcon_srcgid);
+    int valid =
+        (*nrn2core_get_dat1_)(thread_id, n_presyn, n_netcon, output_gids, netcon_srcgid);
     if (!valid) {
         return;
     }
@@ -51,10 +52,11 @@ void Phase1::populate(NrnThread& nt) {
     nt.n_netcon = this->netcon_srcgids.size();
 
     netcon_srcgid[nt.id] = new int[nt.n_netcon];
-    std::copy(this->netcon_srcgids.begin(), this->netcon_srcgids.end(), netcon_srcgid[nt.id]);
+    std::copy(this->netcon_srcgids.begin(), this->netcon_srcgids.end(),
+              netcon_srcgid[nt.id]);
 
     nt.netcons = new NetCon[nt.n_netcon];
-    nt.presyns_helper = (PreSynHelper*) ecalloc_align(nt.n_presyn, sizeof(PreSynHelper));
+    nt.presyns_helper = (PreSynHelper*)ecalloc_align(nt.n_presyn, sizeof(PreSynHelper));
 
     nt.presyns = new PreSyn[nt.n_presyn];
     PreSyn* ps = nt.presyns;
@@ -81,9 +83,9 @@ void Phase1::populate(NrnThread& nt) {
                 char m[200];
                 if (gid2in.find(gid) != gid2in.end()) {
                     sprintf(m, "gid=%d already exists as an input port", gid);
-                    hoc_execerror(m,
-                                  "Setup all the output ports on this process before using them as "
-                                  "input ports.");
+                    hoc_execerror(
+                        m,
+                        "Setup all the output ports on this process before using them as input ports.");
                 }
                 if (gid2out.find(gid) != gid2out.end()) {
                     sprintf(m, "gid=%d already exists on this process as an output port", gid);
@@ -97,7 +99,7 @@ void Phase1::populate(NrnThread& nt) {
                 ps->output_index_ = -1;
                 neg_gid2out[nt.id][gid] = ps;
             }
-        }  // end of the mutex
+        } // end of the mutex
 
         ++ps;
     }

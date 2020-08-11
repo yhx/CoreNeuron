@@ -29,13 +29,13 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef tqueue_ipp_
 #define tqueue_ipp_
 
-#include <cstdarg>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <cstdarg>
 
-#include "coreneuron/network/tqueue.hpp"
 #include "coreneuron/sim/multicore.hpp"
+#include "coreneuron/network/tqueue.hpp"
 
 #if COLLECT_TQueue_STATISTICS
 #define STAT(arg) ++arg;
@@ -125,10 +125,7 @@ void TQueue<C>::record_stat_event(int type, double time) {
 
 template <container C>
 void TQueue<C>::statistics() {
-    printf("insertions=%lu  moves=%lu removals=%lu calls to least=%lu\n",
-           ninsert,
-           nmove,
-           nrem,
+    printf("insertions=%lu  moves=%lu removals=%lu calls to least=%lu\n", ninsert, nmove, nrem,
            nleast);
     printf("calls to find=%lu\n", nfind);
     printf("comparisons=%d\n", sptree_->enqcmps);

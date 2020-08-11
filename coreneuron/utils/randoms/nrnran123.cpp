@@ -26,12 +26,12 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include <stdlib.h>
+#include <math.h>
 #include "coreneuron/utils/randoms/nrnran123.h"
 #include "coreneuron/nrnconf.h"
 #include "coreneuron/utils/nrnmutdec.h"
 #include "coreneuron/utils/nrnoc_aux.hpp"
-#include <math.h>
-#include <stdlib.h>
 
 namespace coreneuron {
 static const double SHIFT32 = 1.0 / 4294967297.0; /* 1/(2^32 + 1) */
@@ -66,7 +66,8 @@ static MUTDEC void nrnran123_mutconstruct() {
     }
 }
 #else
-void nrnran123_mutconstruct() {}
+void nrnran123_mutconstruct() {
+}
 #endif
 
 nrnran123_State* nrnran123_newstream(uint32_t id1, uint32_t id2) {
@@ -74,7 +75,7 @@ nrnran123_State* nrnran123_newstream(uint32_t id1, uint32_t id2) {
 }
 
 nrnran123_State* nrnran123_newstream3(uint32_t id1, uint32_t id2, uint32_t id3) {
-    nrnran123_State* s = (nrnran123_State*) ecalloc(sizeof(nrnran123_State), 1);
+    nrnran123_State* s = (nrnran123_State*)ecalloc(sizeof(nrnran123_State), 1);
     s->c.v[1] = id3;
     s->c.v[2] = id1;
     s->c.v[3] = id2;
@@ -161,6 +162,6 @@ double nrnran123_normal(nrnran123_State* s) {
 double nrnran123_uint2dbl(uint32_t u) {
     /* 0 to 2^32-1 transforms to double value in open (0,1) interval */
     /* min 2.3283064e-10 to max (1 - 2.3283064e-10) */
-    return ((double) u + 1.0) * SHIFT32;
+    return ((double)u + 1.0) * SHIFT32;
 }
 }  // namespace coreneuron

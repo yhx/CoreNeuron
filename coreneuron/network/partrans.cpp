@@ -1,7 +1,7 @@
-#include "coreneuron/network/partrans.hpp"
-#include "coreneuron/mpi/nrnmpi.h"
 #include "coreneuron/nrnconf.h"
 #include "coreneuron/sim/multicore.hpp"
+#include "coreneuron/mpi/nrnmpi.h"
+#include "coreneuron/network/partrans.hpp"
 
 // This is the computational code for gap junction simulation.
 // The setup code is in partrans_setup.cpp
@@ -45,8 +45,8 @@ void nrnmpi_v_transfer() {
 
 #if METHOD == 1
 
-        // copy voltages to cpu and cpu gathers/scatters to outsrc_buf
-        // clang-format off
+// copy voltages to cpu and cpu gathers/scatters to outsrc_buf
+// clang-format off
         #pragma acc update host(vdata[0 : nt.end]) if (nt.compute_gpu)
         // clang-format on
         int* outbuf_indices = ttd.outbuf_indices;
@@ -58,7 +58,7 @@ void nrnmpi_v_transfer() {
 #elif METHOD == 2
         // gather voltages on gpu and copy to cpu, cpu scatters to outsrc_buf
         double* vg = ttd.v_gather;
-        // clang-format off
+// clang-format off
         #pragma acc parallel loop present(          \
             v_indices[0:n], vdata[0:nt.end],        \
             vg[0 : n]) /*copyout(vg[0:n])*/         \
@@ -76,7 +76,7 @@ void nrnmpi_v_transfer() {
 
     // copy source values to outsrc_buf_
     for (int tid = 0; tid < nrn_nthread; ++tid) {
-        // clang-format off
+// clang-format off
         #pragma acc wait(nrn_threads[tid].stream_id)
         // clang-format on
         TransferThreadData& ttd = transfer_thread_data_[tid];
@@ -97,8 +97,8 @@ void nrnmpi_v_transfer() {
 #if NRNMPI
     if (nrnmpi_numprocs > 1) {  // otherwise insrc_buf_ == outsrc_buf_
         nrnmpi_barrier();
-        nrnmpi_dbl_alltoallv(
-            outsrc_buf_, outsrccnt_, outsrcdspl_, insrc_buf_, insrccnt_, insrcdspl_);
+        nrnmpi_dbl_alltoallv(outsrc_buf_, outsrccnt_, outsrcdspl_, insrc_buf_, insrccnt_,
+                             insrcdspl_);
     } else
 #endif
     {  // actually use the multiprocess code even for one process to aid debugging
@@ -107,8 +107,8 @@ void nrnmpi_v_transfer() {
         }
     }
 
-    // insrc_buf_ will get copied to targets via nrnthread_v_transfer
-    // clang-format off
+// insrc_buf_ will get copied to targets via nrnthread_v_transfer
+// clang-format off
     #pragma acc update device(                      \
         insrc_buf_[0:insrcdspl_[nrnmpi_numprocs]])  \
         if (nrn_threads[0].compute_gpu)
@@ -135,7 +135,7 @@ void nrnthread_v_transfer(NrnThread* _nt) {
         int _cntml_padded = ttd.halfgap_ml->_nodecount_padded;
         int ix_vpre = halfgap_info->ix_vpre * _cntml_padded;
         vpre += ix_vpre;
-        // clang-format off
+// clang-format off
         #pragma acc parallel loop present(              \
             insrc_indices[0:_cntml_actual],             \
             vpre[0:_cntml_actual],                      \
@@ -151,7 +151,7 @@ void nrnthread_v_transfer(NrnThread* _nt) {
 
 void nrn_partrans::gap_update_indices() {
     if (insrcdspl_) {
-        // clang-format off
+// clang-format off
         #pragma acc enter data create(                  \
             insrc_buf_[0:insrcdspl_[nrnmpi_numprocs]])  \
             if (nrn_threads[0].compute_gpu)
@@ -163,7 +163,7 @@ void nrn_partrans::gap_update_indices() {
 #if METHOD == 2
         int n = ttd.nsrc;
         if (n) {
-            // clang-format off
+// clang-format off
             #pragma acc enter data copyin(ttd.v_indices[0 : n]) if (nrn_threads[0].compute_gpu)
             #pragma acc enter data create(ttd.v_gather[0 : n]) if (nrn_threads[0].compute_gpu)
             // clang-format on
@@ -171,7 +171,7 @@ void nrn_partrans::gap_update_indices() {
 #endif /* METHOD == 2 */
 
         if (ttd.halfgap_ml) {
-            // clang-format off
+// clang-format off
             #pragma acc enter data copyin(ttd.insrc_indices[0 : ttd.ntar]) if (nrn_threads[0].compute_gpu)
             // clang-format on
         }

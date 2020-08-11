@@ -26,14 +26,13 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include <iostream>
 #include "coreneuron/io/nrn_filehandler.hpp"
 #include "coreneuron/nrnconf.h"
-#include <iostream>
 
 namespace coreneuron {
 FileHandler::FileHandler(const std::string& filename)
-    : chkpnt(0)
-    , stored_chkpnt(0) {
+    : chkpnt(0), stored_chkpnt(0) {
     this->open(filename);
 }
 

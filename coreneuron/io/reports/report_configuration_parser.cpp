@@ -32,10 +32,10 @@
 #include <string>
 #include <vector>
 
-#include "coreneuron/io/reports/nrnreport.hpp"
-#include "coreneuron/mechanism/mech_mapping.hpp"
-#include "coreneuron/sim/fast_imem.hpp"
 #include "coreneuron/utils/nrn_assert.h"
+#include "coreneuron/io/reports/nrnreport.hpp"
+#include "coreneuron/sim/fast_imem.hpp"
+#include "coreneuron/mechanism/mech_mapping.hpp"
 
 namespace coreneuron {
 
@@ -84,21 +84,10 @@ std::vector<ReportConfiguration> create_report_configurations(const char* conf_f
         report.mech_id = -1;
         report.buffer_size = 4;  // default size to 4 Mb
         fgets(raw_line, REPORT_MAX_FILEPATH_LEN, fp);
-        sscanf(raw_line,
-               "\n%s %s %s %s %s %s %d %lf %lf %lf %d %d %s\n",
-               report.name,
-               report.target_name,
-               report.type_str,
-               report_on,
-               report.unit,
-               report.format,
-               &is_soma,
-               &report.report_dt,
-               &report.start,
-               &report.stop,
-               &report.num_gids,
-               &report.buffer_size,
-               report.population_name);
+        sscanf(raw_line, "\n%s %s %s %s %s %s %d %lf %lf %lf %d %d %s\n", report.name,
+               report.target_name, report.type_str, report_on, report.unit, report.format, &is_soma,
+               &report.report_dt, &report.start, &report.stop, &report.num_gids,
+               &report.buffer_size, report.population_name);
         for (int i = 0; i < REPORT_MAX_NAME_LEN; i++) {
             report.type_str[i] = tolower(report.type_str[i]);
         }
@@ -122,7 +111,7 @@ std::vector<ReportConfiguration> create_report_configurations(const char* conf_f
             parse_filter_string(report_on, report);
 
         if (report.num_gids) {
-            gids = (int*) calloc(report.num_gids, sizeof(int));
+            gids = (int*)calloc(report.num_gids, sizeof(int));
             fread(gids, sizeof(int), report.num_gids, fp);
             // extra new line
             fgets(raw_line, REPORT_MAX_FILEPATH_LEN, fp);

@@ -1,8 +1,8 @@
+#include "coreneuron/nrniv/nrniv_decl.h"
 #include "coreneuron/network/multisend.hpp"
+#include "coreneuron/sim/multicore.hpp"
 #include "coreneuron/network/netcon.hpp"
 #include "coreneuron/network/netcvode.hpp"
-#include "coreneuron/nrniv/nrniv_decl.h"
-#include "coreneuron/sim/multicore.hpp"
 
 /*
 Overall exchange strategy
@@ -382,8 +382,8 @@ void nrn_multisend_receive(NrnThread* nt) {
         }
     }
 #endif
-    //	w1 = nrn_wtime() - w1;
-    //	w2 = nrn_wtime();
+//	w1 = nrn_wtime() - w1;
+//	w2 = nrn_wtime();
 
 #if ENQUEUE == 0
     multisend_receive_buffer[current_rbuf]->enqueue();

@@ -1,5 +1,5 @@
-#include <cstdlib>
 #include <cstring>
+#include <cstdlib>
 #include <iostream>
 #include <map>
 
@@ -21,7 +21,7 @@ struct cmp_str {
 /*
  * Structure that map variable names of mechanisms to their value's location (offset) in memory
  */
-typedef std::map<MechId, std::map<VariableName, Offset, cmp_str>> MechNamesMapping;
+typedef std::map<MechId, std::map<VariableName, Offset, cmp_str> > MechNamesMapping;
 static MechNamesMapping mechNamesMapping;
 
 static void set_an_offset(int mech_id, const char* variable_name, int offset) {

@@ -48,7 +48,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 namespace coreneuron {
 #define PP2NT(pp) (nrn_threads + (pp)->_tid)
-#define PP2t(pp)  (PP2NT(pp)->_t)
+#define PP2t(pp) (PP2NT(pp)->_t)
 //#define POINT_RECEIVE(type, tar, w, f) (*pnt_receive[type])(tar, w, f)
 
 typedef void (*ReceiveFunc)(Point_process*, double*, double);

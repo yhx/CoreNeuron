@@ -43,8 +43,8 @@ THE POSSIBILITY OF SUCH DAMAGE.
         "acc parallel loop present(vdata[0:_cntml_padded*nparm], ni[0:_cntml_actual], " \
         "_vec_d[0:_nt->end]) if(_nt->compute_gpu) async(stream_id)")
 #else
-#define _PRAGMA_FOR_INIT_ACC_LOOP_  _Pragma("")
-#define _PRAGMA_FOR_CUR_ACC_LOOP_   _Pragma("")
+#define _PRAGMA_FOR_INIT_ACC_LOOP_ _Pragma("")
+#define _PRAGMA_FOR_CUR_ACC_LOOP_ _Pragma("")
 #define _PRAGMA_FOR_JACOB_ACC_LOOP_ _Pragma("")
 #endif
 
@@ -85,7 +85,7 @@ void capacitance_reg(void) {
     hoc_register_prop_size(mechtype, nparm, 0);
 }
 
-#define cm    vdata[0 * _STRIDE]
+#define cm vdata[0 * _STRIDE]
 #define i_cap vdata[1 * _STRIDE]
 
 /*

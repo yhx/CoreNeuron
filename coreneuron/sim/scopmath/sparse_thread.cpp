@@ -116,7 +116,7 @@ static SparseObj* create_sparseobj();
 #if defined(_OPENACC)
 #undef emalloc
 #undef ecalloc
-#define emalloc(arg)        malloc(arg)
+#define emalloc(arg) malloc(arg)
 #define ecalloc(arg1, arg2) malloc((arg1) * (arg2))
 #endif
 

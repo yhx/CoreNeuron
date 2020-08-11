@@ -40,7 +40,7 @@
 #include <string>
 #include <vector>
 
-#define REPORT_MAX_NAME_LEN     256
+#define REPORT_MAX_NAME_LEN 256
 #define REPORT_MAX_FILEPATH_LEN 4096
 
 namespace coreneuron {

@@ -17,7 +17,7 @@ namespace coreneuron {
 enum Layout { SoA = 0, AoS = 1 };
 
 #if !defined(LAYOUT)
-#define LAYOUT        Layout::AoS
+#define LAYOUT Layout::AoS
 #define MATRIX_LAYOUT Layout::AoS
 #else
 #define MATRIX_LAYOUT LAYOUT

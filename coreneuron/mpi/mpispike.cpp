@@ -26,11 +26,10 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "coreneuron/mpi/nrnmpi.h"
-
 #include "coreneuron/nrnconf.h"
 /* do not want the redef in the dynamic load case */
 #include "coreneuron/mpi/mpispike.hpp"
+#include "coreneuron/mpi/nrnmpi.h"
 #include "coreneuron/mpi/nrnmpi_impl.h"
 #include "coreneuron/mpi/nrnmpidec.h"
 #include "coreneuron/mpi/nrnmpiuse.h"

@@ -73,8 +73,8 @@ THE POSSIBILITY OF SUCH DAMAGE.
         "acc parallel loop present(pd[0:_cntml_padded*5], ni[0:_cntml_actual], " \
         "_vec_rhs[0:_nt->end]) if(_nt->compute_gpu) async(stream_id)")
 #else
-#define _PRAGMA_FOR_INIT_ACC_LOOP_ _Pragma("")
-#define _PRAGMA_FOR_CUR_ACC_LOOP_ _Pragma("")
+#define _PRAGMA_FOR_INIT_ACC_LOOP_          _Pragma("")
+#define _PRAGMA_FOR_CUR_ACC_LOOP_           _Pragma("")
 #define _PRAGMA_FOR_SEC_ORDER_CUR_ACC_LOOP_ _Pragma("")
 #endif
 
@@ -108,8 +108,8 @@ int nrn_is_ion(int type) {
 
 int nrn_ion_global_map_size;
 double** nrn_ion_global_map;
-#define global_conci(type) nrn_ion_global_map[type][0]
-#define global_conco(type) nrn_ion_global_map[type][1]
+#define global_conci(type)  nrn_ion_global_map[type][0]
+#define global_conco(type)  nrn_ion_global_map[type][1]
 #define global_charge(type) nrn_ion_global_map[type][2]
 
 double nrn_ion_charge(int type) {
@@ -206,7 +206,7 @@ the USEION statement of any model using this ion\n",
 }
 
 #define FARADAY 96485.309
-#define ktf (1000. * 8.3134 * (celsius + 273.15) / FARADAY)
+#define ktf     (1000. * 8.3134 * (celsius + 273.15) / FARADAY)
 
 double nrn_nernst(double ci, double co, double z, double celsius) {
     /*printf("nrn_nernst %g %g %g\n", ci, co, z);*/
@@ -268,10 +268,10 @@ double nrn_ghk(double v, double ci, double co, double z) {
 }
 
 #if VECTORIZE
-#define erev pd[0 * _STRIDE] /* From Eion */
-#define conci pd[1 * _STRIDE]
-#define conco pd[2 * _STRIDE]
-#define cur pd[3 * _STRIDE]
+#define erev   pd[0 * _STRIDE] /* From Eion */
+#define conci  pd[1 * _STRIDE]
+#define conco  pd[2 * _STRIDE]
+#define cur    pd[3 * _STRIDE]
 #define dcurdv pd[4 * _STRIDE]
 
 /*

@@ -25,9 +25,9 @@ class SidData {
 #define sgid_alltoallv nrnmpi_int_alltoallv
 #endif
 
-#define HAVEWANT_t sgid_t
+#define HAVEWANT_t         sgid_t
 #define HAVEWANT_alltoallv sgid_alltoallv
-#define HAVEWANT2Int std::map<sgid_t, int>
+#define HAVEWANT2Int       std::map<sgid_t, int>
 #include "coreneuron/network/have2want.h"
 
 namespace coreneuron {

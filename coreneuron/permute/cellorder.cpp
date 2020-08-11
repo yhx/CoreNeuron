@@ -413,11 +413,11 @@ void mk_cell_indices() {
 }
 #endif  // INTERLEAVE_DEBUG
 
-#define GPU_V(i) nt->_actual_v[i]
-#define GPU_A(i) nt->_actual_a[i]
-#define GPU_B(i) nt->_actual_b[i]
-#define GPU_D(i) nt->_actual_d[i]
-#define GPU_RHS(i) nt->_actual_rhs[i]
+#define GPU_V(i)      nt->_actual_v[i]
+#define GPU_A(i)      nt->_actual_a[i]
+#define GPU_B(i)      nt->_actual_b[i]
+#define GPU_D(i)      nt->_actual_d[i]
+#define GPU_RHS(i)    nt->_actual_rhs[i]
 #define GPU_PARENT(i) nt->_v_parent_index[i]
 
 // How does the interleaved permutation with stride get used in

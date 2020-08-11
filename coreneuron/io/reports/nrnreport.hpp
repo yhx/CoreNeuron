@@ -36,11 +36,11 @@
 #ifndef _H_NRN_REPORT_
 #define _H_NRN_REPORT_
 
+#include <set>
 #include <string>
 #include <vector>
-#include <set>
 
-#define REPORT_MAX_NAME_LEN 256
+#define REPORT_MAX_NAME_LEN     256
 #define REPORT_MAX_FILEPATH_LEN 4096
 
 namespace coreneuron {
@@ -54,23 +54,23 @@ namespace coreneuron {
 enum ReportType { SomaReport, CompartmentReport, SynapseReport, IMembraneReport };
 
 struct ReportConfiguration {
-    char name[REPORT_MAX_NAME_LEN];         // name of the report
-    char output_path[REPORT_MAX_FILEPATH_LEN];     // full path of the report
-    char target_name[REPORT_MAX_NAME_LEN];  // target of the report
-    char mech_name[REPORT_MAX_NAME_LEN];    // mechanism name
-    char var_name[REPORT_MAX_NAME_LEN];     // variable name
-    char unit[REPORT_MAX_NAME_LEN];         // unit of the report
-    char format[REPORT_MAX_NAME_LEN];       // format of the report (Bin, hdf5, SONATA)
-    char type_str[REPORT_MAX_NAME_LEN];     // type of report string
+    char name[REPORT_MAX_NAME_LEN];             // name of the report
+    char output_path[REPORT_MAX_FILEPATH_LEN];  // full path of the report
+    char target_name[REPORT_MAX_NAME_LEN];      // target of the report
+    char mech_name[REPORT_MAX_NAME_LEN];        // mechanism name
+    char var_name[REPORT_MAX_NAME_LEN];         // variable name
+    char unit[REPORT_MAX_NAME_LEN];             // unit of the report
+    char format[REPORT_MAX_NAME_LEN];           // format of the report (Bin, hdf5, SONATA)
+    char type_str[REPORT_MAX_NAME_LEN];         // type of report string
     char population_name[REPORT_MAX_NAME_LEN];  // population name of the report
-    ReportType type;                        // type of the report
-    int mech_id;                            // mechanism
-    double report_dt;                       // reporting timestep
-    double start;                           // start time of report
-    double stop;                            // stop time of report
-    int num_gids;                           // total number of gids
-    int buffer_size;                        // hint on buffer size used for this report
-    std::set<int> target;                   // list of gids for this report
+    ReportType type;                            // type of the report
+    int mech_id;                                // mechanism
+    double report_dt;                           // reporting timestep
+    double start;                               // start time of report
+    double stop;                                // stop time of report
+    int num_gids;                               // total number of gids
+    int buffer_size;                            // hint on buffer size used for this report
+    std::set<int> target;                       // list of gids for this report
 };
 
 void setup_report_engine(double dt_report, double mindelay);

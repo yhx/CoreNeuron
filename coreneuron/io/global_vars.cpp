@@ -1,14 +1,14 @@
+#include <algorithm>
 #include <cstdio>
 #include <cstring>
 #include <map>
 #include <string>
-#include <algorithm>
 
-#include "coreneuron/utils/randoms/nrnran123.h"
-#include "coreneuron/nrnconf.h"
-#include "coreneuron/mechanism/membfunc.hpp"
-#include "coreneuron/utils/nrn_assert.h"
 #include "coreneuron/io/nrn2core_direct.h"
+#include "coreneuron/mechanism/membfunc.hpp"
+#include "coreneuron/nrnconf.h"
+#include "coreneuron/utils/nrn_assert.h"
+#include "coreneuron/utils/randoms/nrnran123.h"
 
 void* (*nrn2core_get_global_dbl_item_)(void*, const char*& name, int& size, double*& val);
 int (*nrn2core_get_global_int_item_)(const char* name);
@@ -45,14 +45,15 @@ void set_globals(const char* path, bool cli_global_seed, int cli_global_seed_val
         const char* name;
         int size;
         double* val = nullptr;
-        for (void* p = nullptr; (p = (*nrn2core_get_global_dbl_item_)(p, name, size, val)) != nullptr;) {
+        for (void* p = nullptr;
+             (p = (*nrn2core_get_global_dbl_item_)(p, name, size, val)) != nullptr;) {
             N2V::iterator it = n2v->find(name);
             if (it != n2v->end()) {
                 if (size == 0) {
                     nrn_assert(it->second.first == 0);
                     *(it->second.second) = val[0];
                 } else {
-                    nrn_assert(it->second.first == (size_t)size);
+                    nrn_assert(it->second.first == (size_t) size);
                     double* pval = it->second.second;
                     for (int i = 0; i < size; ++i) {
                         pval[i] = val[i];
@@ -100,7 +101,7 @@ void set_globals(const char* path, bool cli_global_seed, int cli_global_seed_val
                 }
                 it = n2v->find(name);
                 if (it != n2v->end()) {
-                    nrn_assert(it->second.first == (size_t)n);
+                    nrn_assert(it->second.first == (size_t) n);
                     double* pval = it->second.second;
                     for (int i = 0; i < n; ++i) {
                         nrn_assert(fgets(line, 256, f) != nullptr);
@@ -120,7 +121,7 @@ void set_globals(const char* path, bool cli_global_seed, int cli_global_seed_val
                 if (strcmp(name, "secondorder") == 0) {
                     secondorder = n;
                 } else if (strcmp(name, "Random123_globalindex") == 0) {
-                    nrnran123_set_globalindex((uint32_t)n);
+                    nrnran123_set_globalindex((uint32_t) n);
                 }
             }
         }
@@ -129,14 +130,14 @@ void set_globals(const char* path, bool cli_global_seed, int cli_global_seed_val
 
         // overwrite global.dat config if seed is specified on Command line
         if (cli_global_seed) {
-            nrnran123_set_globalindex((uint32_t)cli_global_seed_value);
+            nrnran123_set_globalindex((uint32_t) cli_global_seed_value);
         }
     }
 
 #if DEBUG
-  for (N2V::iterator i = n2v->begin(); i != n2v->end(); ++i) {
-    printf("%s %ld %p\n", i->first.c_str(), i->second.first, i->second.second);
-  }
+    for (N2V::iterator i = n2v->begin(); i != n2v->end(); ++i) {
+        printf("%s %ld %p\n", i->first.c_str(), i->second.first, i->second.second);
+    }
 #endif
 
     delete n2v;

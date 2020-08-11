@@ -27,10 +27,10 @@ THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include <cstdio>
-#include <cstring>
 #include <cstdlib>
-#include <sys/stat.h>
+#include <cstring>
 #include <errno.h>
+#include <sys/stat.h>
 
 #if defined(MINGW)
 #define mkdir(dir_name, permission) _mkdir(dir_name)

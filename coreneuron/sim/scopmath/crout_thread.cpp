@@ -50,12 +50,12 @@ static char RCSid[] = "crout.c,v 1.2 1999/01/04 12:46:43 hines Exp";
 #if defined(__PGI) && defined(_OPENACC)
 #include "accelmath.h"
 #endif
-#include <cmath>
 #include "coreneuron/mechanism/mech/cfile/scoplib.h"
-#include "coreneuron/sim/scopmath/newton_struct.h"
 #include "coreneuron/sim/scopmath/errcodes.h"
+#include "coreneuron/sim/scopmath/newton_struct.h"
+#include <cmath>
 namespace coreneuron {
-#define ix(arg) ((arg)*_STRIDE)
+#define ix(arg) ((arg) *_STRIDE)
 
 /* having a differnt permutation per instance may not be a good idea */
 int nrn_crout_thread(NewtonSpace* ns, int n, double** a, int* perm, _threadargsproto_) {

@@ -26,13 +26,13 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "coreneuron/nrnconf.h"
-#include "coreneuron/network/netpar.hpp"
+#include "coreneuron/coreneuron.hpp"
 #include "coreneuron/network/netcvode.hpp"
+#include "coreneuron/network/netpar.hpp"
+#include "coreneuron/nrnconf.h"
 #include "coreneuron/sim/fast_imem.hpp"
 #include "coreneuron/sim/multicore.hpp"
 #include "coreneuron/utils/profile/profiler_interface.h"
-#include "coreneuron/coreneuron.hpp"
 
 namespace coreneuron {
 
@@ -52,7 +52,7 @@ void nrn_finitialize(int setv, double v) {
     if (setv) {
         for (auto _nt = nrn_threads; _nt < nrn_threads + nrn_nthread; ++_nt) {
             double* vec_v = &(VEC_V(0));
-// clang-format off
+            // clang-format off
             #pragma acc parallel loop present(      \
                 _nt[0:1], vec_v[0:_nt->end])        \
                 if (_nt->compute_gpu)

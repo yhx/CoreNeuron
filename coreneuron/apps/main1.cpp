@@ -32,36 +32,36 @@ THE POSSIBILITY OF SUCH DAMAGE.
  * @brief File containing main driver routine for CoreNeuron
  */
 
-#include <cstring>
 #include <climits>
+#include <cstring>
 #include <memory>
 #include <vector>
 
-#include "coreneuron/engine.h"
-#include "coreneuron/utils/randoms/nrnran123.h"
-#include "coreneuron/nrnconf.h"
-#include "coreneuron/sim/fast_imem.hpp"
-#include "coreneuron/sim/multicore.hpp"
-#include "coreneuron/mpi/nrnmpi.h"
-#include "coreneuron/nrniv/nrniv_decl.h"
-#include "coreneuron/mechanism/register_mech.hpp"
-#include "coreneuron/io/output_spikes.hpp"
-#include "coreneuron/io/nrn_checkpoint.hpp"
-#include "coreneuron/utils/memory_utils.h"
 #include "coreneuron/apps/corenrn_parameters.hpp"
-#include "coreneuron/io/prcellstate.hpp"
-#include "coreneuron/utils/nrnmutdec.h"
-#include "coreneuron/utils/nrn_stats.h"
-#include "coreneuron/io/reports/nrnreport.hpp"
-#include "coreneuron/io/reports/binary_report_handler.hpp"
-#include "coreneuron/io/reports/report_handler.hpp"
-#include "coreneuron/io/reports/sonata_report_handler.hpp"
+#include "coreneuron/engine.h"
 #include "coreneuron/gpu/nrn_acc_manager.hpp"
-#include "coreneuron/utils/profile/profiler_interface.h"
-#include "coreneuron/network/partrans.hpp"
-#include "coreneuron/network/multisend.hpp"
 #include "coreneuron/io/file_utils.hpp"
 #include "coreneuron/io/nrn2core_direct.h"
+#include "coreneuron/io/nrn_checkpoint.hpp"
+#include "coreneuron/io/output_spikes.hpp"
+#include "coreneuron/io/prcellstate.hpp"
+#include "coreneuron/io/reports/binary_report_handler.hpp"
+#include "coreneuron/io/reports/nrnreport.hpp"
+#include "coreneuron/io/reports/report_handler.hpp"
+#include "coreneuron/io/reports/sonata_report_handler.hpp"
+#include "coreneuron/mechanism/register_mech.hpp"
+#include "coreneuron/mpi/nrnmpi.h"
+#include "coreneuron/network/multisend.hpp"
+#include "coreneuron/network/partrans.hpp"
+#include "coreneuron/nrnconf.h"
+#include "coreneuron/nrniv/nrniv_decl.h"
+#include "coreneuron/sim/fast_imem.hpp"
+#include "coreneuron/sim/multicore.hpp"
+#include "coreneuron/utils/memory_utils.h"
+#include "coreneuron/utils/nrn_stats.h"
+#include "coreneuron/utils/nrnmutdec.h"
+#include "coreneuron/utils/profile/profiler_interface.h"
+#include "coreneuron/utils/randoms/nrnran123.h"
 
 extern "C" {
 const char* corenrn_version() {
@@ -129,7 +129,6 @@ char* prepare_args(int& argc, char**& argv, int use_mpi, const char* arg) {
     // return actual data to be freed
     return first;
 }
-
 }
 
 namespace coreneuron {
@@ -163,9 +162,9 @@ void nrn_init_and_load_data(int argc,
 
 #if _OPENACC
     if (!corenrn_param.gpu && corenrn_param.cell_interleave_permute == 2) {
-        fprintf(
-            stderr,
-            "compiled with _OPENACC does not allow the combination of --cell-permute=2 and missing --gpu\n");
+        fprintf(stderr,
+                "compiled with _OPENACC does not allow the combination of --cell-permute=2 and "
+                "missing --gpu\n");
         exit(1);
     }
 #endif
@@ -181,8 +180,7 @@ void nrn_init_and_load_data(int argc,
     std::string filesdat(corenrn_param.datpath + "/" + corenrn_param.filesdat);
 
     // read the global variable names and set their values from globals.dat
-    set_globals(corenrn_param.datpath.c_str(), (corenrn_param.seed>=0),
-                corenrn_param.seed);
+    set_globals(corenrn_param.datpath.c_str(), (corenrn_param.seed >= 0), corenrn_param.seed);
 
     // set global variables for start time, timestep and temperature
     std::string restore_path = corenrn_param.restorepath;
@@ -196,7 +194,7 @@ void nrn_init_and_load_data(int argc,
 
     corenrn_param.dt = dt;
 
-    rev_dt = (int)(1. / dt);
+    rev_dt = (int) (1. / dt);
 
     if (corenrn_param.celsius != -1000.) {  // command line arg highest precedence
         celsius = corenrn_param.celsius;
@@ -248,8 +246,13 @@ void nrn_init_and_load_data(int argc,
     use_phase2_ = (corenrn_param.ms_phases == 2) ? 1 : 0;
 
     // reading *.dat files and setting up the data structures, setting mindelay
-    nrn_setup(filesdat.c_str(), is_mapping_needed, nrn_need_byteswap, run_setup_cleanup,
-              corenrn_param.datpath.c_str(), restore_path.c_str(), &corenrn_param.mindelay);
+    nrn_setup(filesdat.c_str(),
+              is_mapping_needed,
+              nrn_need_byteswap,
+              run_setup_cleanup,
+              corenrn_param.datpath.c_str(),
+              restore_path.c_str(),
+              &corenrn_param.mindelay);
 
     // Allgather spike compression and  bin queuing.
     nrn_use_bin_queue_ = corenrn_param.binqueue;
@@ -338,7 +341,7 @@ void handle_forward_skip(double forwardskip, int prcellgid) {
     t = savet;
     dt2thread(-1.);
 
-    // clear spikes generated during forward skip (with negative time) 
+    // clear spikes generated during forward skip (with negative time)
     clear_spike_vectors();
 }
 
@@ -362,8 +365,8 @@ void get_nrn_trajectory_requests(int bsize) {
 
             // bsize is passed by reference, the return value will determine if
             // per step return or entire trajectory return.
-            (*nrn2core_get_trajectory_requests_)(tid, bsize, n_pr, vpr, n_trajec, types, indices,
-                                                 pvars, varrays);
+            (*nrn2core_get_trajectory_requests_)(
+                tid, bsize, n_pr, vpr, n_trajec, types, indices, pvars, varrays);
             delete_trajectory_requests(nt);
             if (n_trajec) {
                 TrajectoryRequests* tr = new TrajectoryRequests;
@@ -404,10 +407,11 @@ std::unique_ptr<ReportHandler> create_report_handler(ReportConfiguration& config
         report_handler = std::make_unique<BinaryReportHandler>(config);
     } else if (std::strcmp(config.format, "SONATA") == 0) {
         report_handler = std::make_unique<SonataReportHandler>(config);
-    }
-    else {
+    } else {
         if (nrnmpi_myid == 0) {
-            printf(" WARNING : Report name '%s' has unknown format: '%s'.\n", config.name, config.format);
+            printf(" WARNING : Report name '%s' has unknown format: '%s'.\n",
+                   config.name,
+                   config.format);
         }
         return nullptr;
     }
@@ -429,8 +433,7 @@ extern "C" void mk_mech_init(int argc, char** argv) {
     // read command line parameters and parameter config files
     try {
         corenrn_param.parse(argc, argv);
-    }
-    catch (...) {
+    } catch (...) {
         nrn_abort(1);
     }
 
@@ -461,7 +464,7 @@ extern "C" int run_solve_core(int argc, char** argv) {
     Instrumentor::phase_begin("main");
 
     std::vector<ReportConfiguration> configs;
-    std::vector<std::unique_ptr<ReportHandler> > report_handlers;
+    std::vector<std::unique_ptr<ReportHandler>> report_handlers;
     std::string spikes_population_name;
     bool reports_needs_finalize = false;
 
@@ -505,7 +508,7 @@ extern "C" int run_solve_core(int argc, char** argv) {
     bool compute_gpu = corenrn_param.gpu;
     bool skip_mpi_finalize = corenrn_param.skip_mpi_finalize;
 
-// clang-format off
+    // clang-format off
     #pragma acc data copyin(celsius, secondorder) if (compute_gpu)
     // clang-format on
     {
@@ -516,7 +519,8 @@ extern "C" int run_solve_core(int argc, char** argv) {
 
         if (tstop < t && nrnmpi_myid == 0) {
             printf("Error: Stop time (%lf) < Start time (%lf), restoring from checkpoint? \n",
-                   tstop, t);
+                   tstop,
+                   t);
             abort();
         }
 
@@ -544,7 +548,7 @@ extern "C" int run_solve_core(int argc, char** argv) {
         double min_report_dt = INT_MAX;
         for (size_t i = 0; i < configs.size(); i++) {
             std::unique_ptr<ReportHandler> report_handler = create_report_handler(configs[i]);
-            if(report_handler) {
+            if (report_handler) {
                 report_handler->create_report(dt, tstop, delay);
                 report_handlers.push_back(std::move(report_handler));
             }

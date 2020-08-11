@@ -28,18 +28,20 @@ THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <cstring>
 #include <sys/time.h>
-
-#include "coreneuron/mpi/mpispike.hpp"
-#include "coreneuron/mpi/nrnmpi.h"
-#include "coreneuron/mpi/nrnmpi_def_cinc.h"
-#include "coreneuron/nrnconf.h"
-#include "coreneuron/utils/nrn_assert.h"
 #if _OPENMP
 #include <omp.h>
 #endif
 #if NRNMPI
 #include <mpi.h>
 #endif
+
+#include "coreneuron/mpi/nrnmpi.h"
+
+#include "coreneuron/mpi/mpispike.hpp"
+#include "coreneuron/mpi/nrnmpi_def_cinc.h"
+#include "coreneuron/nrnconf.h"
+#include "coreneuron/utils/nrn_assert.h"
+
 namespace coreneuron {
 
 #if NRNMPI

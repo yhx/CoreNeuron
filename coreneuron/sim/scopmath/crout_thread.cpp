@@ -47,13 +47,15 @@ static char RCSid[] = "crout.c,v 1.2 1999/01/04 12:46:43 hines Exp";
 /*                                                              */
 /*--------------------------------------------------------------*/
 
+#include <cmath>
+
 #if defined(__PGI) && defined(_OPENACC)
 #include "accelmath.h"
 #endif
+
 #include "coreneuron/mechanism/mech/cfile/scoplib.h"
 #include "coreneuron/sim/scopmath/errcodes.h"
 #include "coreneuron/sim/scopmath/newton_struct.h"
-#include <cmath>
 namespace coreneuron {
 #define ix(arg) ((arg) *_STRIDE)
 

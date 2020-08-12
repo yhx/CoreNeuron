@@ -33,6 +33,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/sim/multicore.hpp"
 #include "coreneuron/utils/ivocvect.hpp"
 #include "coreneuron/utils/vrecitem.h"
+
 namespace coreneuron {
 extern NetCvode* net_cvode_instance;
 

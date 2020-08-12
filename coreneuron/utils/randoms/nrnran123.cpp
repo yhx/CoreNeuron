@@ -26,12 +26,13 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include <math.h>
+#include <stdlib.h>
+
 #include "coreneuron/utils/randoms/nrnran123.h"
 #include "coreneuron/nrnconf.h"
 #include "coreneuron/utils/nrnmutdec.h"
 #include "coreneuron/utils/nrnoc_aux.hpp"
-#include <math.h>
-#include <stdlib.h>
 
 namespace coreneuron {
 static const double SHIFT32 = 1.0 / 4294967297.0; /* 1/(2^32 + 1) */

@@ -26,6 +26,13 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include <float.h>
+#include <map>
+
+#ifdef _OPENACC
+#include <openacc.h>
+#endif
+
 #include "coreneuron/network/netcvode.hpp"
 #include "coreneuron/coreneuron.hpp"
 #include "coreneuron/gpu/nrn_acc_manager.hpp"
@@ -40,12 +47,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/utils/ivocvect.hpp"
 #include "coreneuron/utils/nrn_assert.h"
 #include "coreneuron/utils/nrnoc_aux.hpp"
-#include <float.h>
-#include <map>
 
-#ifdef _OPENACC
-#include <openacc.h>
-#endif
 namespace coreneuron {
 #define PP2NT(pp) (nrn_threads + (pp)->_tid)
 #define PP2t(pp)  (PP2NT(pp)->_t)

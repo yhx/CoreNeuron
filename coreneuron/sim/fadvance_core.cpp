@@ -329,7 +329,7 @@ static void* nrn_fixed_step_thread(NrnThread* nth) {
     if (nth->ncell) {
 #if defined(_OPENACC)
         int stream_id = nth->stream_id;
-        /*@todo: do we need to update nth->_t on GPU: Yes (Michael, but can launch kernel) */
+        /* we need to update nth->_t on GPU */
         // clang-format off
         #pragma acc update device(nth->_t) if (nth->compute_gpu) async(stream_id)
         #pragma acc wait(stream_id)

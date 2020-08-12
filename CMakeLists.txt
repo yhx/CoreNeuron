@@ -106,7 +106,6 @@ endif()
 # Include cmake modules after cmake options
 # =============================================================================
 include(OpenAccHelper)
-include(ClangFormatHelper)
 
 # =============================================================================
 # Common dependencies

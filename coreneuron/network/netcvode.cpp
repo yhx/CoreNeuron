@@ -33,13 +33,13 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <openacc.h>
 #endif
 
-#include "coreneuron/network/netcvode.hpp"
 #include "coreneuron/coreneuron.hpp"
 #include "coreneuron/gpu/nrn_acc_manager.hpp"
 #include "coreneuron/io/output_spikes.hpp"
 #include "coreneuron/mechanism/membfunc.hpp"
 #include "coreneuron/network/multisend.hpp"
 #include "coreneuron/network/netcon.hpp"
+#include "coreneuron/network/netcvode.hpp"
 #include "coreneuron/network/netpar.hpp"
 #include "coreneuron/nrnconf.h"
 #include "coreneuron/nrniv/nrniv_decl.h"

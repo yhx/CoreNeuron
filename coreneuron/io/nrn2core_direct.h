@@ -2,6 +2,7 @@
 #define nrn2core_direct_h
 
 #include <iostream>
+#include <vector>
 
 extern "C" {
 // The callbacks into nrn/src/nrniv/nrnbbcore_write.cpp to get

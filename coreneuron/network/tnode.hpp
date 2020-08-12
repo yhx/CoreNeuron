@@ -1,6 +1,7 @@
 #ifndef tnode_h
 #define tnode_h
 
+#include <cstddef>
 #include <vector>
 
 // experiment with ordering strategies for Tree Nodes

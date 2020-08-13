@@ -47,6 +47,7 @@ void nrnmpi_v_transfer() {
 
         // copy voltages to cpu and cpu gathers/scatters to outsrc_buf
         // clang-format off
+
         #pragma acc update host(vdata[0 : nt.end]) if (nt.compute_gpu)
         // clang-format on
         int* outbuf_indices = ttd.outbuf_indices;
@@ -59,6 +60,7 @@ void nrnmpi_v_transfer() {
         // gather voltages on gpu and copy to cpu, cpu scatters to outsrc_buf
         double* vg = ttd.v_gather;
         // clang-format off
+
         #pragma acc parallel loop present(          \
             v_indices[0:n], vdata[0:nt.end],        \
             vg[0 : n]) /*copyout(vg[0:n])*/         \
@@ -77,6 +79,7 @@ void nrnmpi_v_transfer() {
     // copy source values to outsrc_buf_
     for (int tid = 0; tid < nrn_nthread; ++tid) {
         // clang-format off
+
         #pragma acc wait(nrn_threads[tid].stream_id)
         // clang-format on
         TransferThreadData& ttd = transfer_thread_data_[tid];
@@ -109,6 +112,7 @@ void nrnmpi_v_transfer() {
 
     // insrc_buf_ will get copied to targets via nrnthread_v_transfer
     // clang-format off
+
     #pragma acc update device(                      \
         insrc_buf_[0:insrcdspl_[nrnmpi_numprocs]])  \
         if (nrn_threads[0].compute_gpu)
@@ -136,6 +140,7 @@ void nrnthread_v_transfer(NrnThread* _nt) {
         int ix_vpre = halfgap_info->ix_vpre * _cntml_padded;
         vpre += ix_vpre;
         // clang-format off
+
         #pragma acc parallel loop present(              \
             insrc_indices[0:_cntml_actual],             \
             vpre[0:_cntml_actual],                      \
@@ -152,6 +157,7 @@ void nrnthread_v_transfer(NrnThread* _nt) {
 void nrn_partrans::gap_update_indices() {
     if (insrcdspl_) {
         // clang-format off
+
         #pragma acc enter data create(                  \
             insrc_buf_[0:insrcdspl_[nrnmpi_numprocs]])  \
             if (nrn_threads[0].compute_gpu)
@@ -164,6 +170,7 @@ void nrn_partrans::gap_update_indices() {
         int n = ttd.nsrc;
         if (n) {
             // clang-format off
+
             #pragma acc enter data copyin(ttd.v_indices[0 : n]) if (nrn_threads[0].compute_gpu)
             #pragma acc enter data create(ttd.v_gather[0 : n]) if (nrn_threads[0].compute_gpu)
             // clang-format on
@@ -172,6 +179,7 @@ void nrn_partrans::gap_update_indices() {
 
         if (ttd.halfgap_ml) {
             // clang-format off
+
             #pragma acc enter data copyin(ttd.insrc_indices[0 : ttd.ntar]) if (nrn_threads[0].compute_gpu)
             // clang-format on
         }

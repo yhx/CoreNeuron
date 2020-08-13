@@ -475,6 +475,7 @@ static void triang_interleaved2(NrnThread* nt, int icore, int ncycle, int* strid
     int ii = i;
 #endif
     // clang-format off
+
     #pragma acc loop seq
     for (;;) {  // ncycle loop
 #if !defined(_OPENACC)
@@ -518,7 +519,8 @@ static void bksub_interleaved2(NrnThread* nt,
 #if !defined(_OPENACC)
     for (int i = root; i < lastroot; i += 1) {
 #else
-                 // clang-format off
+    // clang-format off
+
     #pragma acc loop seq
     // clang-format on
     for (int i = root; i < lastroot; i += warpsize) {
@@ -579,6 +581,7 @@ void solve_interleaved2(int ith) {
     int ncore = nwarp * warpsize;
 #ifdef _OPENACC
     // clang-format off
+
     #pragma acc parallel loop present(                  \
         nt[0:1], strides[0:nstride],                    \
         ncycles[0:nwarp], stridedispl[0:nwarp+1],       \
@@ -642,6 +645,7 @@ void solve_interleaved1(int ith) {
 #else
 #ifdef _OPENACC
     // clang-format off
+
     #pragma acc parallel loop present(              \
         nt[0:1], stride[0:nstride],                 \
         firstnode[0:ncell], lastnode[0:ncell],      \

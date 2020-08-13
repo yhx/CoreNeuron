@@ -773,6 +773,7 @@ void update_matrix_from_gpu(NrnThread* _nt) {
         /* before copying, make sure all computations in the stream are completed */
 
         // clang-format off
+
         #pragma acc wait(_nt->stream_id)
 
         /* openacc routine doesn't allow asyn, use pragma */
@@ -799,6 +800,7 @@ void update_matrix_to_gpu(NrnThread* _nt) {
         /* before copying, make sure all computations in the stream are completed */
 
         // clang-format off
+
         #pragma acc wait(_nt->stream_id)
 
         /* while discussion with Michael we found that RHS is also needed on

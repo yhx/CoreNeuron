@@ -110,6 +110,7 @@ void VecPlayContinuous::deliver(double tt, NetCvode* ns) {
     // printf("deliver %g\n", tt);
     last_index_ = ubound_index_;
     // clang-format off
+
     #pragma acc update device(last_index_) if (nt->compute_gpu)
     // clang-format on
     if (discon_indices_) {
@@ -127,6 +128,7 @@ void VecPlayContinuous::deliver(double tt, NetCvode* ns) {
         }
     }
     // clang-format off
+
     #pragma acc update device(ubound_index_) if (nt->compute_gpu)
     // clang-format on
     continuous(tt);
@@ -135,6 +137,7 @@ void VecPlayContinuous::deliver(double tt, NetCvode* ns) {
 void VecPlayContinuous::continuous(double tt) {
     NrnThread* nt = nrn_threads + ith_;
     // clang-format off
+
     #pragma acc kernels present(this) if(nt->compute_gpu)
     {
         *pd_ = interpolate(tt);

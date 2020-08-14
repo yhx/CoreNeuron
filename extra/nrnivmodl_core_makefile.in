@@ -79,8 +79,8 @@ define check_file
 endef
 
 # File path config (internal)
-MODC_DIR = $(OUTPUT)/core/mod2c
-OBJS_DIR = $(OUTPUT)/core/build
+MODC_DIR = $(OUTPUT)/corenrn/mod2c
+OBJS_DIR = $(OUTPUT)/corenrn/build
 mod_files = $(sort $(notdir $(wildcard $(MODS_PATH)/*.mod)))
 mod_paths = $(sort $(wildcard $(MODS_PATH)/*.mod))
 mod_names = $(mod_files:.mod=)

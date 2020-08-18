@@ -58,7 +58,8 @@ set(INBUILT_MOD_FILES
     netstim.mod
     passive.mod
     pattern.mod
-    stim.mod)
+    stim.mod
+    svclmp.mod)
 
 # Has helper macro for generating cpp file from mod2c
 include(NmodlHelper)

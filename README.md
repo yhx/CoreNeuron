@@ -41,29 +41,29 @@ CoreNEURON is now integrated into the development version of the NEURON simulato
 
 3. Load software dependencies
 
-	Currently CoreNEURON relies on compiler auto-vectorisation and hence we advise to use one of Intel, Cray, or PGI compilers to ensure vectorized code is generated. This constraint will be removed in the near future with the integration of the [NMODL](https://github.com/BlueBrain/nmodl) project.
+Currently CoreNEURON relies on compiler auto-vectorisation and hence we advise to use one of Intel, Cray, or PGI compilers to ensure vectorized code is generated. This constraint will be removed in the near future with the integration of the [NMODL](https://github.com/BlueBrain/nmodl) project.
 
-	HPC systems often use a module system to select software. For example, you can load the compiler, cmake, and python dependencies using module as follows:
+HPC systems often use a module system to select software. For example, you can load the compiler, cmake, and python dependencies using module as follows:
 
+```
+module load intel intel-mpi python cmake
+```
 
-	```
-	module load intel intel-mpi python cmake
-	```
 Note that if you are building on Cray system with the GNU toolchain, you have to set following environment variable:
 
-	```bash
-	export CRAYPE_LINK_TYPE=dynamic
-	```
+```bash
+export CRAYPE_LINK_TYPE=dynamic
+```
 
 3. Run CMake with the appropriate [options](https://github.com/neuronsimulator/nrn#build-using-cmake) and additionally enable CoreNEURON with `-DNRN_ENABLE_CORENEURON=ON` option:
 
-  ```bash
-  cmake .. \
-   -DNRN_ENABLE_CORENEURON=ON \
-   -DNRN_ENABLE_INTERVIEWS=OFF \
-   -DNRN_ENABLE_RX3D=OFF \
-   -DCMAKE_INSTALL_PREFIX=$HOME/install
-  ```
+```bash
+cmake .. \
+  -DNRN_ENABLE_CORENEURON=ON \
+  -DNRN_ENABLE_INTERVIEWS=OFF \
+  -DNRN_ENABLE_RX3D=OFF \
+  -DCMAKE_INSTALL_PREFIX=$HOME/install
+```
 If you would like to enable GPU support with OpenACC, make sure to use `-DCORENRN_ENABLE_GPU=ON` option and use the PGI compiler with CUDA.
 > NOTE : if the CMake command files, please make sure to delete temporary CMake cache files (`CMakeCache.txt`) before rerunning CMake.
 

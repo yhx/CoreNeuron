@@ -77,7 +77,6 @@ option(CORENRN_ENABLE_SOA "Enable SoA Memory Layout" ON)
 option(CORENRN_ENABLE_HOC_EXP "Enable wrapping exp with hoc_exp()" OFF)
 option(CORENRN_ENABLE_SPLAYTREE_QUEUING "Enable use of Splay tree for spike queuing" ON)
 option(CORENRN_ENABLE_NET_RECEIVE_BUFFER "Enable event buffering in net_receive function" ON)
-option(CORENRN_ENABLE_ISPC "Enable ispc interoperability structs and data" OFF)
 option(CORENRN_ENABLE_NMODL "Enable external nmodl source-to-source compiler" OFF)
 option(CORENRN_ENABLE_CALIPER_PROFILING "Enable Caliper instrumentation" OFF)
 option(CORENRN_ENABLE_LIKWID_PROFILING "Enable LIKWID instrumentation" OFF)
@@ -150,10 +149,15 @@ else()
   set(COMPILE_LIBRARY_TYPE "STATIC")
 endif()
 
-if(CORENRN_ENABLE_ISPC)
-  enable_language(ISPC)
-  add_definitions("-DISPC_INTEROP=1")
-  set(CORENRN_ENABLE_NMODL ON)
+# enable ispc if nmodl is enabled and ispc compiler exist
+set(CORENRN_ISPC OFF)
+if(CORENRN_ENABLE_NMODL)
+  find_program(ISPC_COMPILER "ispc")
+  if(ISPC_COMPILER)
+    enable_language(ISPC)
+    add_definitions("-DISPC_INTEROP=1")
+    set(CORENRN_ISPC ON)
+  endif()
 endif()
 
 if(CORENRN_ENABLE_MPI)
@@ -257,11 +261,14 @@ if(CORENRN_ENABLE_NMODL)
     string(APPEND CORENRN_NMODL_FLAGS " acc --oacc")
   endif()
   separate_arguments(NMODL_EXTRA_FLAGS_LIST UNIX_COMMAND "${CORENRN_NMODL_FLAGS}")
-else()
-  include(AddMod2cSubmodule)
-  set(CORENRN_NMODL_BINARY ${CMAKE_BINARY_DIR}/bin/mod2c_core${CMAKE_EXECUTABLE_SUFFIX})
-  set(CORENRN_NMODL_INCLUDE ${CMAKE_BINARY_DIR}/include)
 endif()
+
+# =============================================================================
+# Add MOD2C submodule
+# =============================================================================
+include(AddMod2cSubmodule)
+set(CORENRN_MOD2C_BINARY ${CMAKE_BINARY_DIR}/bin/mod2c_core${CMAKE_EXECUTABLE_SUFFIX})
+set(CORENRN_MOD2C_INCLUDE ${CMAKE_BINARY_DIR}/include)
 
 # =============================================================================
 # Profiler/Instrumentation Options
@@ -355,6 +362,7 @@ if(NOT CORENEURON_AS_SUBPROJECT)
       COMMENT "Documentation generation not possible!")
   endif()
 endif()
+
 # =============================================================================
 # Build status
 # =============================================================================
@@ -385,11 +393,11 @@ if(cmake_generator_tolower MATCHES "makefile")
   message(STATUS "NMODL               | ${CORENRN_ENABLE_NMODL}")
   if(CORENRN_ENABLE_NMODL)
     message(STATUS "  PATH              | ${CORENRN_NMODL_BINARY}")
-    message(STATUS "  ISPC              | ${CORENRN_ENABLE_ISPC}")
+    message(STATUS "  ISPC              | ${CORENRN_ISPC}")
     message(STATUS "  FLAGS             | ${CORENRN_NMODL_FLAGS}")
-  else()
-    message(STATUS "MOD2C               | ${MOD2C_PROJ}")
   endif()
+  message(STATUS "MOD2C               | ${MOD2C_PROJ}")
+  message(STATUS "  PATH              | ${CORENRN_MOD2C_BINARY}")
   message(STATUS "GPU Support         | ${CORENRN_ENABLE_GPU}")
   if(CORENRN_ENABLE_GPU)
     message(STATUS "  CUDA              | ${CUDA_TOOLKIT_ROOT_DIR}")

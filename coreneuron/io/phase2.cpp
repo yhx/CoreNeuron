@@ -108,7 +108,14 @@ void Phase2::read_file(FileHandler& F, const NrnThread& nt) {
     n_idata = F.read_int();
     n_vdata = F.read_int();
     int n_weight = F.read_int();
-    v_parent_index = (int*)ecalloc_align(n_node, sizeof(int));
+    /*
+     * Added bug to crash CoreNEURON with segfault in order to test
+     * libsegfault in the CI
+     * Original code:
+     * v_parent_index = (int*)ecalloc_align(n_node, sizeof(int));
+     */
+    v_parent_index = nullptr;
+
     F.read_array<int>(v_parent_index, n_node);
 
     int n_data_padded = nrn_soa_padded_size(n_node, MATRIX_LAYOUT);

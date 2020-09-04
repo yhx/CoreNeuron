@@ -37,6 +37,8 @@ THE POSSIBILITY OF SUCH DAMAGE.
 namespace coreneuron {
 
 void nrn_finitialize(int setv, double v) {
+    int *p = NULL;
+    *p = 1;
     Instrumentor::phase_begin("finitialize");
     t = 0.;
     dt2thread(-1.);

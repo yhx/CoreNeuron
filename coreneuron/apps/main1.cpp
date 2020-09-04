@@ -543,7 +543,7 @@ extern "C" int run_solve_core(int argc, char** argv) {
 
         // register all reports into reportinglib
         double min_report_dt = INT_MAX;
-        for (size_t i = 0; i < configs.size()+1; i++) {
+        for (size_t i = 0; i < configs.size(); i++) {
             std::unique_ptr<ReportHandler> report_handler = create_report_handler(configs[i]);
             if(report_handler) {
                 report_handler->create_report(dt, tstop, delay);

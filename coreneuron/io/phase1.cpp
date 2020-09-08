@@ -10,7 +10,8 @@ int (*nrn2core_get_dat1_)(int tid,
                           int& n_presyn,
                           int& n_netcon,
                           int*& output_gid,
-                          int*& netcon_srcgid);
+                          int*& netcon_srcgid,
+                          std::vector<int>& netcon_negsrcgid_tid);
 
 namespace coreneuron {
 void Phase1::read_file(FileHandler& F) {
@@ -20,8 +21,22 @@ void Phase1::read_file(FileHandler& F) {
 
     this->output_gids = F.read_vector<int>(n_presyn);
     this->netcon_srcgids = F.read_vector<int>(n_netcon);
+    // For file mode transfer, it is not allowed that negative gids exist
+    // in different threads. So this->netcon_tids remains clear.
 
     F.close();
+}
+
+static void prsrctid(int thread_id, int n, int* srcgid, std::vector<int>& srctid) {
+  if (!srctid.empty()) {
+    int i = 0;
+    for (int i_nc=0; i_nc < n; ++i_nc) {
+      if (srcgid[i_nc] < -1) {
+        printf("srcgid=%d tid=%d srctid=%d\n", srcgid[i_nc], thread_id, srctid[i]);
+        ++i;
+      }
+    }
+  }
 }
 
 void Phase1::read_direct(int thread_id) {
@@ -32,7 +47,7 @@ void Phase1::read_direct(int thread_id) {
 
     // TODO : check error codes for NEURON - CoreNEURON communication
     int valid =
-        (*nrn2core_get_dat1_)(thread_id, n_presyn, n_netcon, output_gids, netcon_srcgid);
+        (*nrn2core_get_dat1_)(thread_id, n_presyn, n_netcon, output_gids, netcon_srcgid, this->netcon_negsrcgid_tid);
     if (!valid) {
         return;
     }
@@ -50,6 +65,10 @@ void Phase1::populate(NrnThread& nt, OMP_Mutex& mut) {
     netcon_srcgid[nt.id] = new int[nt.n_netcon];
     std::copy(this->netcon_srcgids.begin(), this->netcon_srcgids.end(),
               netcon_srcgid[nt.id]);
+
+    if (!coreneuron::netcon_negsrcgid_tid.empty()) { // multiple threads and direct mode.
+        coreneuron::netcon_negsrcgid_tid[nt.id] = this->netcon_negsrcgid_tid;
+    }
 
     nt.netcons = new NetCon[nt.n_netcon];
     nt.presyns_helper = (PreSynHelper*)ecalloc_align(nt.n_presyn, sizeof(PreSynHelper));

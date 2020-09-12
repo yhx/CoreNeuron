@@ -287,8 +287,8 @@ void determine_inputpresyn() {
         NrnThread& nt = nrn_threads[ith];
         // associate gid with InputPreSyn and increase PreSyn and InputPreSyn count
         nt.n_input_presyn = 0;
-        // if empty then not to be used.
-        std::vector<int>& negsrcgid_tid = netcon_negsrcgid_tid[ith];
+        std::vector<int> dummy;
+        std::vector<int>& negsrcgid_tid = corenrn_embedded ? netcon_negsrcgid_tid[ith] : dummy;
         size_t i_tid = 0;
         for (int i = 0; i < nt.n_netcon; ++i) {
             int gid = netcon_srcgid[ith][i];
@@ -384,8 +384,8 @@ void determine_inputpresyn() {
     // only used via ps.nc_index_ and ps.nc_cnt_;
     for (int ith = 0; ith < nrn_nthread; ++ith) {
         NrnThread& nt = nrn_threads[ith];
-        // if empty then not to be used.
-        std::vector<int>& negsrcgid_tid = netcon_negsrcgid_tid[ith];
+        std::vector<int> dummy;
+        std::vector<int>& negsrcgid_tid = corenrn_embedded ? netcon_negsrcgid_tid[ith] : dummy;
         size_t i_tid = 0;
         for (int i = 0; i < nt.n_netcon; ++i) {
             NetCon* nc = nt.netcons + i;
@@ -497,10 +497,10 @@ void nrn_setup(const char* filesdat,
         nrn_partrans::gap_mpi_setup(userParams.ngroup);
     }
 
-    netcon_negsrcgid_tid.resize(nrn_nthread);
     if (!corenrn_embedded) {
         coreneuron::phase_wrapper<coreneuron::phase::one>(userParams);
     } else {
+        netcon_negsrcgid_tid.resize(nrn_nthread);
         nrn_multithread_job([](NrnThread* n) {
             Phase1 p1; 
             p1.read_direct(n->id);

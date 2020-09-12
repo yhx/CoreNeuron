@@ -619,6 +619,10 @@ void BBS_netpar_solve(double tstop) {
     }
 }
 
+extern "C" {
+extern bool corenrn_embedded;
+}
+
 double set_mindelay(double maxdelay) {
     double mindelay = maxdelay;
     last_maxstep_arg_ = maxdelay;
@@ -641,8 +645,8 @@ double set_mindelay(double maxdelay) {
 
     for (int ith = 0; ith < nrn_nthread; ++ith) {
         NrnThread& nt = nrn_threads[ith];
-        // if empty then not to be used.
-        std::vector<int>& negsrcgid_tid = netcon_negsrcgid_tid[ith];
+        std::vector<int> dummy;
+        std::vector<int>& negsrcgid_tid = corenrn_embedded ? netcon_negsrcgid_tid[ith] : dummy;
         size_t i_tid = 0;
         for (int i = 0; i < nt.n_netcon; ++i) {
             NetCon* nc = nt.netcons + i;

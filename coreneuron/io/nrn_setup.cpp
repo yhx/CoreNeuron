@@ -497,10 +497,10 @@ void nrn_setup(const char* filesdat,
         nrn_partrans::gap_mpi_setup(userParams.ngroup);
     }
 
+    netcon_negsrcgid_tid.resize(nrn_nthread);
     if (!corenrn_embedded) {
         coreneuron::phase_wrapper<coreneuron::phase::one>(userParams);
     } else {
-        netcon_negsrcgid_tid.resize(nrn_nthread);
         nrn_multithread_job([](NrnThread* n) {
             Phase1 p1; 
             p1.read_direct(n->id);

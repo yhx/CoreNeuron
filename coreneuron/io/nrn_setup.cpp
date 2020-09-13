@@ -186,11 +186,11 @@ std::map<int, InputPreSyn*> gid2in;
 std::vector<NetCon*> netcon_in_presyn_order_;
 
 /// Only for setup vector of netcon source gids
-std::vector<int*> netcon_srcgid;
+std::vector<int*> nrnthreads_netcon_srcgid;
 
-/// If a netcon_srcgid is negative, need to determine the thread when
+/// If a nrnthreads_netcon_srcgid is negative, need to determine the thread when
 /// in order to use the correct neg_gid2out[tid] map
-std::vector<std::vector<int> > netcon_negsrcgid_tid;
+std::vector<std::vector<int> > nrnthreads_netcon_negsrcgid_tid;
 
 /* read files.dat file and distribute cellgroups to all mpi ranks */
 void nrn_read_filesdat(int& ngrp, int*& grp, const char* filesdat) {
@@ -288,10 +288,10 @@ void determine_inputpresyn() {
         // associate gid with InputPreSyn and increase PreSyn and InputPreSyn count
         nt.n_input_presyn = 0;
         std::vector<int> dummy;
-        std::vector<int>& negsrcgid_tid = corenrn_embedded ? netcon_negsrcgid_tid[ith] : dummy;
+        std::vector<int>& negsrcgid_tid = corenrn_embedded ? nrnthreads_netcon_negsrcgid_tid[ith] : dummy;
         size_t i_tid = 0;
         for (int i = 0; i < nt.n_netcon; ++i) {
-            int gid = netcon_srcgid[ith][i];
+            int gid = nrnthreads_netcon_srcgid[ith][i];
             if (gid >= 0) {
                 /// If PreSyn or InputPreSyn is already in the map
                 auto gid2out_it = gid2out.find(gid);
@@ -380,16 +380,16 @@ void determine_inputpresyn() {
 
     // fill the netcon_in_presyn_order and recompute nc_cnt_
     // note that not all netcon_in_presyn will be filled if there are netcon
-    // with no presyn (ie. netcon_srcgid[nt.id][i] = -1) but that is ok since they are
+    // with no presyn (ie. nrnthreads_netcon_srcgid[nt.id][i] = -1) but that is ok since they are
     // only used via ps.nc_index_ and ps.nc_cnt_;
     for (int ith = 0; ith < nrn_nthread; ++ith) {
         NrnThread& nt = nrn_threads[ith];
         std::vector<int> dummy;
-        std::vector<int>& negsrcgid_tid = corenrn_embedded ? netcon_negsrcgid_tid[ith] : dummy;
+        std::vector<int>& negsrcgid_tid = corenrn_embedded ? nrnthreads_netcon_negsrcgid_tid[ith] : dummy;
         size_t i_tid = 0;
         for (int i = 0; i < nt.n_netcon; ++i) {
             NetCon* nc = nt.netcons + i;
-            int gid = netcon_srcgid[ith][i];
+            int gid = nrnthreads_netcon_srcgid[ith][i];
             int tid = ith;
             if (!negsrcgid_tid.empty() && gid < -1) {
               tid = negsrcgid_tid[i_tid++];
@@ -416,11 +416,11 @@ void determine_inputpresyn() {
 /// Clean up
 void nrn_setup_cleanup() {
     for (int ith = 0; ith < nrn_nthread; ++ith) {
-        if (netcon_srcgid[ith])
-            delete[] netcon_srcgid[ith];
+        if (nrnthreads_netcon_srcgid[ith])
+            delete[] nrnthreads_netcon_srcgid[ith];
     }
-    netcon_srcgid.clear();
-    netcon_negsrcgid_tid.clear();
+    nrnthreads_netcon_srcgid.clear();
+    nrnthreads_netcon_negsrcgid_tid.clear();
     neg_gid2out.clear();
 }
 
@@ -476,9 +476,9 @@ void nrn_setup(const char* filesdat,
     /// std::map<int, PreSyn*> gid2out;
     gid2out.clear();
 
-    netcon_srcgid.resize(nrn_nthread);
+    nrnthreads_netcon_srcgid.resize(nrn_nthread);
     for (int i = 0; i < nrn_nthread; ++i)
-        netcon_srcgid[i] = nullptr;
+        nrnthreads_netcon_srcgid[i] = nullptr;
 
     // gap junctions
     if (nrn_have_gaps) {
@@ -500,7 +500,7 @@ void nrn_setup(const char* filesdat,
     if (!corenrn_embedded) {
         coreneuron::phase_wrapper<coreneuron::phase::one>(userParams);
     } else {
-        netcon_negsrcgid_tid.resize(nrn_nthread);
+        nrnthreads_netcon_negsrcgid_tid.resize(nrn_nthread);
         nrn_multithread_job([](NrnThread* n) {
             Phase1 p1; 
             p1.read_direct(n->id);
@@ -509,7 +509,7 @@ void nrn_setup(const char* filesdat,
         });
     }
 
-    // from the gid2out map and the netcon_srcgid array,
+    // from the gid2out map and the nrnthreads_netcon_srcgid array,
     // fill the gid2in, and from the number of entries,
     // allocate the process wide InputPreSyn array
     determine_inputpresyn();

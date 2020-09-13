@@ -27,18 +27,6 @@ void Phase1::read_file(FileHandler& F) {
     F.close();
 }
 
-static void prsrctid(int thread_id, int n, int* srcgid, std::vector<int>& srctid) {
-  if (!srctid.empty()) {
-    int i = 0;
-    for (int i_nc=0; i_nc < n; ++i_nc) {
-      if (srcgid[i_nc] < -1) {
-        printf("srcgid=%d tid=%d srctid=%d\n", srcgid[i_nc], thread_id, srctid[i]);
-        ++i;
-      }
-    }
-  }
-}
-
 void Phase1::read_direct(int thread_id) {
     int* output_gids;
     int* netcon_srcgid;
@@ -66,12 +54,12 @@ void Phase1::populate(NrnThread& nt, OMP_Mutex& mut) {
     nt.n_presyn = this->output_gids.size();
     nt.n_netcon = this->netcon_srcgids.size();
 
-    netcon_srcgid[nt.id] = new int[nt.n_netcon];
+    nrnthreads_netcon_srcgid[nt.id] = new int[nt.n_netcon];
     std::copy(this->netcon_srcgids.begin(), this->netcon_srcgids.end(),
-              netcon_srcgid[nt.id]);
+              nrnthreads_netcon_srcgid[nt.id]);
 
     if (corenrn_embedded) { // multiple threads and direct mode.
-        coreneuron::netcon_negsrcgid_tid[nt.id] = this->netcon_negsrcgid_tid;
+        coreneuron::nrnthreads_netcon_negsrcgid_tid[nt.id] = this->netcon_negsrcgid_tid;
     }
 
     nt.netcons = new NetCon[nt.n_netcon];

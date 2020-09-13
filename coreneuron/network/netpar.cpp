@@ -646,12 +646,12 @@ double set_mindelay(double maxdelay) {
     for (int ith = 0; ith < nrn_nthread; ++ith) {
         NrnThread& nt = nrn_threads[ith];
         std::vector<int> dummy;
-        std::vector<int>& negsrcgid_tid = corenrn_embedded ? netcon_negsrcgid_tid[ith] : dummy;
+        std::vector<int>& negsrcgid_tid = corenrn_embedded ? nrnthreads_netcon_negsrcgid_tid[ith] : dummy;
         size_t i_tid = 0;
         for (int i = 0; i < nt.n_netcon; ++i) {
             NetCon* nc = nt.netcons + i;
             bool chk = false;  // ignore nc.delay_
-            int gid = netcon_srcgid[ith][i];
+            int gid = nrnthreads_netcon_srcgid[ith][i];
             int tid = ith;
             if (!negsrcgid_tid.empty() && gid < -1) {
               tid = negsrcgid_tid[i_tid++];

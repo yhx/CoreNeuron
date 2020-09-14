@@ -619,10 +619,6 @@ void BBS_netpar_solve(double tstop) {
     }
 }
 
-extern "C" {
-extern bool corenrn_embedded;
-}
-
 double set_mindelay(double maxdelay) {
     double mindelay = maxdelay;
     last_maxstep_arg_ = maxdelay;
@@ -645,8 +641,8 @@ double set_mindelay(double maxdelay) {
 
     for (int ith = 0; ith < nrn_nthread; ++ith) {
         NrnThread& nt = nrn_threads[ith];
-        std::vector<int> dummy;
-        std::vector<int>& negsrcgid_tid = corenrn_embedded ? nrnthreads_netcon_negsrcgid_tid[ith] : dummy;
+        // if single thread or file transfer then definitely empty.
+        std::vector<int>& negsrcgid_tid = nrnthreads_netcon_negsrcgid_tid[ith];
         size_t i_tid = 0;
         for (int i = 0; i < nt.n_netcon; ++i) {
             NetCon* nc = nt.netcons + i;

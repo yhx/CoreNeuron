@@ -46,10 +46,6 @@ void Phase1::read_direct(int thread_id) {
     delete[] netcon_srcgid;
 }
 
-extern "C" {
-extern bool corenrn_embedded;
-}
-
 void Phase1::populate(NrnThread& nt, OMP_Mutex& mut) {
     nt.n_presyn = this->output_gids.size();
     nt.n_netcon = this->netcon_srcgids.size();
@@ -58,9 +54,8 @@ void Phase1::populate(NrnThread& nt, OMP_Mutex& mut) {
     std::copy(this->netcon_srcgids.begin(), this->netcon_srcgids.end(),
               nrnthreads_netcon_srcgid[nt.id]);
 
-    if (corenrn_embedded) { // multiple threads and direct mode.
-        coreneuron::nrnthreads_netcon_negsrcgid_tid[nt.id] = this->netcon_negsrcgid_tid;
-    }
+    // netcon_negsrcgid_tid is empty if file transfer or single thread
+    coreneuron::nrnthreads_netcon_negsrcgid_tid[nt.id] = this->netcon_negsrcgid_tid;
 
     nt.netcons = new NetCon[nt.n_netcon];
     nt.presyns_helper = (PreSynHelper*)ecalloc_align(nt.n_presyn, sizeof(PreSynHelper));
